@@ -1,9 +1,18 @@
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/700.css';
+import Button from '@mui/material/Button';
+
 const Home = () => {
   return (
     <div className="text-center">
       <h1 className="text-4xl font-bold text-gray-900 mb-8">
         Welcome to Your React App
       </h1>
+      <Button variant="contained" color="secondary">
+        Click me
+      </Button>
       <p className="text-lg text-gray-600 mb-8">
         This is a React application built with Vite, TypeScript, Tailwind CSS, Redux Toolkit, and React Router.
       </p>
