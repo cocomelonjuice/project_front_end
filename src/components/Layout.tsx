@@ -1,6 +1,10 @@
-import { Outlet } from 'react-router-dom';
+import type { ReactNode } from 'react';
 
-const Layout = () => {
+interface LayoutProps {
+  children: ReactNode;
+}
+
+const Layout = ({ children }: LayoutProps) => {
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white shadow-sm border-b">
@@ -23,7 +27,7 @@ const Layout = () => {
         </div>
       </nav>
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <Outlet />
+        {children}
       </main>
     </div>
   );

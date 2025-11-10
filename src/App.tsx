@@ -1,20 +1,29 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from './store';
+import { Routers } from './shared/routes/src';
+import { AuthProvider } from './shared/auth/src';
 import Layout from './components/Layout';
-import Home from './pages/Home';
-import About from './pages/About';
+import { privateRoutes } from './app/routes';
 
+/**
+ * Main App Component
+ * Similar to vaccine-rsa-web-v2 portal app structure
+ * 
+ * Features:
+ * - Permission-aware routing
+ * - Role-based access control
+ * - Auth provider for permission checking
+ */
 function App() {
   return (
     <Provider store={store}>
       <Router>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Home />} />
-            <Route path="about" element={<About />} />
-          </Route>
-        </Routes>
+        <AuthProvider>
+          <Layout>
+            <Routers routes={privateRoutes} />
+          </Layout>
+        </AuthProvider>
       </Router>
     </Provider>
   );
