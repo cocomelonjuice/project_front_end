@@ -21,6 +21,7 @@
     "react-dom": "^19.1.0",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.6.3",
+    "redux-persist": "^6.0.0",
     "redux-saga": "^1.4.2",
     "regenerator-runtime": "^0.14.1"
   },

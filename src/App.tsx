@@ -1,6 +1,7 @@
 import { BrowserRouter as Router } from 'react-router-dom';
 import { Provider } from 'react-redux';
-import { store } from './store';
+import { PersistGate } from 'redux-persist/integration/react';
+import { persistor, store } from './store';
 import { Routers } from './shared/routes/src';
 import { AuthProvider } from './shared/auth/src';
 import Layout from './components/Layout';
@@ -19,11 +20,13 @@ function App() {
   return (
     <Provider store={store}>
       <Router>
-        <AuthProvider>
-          <Layout>
-            <Routers routes={privateRoutes} />
-          </Layout>
-        </AuthProvider>
+        <PersistGate loading={null} persistor={persistor}>
+          <AuthProvider>
+            <Layout>
+              <Routers routes={privateRoutes} />
+            </Layout>
+          </AuthProvider>
+        </PersistGate>
       </Router>
     </Provider>
   );

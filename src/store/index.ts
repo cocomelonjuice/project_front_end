@@ -4,6 +4,17 @@ import { all } from 'redux-saga/effects';
 import { reducer, MODULE_NAME } from './store';
 import rootSaga from './store/sagas';
 import type { InjectStore } from './store/types';
+import {
+  persistStore,
+  persistReducer,
+  FLUSH,
+  REHYDRATE,
+  PAUSE,
+  PERSIST,
+  PURGE,
+  REGISTER,
+} from 'redux-persist';
+import storage from 'redux-persist/lib/storage';
 
 // Import feature stores here (similar to portal pattern)
 // Example: import { injectStore as exampleFeatureStore } from '@/features/example-feature/src/store';
@@ -27,6 +38,14 @@ const combinedReducers = combineReducers({
   }, {} as Record<string, any>),
 });
 
+const persistConfig = {
+  key: 'root',
+  storage,
+  whitelist: [MODULE_NAME], // TODO: review persisted modules when adding feature stores
+};
+
+const persistedReducer = persistReducer(persistConfig, combinedReducers);
+
 // Build combined root saga (similar to portal pattern)
 function* combinedRootSaga() {
   yield all([
@@ -37,19 +56,21 @@ function* combinedRootSaga() {
 }
 
 export const store = configureStore({
-  reducer: combinedReducers,
+  reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       thunk: false, // Disable thunk since we're using saga
       serializableCheck: {
-        // Ignore these action types for serializable check
-        ignoredActions: [],
+        // Ignore redux-persist actions for serializable check
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
     }).concat(sagaMiddleware),
 });
 
 // Run combined root saga
 sagaMiddleware.run(combinedRootSaga);
+
+export const persistor = persistStore(store);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
