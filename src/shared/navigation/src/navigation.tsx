@@ -1,6 +1,7 @@
 // import { permissions } from '../../auth/src';
 import Home from '../../../pages/Home';
 import About from '../../../pages/About';
+import Profile from '../../../pages/Profile';
 import type { ComponentType, ReactNode } from 'react';
 
 /**
@@ -44,6 +45,14 @@ export const routeDefinitions: RouteDefinition[] = [
     component: About,
     // Example: Add permission to route
     // permissions: permissions.DataManagement.Menu,
+  },
+  {
+    id: 'profile',
+    path: '/profile',
+    label: 'Profile',
+    componentName: 'Profile',
+    component: Profile,
+    showInNavigation: false, // Don't show in sidebar, only in user menu
   },
   // Add more routes here with permissions
   // {

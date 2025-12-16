@@ -2,7 +2,7 @@
  * App Configuration
  */
 export const APP_CONFIG = {
-  NAME: 'My React App',
+  NAME: 'SoftPlace Project Management',
   VERSION: '1.0.0',
   ENV: import.meta.env.MODE,
   IS_DEV: import.meta.env.DEV,

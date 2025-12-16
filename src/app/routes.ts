@@ -15,6 +15,12 @@ export const publicRoutes: RoutesType = [
   },
 ];
 
+import IssueDetail from '../pages/issues/IssueDetail';
+import ProjectDetail from '../pages/projects/ProjectDetail';
+import WorkflowsList from '../pages/workflows/WorkflowsList';
+import WorkflowDetail from '../pages/workflows/WorkflowDetail';
+import AdminDashboard from '../pages/admin/AdminDashboard';
+
 export const privateRoutes: RoutesType = [
   ...routeDefinitions.flatMap((route: RouteDefinition): RouteType[] => {
     if (route.child) {
@@ -39,6 +45,31 @@ export const privateRoutes: RoutesType = [
       },
     ];
   }),
+  {
+    name: 'ProjectDetail',
+    path: '/projects/:id',
+    element: ProjectDetail,
+  },
+  {
+    name: 'IssueDetail',
+    path: '/projects/:projectId/issues/:issueId',
+    element: IssueDetail,
+  },
+  {
+    name: 'WorkflowsList',
+    path: '/workflows',
+    element: WorkflowsList,
+  },
+  {
+    name: 'WorkflowDetail',
+    path: '/workflows/:id',
+    element: WorkflowDetail,
+  },
+  {
+    name: 'AdminDashboard',
+    path: '/admin',
+    element: AdminDashboard,
+  },
   {
     path: '*',
     element: Page404,

@@ -18,6 +18,7 @@ import storage from 'redux-persist/lib/storage';
 
 // Import feature stores here (similar to portal pattern)
 // Example: import { injectStore as exampleFeatureStore } from '@/features/example-feature/src/store';
+import { injectStore as issuesInjectStore } from '../features/issues/src/store';
 
 // Create saga middleware
 const sagaMiddleware = createSagaMiddleware();
@@ -25,7 +26,7 @@ const sagaMiddleware = createSagaMiddleware();
 // Collect all feature stores (similar to portal pattern)
 const featureStores: InjectStore[] = [
   // Add feature stores here:
-  // exampleFeatureStore,
+  issuesInjectStore,
 ];
 
 // Build combined reducers (similar to portal pattern)
@@ -41,7 +42,7 @@ const combinedReducers = combineReducers({
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: [MODULE_NAME], // TODO: review persisted modules when adding feature stores
+  whitelist: [MODULE_NAME, 'issues'], // Persist root and issues state
 };
 
 const persistedReducer = persistReducer(persistConfig, combinedReducers);
@@ -63,6 +64,8 @@ export const store = configureStore({
       serializableCheck: {
         // Ignore redux-persist actions for serializable check
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+        // Ignore callback functions in action payloads (used by sagas)
+        ignoredActionPaths: ['payload.callback'],
       },
     }).concat(sagaMiddleware),
 });
