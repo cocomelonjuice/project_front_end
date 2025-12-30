@@ -116,7 +116,9 @@ const sagas = {
         yield put(actions.createIssueSuccess({ data: newIssue } as any));
         payload.callback?.onSuccess?.(newIssue);
       } else {
-        const response = yield call(issuesApi.createIssue, payload.data.projectId, payload.data);
+        // Extract projectId from payload and exclude it from the data object (projectId is in URL, not body)
+        const { projectId, ...issueData } = payload.data;
+        const response = yield call(issuesApi.createIssue, projectId, issueData);
         yield put(actions.createIssueSuccess({ data: response.data } as any));
         payload.callback?.onSuccess?.(response.data);
       }

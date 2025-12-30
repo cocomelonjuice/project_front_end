@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -17,7 +18,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import type { Status } from '../store/states';
-import { mockStatuses } from '../store/mockData';
+import { referenceDataActions, useSelectorReferenceData } from '../../../reference-data/src/store';
 
 interface TransitionStatusModalProps {
   open: boolean;
@@ -33,11 +34,38 @@ const TransitionStatusModal: React.FC<TransitionStatusModalProps> = ({
   onClose,
   issueId,
   currentStatusId,
-  availableStatuses = mockStatuses,
+  availableStatuses,
   onStatusTransitioned,
 }) => {
+  const dispatch = useDispatch();
+  const referenceDataState = useSelectorReferenceData((state) => state);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedStatusId, setSelectedStatusId] = useState<string>(currentStatusId);
+
+  // Use provided statuses or fetch from API
+  const statuses = availableStatuses || referenceDataState.statuses.map((s) => ({
+    id: s.id,
+    name: s.name,
+    category: s.category,
+    color: s.color,
+  })) as Status[];
+
+  // Fetch statuses on component mount if not provided (only once)
+  useEffect(() => {
+    if (!availableStatuses) {
+      dispatch(
+        referenceDataActions.getStatusesRequest({
+          data: {},
+          callback: {
+            onSuccess: () => {},
+            onError: (error: any) => {
+              console.error('Failed to load statuses:', error);
+            },
+          },
+        } as any)
+      );
+    }
+  }, [dispatch, availableStatuses]);
 
   useEffect(() => {
     if (open) {
@@ -73,8 +101,13 @@ const TransitionStatusModal: React.FC<TransitionStatusModalProps> = ({
       <DialogTitle>Change Status</DialogTitle>
       <DialogContent>
         <Box sx={{ pt: 1 }}>
-          <List sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
-            {availableStatuses.map((status) => (
+          {referenceDataState.getStatusesLoading && !availableStatuses ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <CircularProgress size={24} />
+            </Box>
+          ) : (
+            <List sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+              {statuses.map((status) => (
               <ListItem key={status.id} disablePadding>
                 <ListItemButton
                   selected={selectedStatusId === status.id}
@@ -111,8 +144,9 @@ const TransitionStatusModal: React.FC<TransitionStatusModalProps> = ({
                   />
                 </ListItemButton>
               </ListItem>
-            ))}
-          </List>
+              ))}
+            </List>
+          )}
         </Box>
       </DialogContent>
       <DialogActions>

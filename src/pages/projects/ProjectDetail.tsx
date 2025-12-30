@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import {
   Box,
   Typography,
@@ -20,6 +21,9 @@ import {
   MenuItem,
   CircularProgress,
   Alert,
+  FormControl,
+  InputLabel,
+  Select,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -29,10 +33,11 @@ import {
   Add as AddIcon,
 } from '@mui/icons-material';
 import { CreateIssueModal, EditIssueModal, DeleteIssueDialog } from '../../features/issues/src';
-import { mockIssueTypes, mockPriorities, mockStatuses, mockIssues, mockUsers } from '../../features/issues/src/store/mockData';
+import { mockUsers } from '../../features/issues/src/store/mockData';
+import { useSelectorReferenceData } from '../../features/reference-data/src/store';
 import type { Issue } from '../../features/issues/src/store/states';
-import { BoardView } from '../../features/boards/src';
-import { defaultBoardColumns, mockBoards } from '../../features/boards/src/store/mockData';
+import { BoardView, CreateBoardModal, EditBoardModal, DeleteBoardDialog } from '../../features/boards/src';
+import type { Board, BoardColumn } from '../../features/boards/src/store/states';
 import {
   SprintList,
   CreateSprintModal,
@@ -40,8 +45,11 @@ import {
   DeleteSprintDialog,
   SprintIssuesView,
 } from '../../features/sprints/src';
-import { mockSprints } from '../../features/sprints/src/store/mockData';
+import { sprintsActions, useSelectorSprints } from '../../features/sprints/src/store';
 import type { Sprint } from '../../features/sprints/src/store/states';
+import { projectsActions, useSelectorProjects } from '../../features/projects/src/store';
+import { boardsActions, useSelectorBoards } from '../../features/boards/src/store';
+import { issuesActions, useSelectorIssues } from '../../features/issues/src/store';
 import {
   TeamList,
   AssignRoleModal,
@@ -58,18 +66,77 @@ import type { EntityTypeFilter } from '../../features/activity/src/components/Ac
 const ProjectDetail: React.FC = () => {
   const { id: projectId } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const sprintsState = useSelectorSprints((state) => state);
+  const boardsState = useSelectorBoards((state) => state);
+  const issuesState = useSelectorIssues((state) => state);
+  const referenceDataState = useSelectorReferenceData((state) => state);
 
-  // Use local state for issues (simpler mock approach)
-  // Initialize with mock data for the current project
-  const initializedRef = useRef(false);
-  const [localIssues, setLocalIssues] = useState<Issue[]>(() => {
-    // Initialize with mock issues for projectId '1' or current projectId
-    const initialIssues = projectId 
-      ? mockIssues.filter((issue) => issue.projectId === projectId || issue.projectId === '1')
-      : [];
-    console.log('🔵 Initial localIssues:', initialIssues.length);
-    return initialIssues;
-  });
+  // All project issues (for Issues tab)
+  const allProjectIssues = issuesState.issues.filter((issue) => issue.projectId === projectId);
+  
+  // Debug: Log issues state
+  React.useEffect(() => {
+    console.log('🔵 Issues state debug:', {
+      totalIssuesInRedux: issuesState.issues.length,
+      projectId,
+      filteredProjectIssues: allProjectIssues.length,
+      issues: allProjectIssues.map((i) => ({ key: i.key, sprintId: i.sprintId, projectId: i.projectId })),
+    });
+  }, [issuesState.issues, projectId, allProjectIssues.length]);
+
+  // Generate board columns dynamically from statuses
+  const boardColumns: BoardColumn[] = React.useMemo(() => {
+    const statuses = referenceDataState.statuses;
+    if (statuses.length === 0) return [];
+
+    // Group statuses by category
+    const todoStatuses = statuses.filter((s) => s.category === 'todo');
+    const inProgressStatuses = statuses.filter((s) => s.category === 'inprogress');
+    const doneStatuses = statuses.filter((s) => s.category === 'done');
+
+    const columns: BoardColumn[] = [];
+
+    if (todoStatuses.length > 0) {
+      columns.push({
+        id: 'todo',
+        name: 'To Do',
+        statusIds: todoStatuses.map((s) => s.id),
+        color: '#42526E',
+      });
+    }
+
+    if (inProgressStatuses.length > 0) {
+      columns.push({
+        id: 'inprogress',
+        name: 'In Progress',
+        statusIds: inProgressStatuses.map((s) => s.id),
+        color: '#0052CC',
+      });
+    }
+
+    if (doneStatuses.length > 0) {
+      columns.push({
+        id: 'done',
+        name: 'Done',
+        statusIds: doneStatuses.map((s) => s.id),
+        color: '#36B37E',
+      });
+    }
+
+    // If no categories match, create columns from all statuses
+    if (columns.length === 0 && statuses.length > 0) {
+      return statuses.map((status, index) => ({
+        id: `column-${index}`,
+        name: status.name,
+        statusIds: [status.id],
+        color: status.color || '#ccc',
+      }));
+    }
+
+    return columns;
+  }, [referenceDataState.statuses]);
+
   const [tabValue, setTabValue] = useState(0);
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
@@ -77,13 +144,67 @@ const ProjectDetail: React.FC = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  // Sprints state
-  const [sprints, setSprints] = useState<Sprint[]>([]);
+  // Sprints state - using Redux
   const [createSprintModalOpen, setCreateSprintModalOpen] = useState(false);
   const [editSprintModalOpen, setEditSprintModalOpen] = useState(false);
   const [deleteSprintDialogOpen, setDeleteSprintDialogOpen] = useState(false);
   const [selectedSprint, setSelectedSprint] = useState<Sprint | null>(null);
   const [viewSprintIssues, setViewSprintIssues] = useState<Sprint | null>(null);
+  const [currentBoardId, setCurrentBoardId] = useState<string | null>(null);
+
+  // Filter sprints by current board to ensure we only use sprints for the selected board
+  const sprints = React.useMemo(() => {
+    if (!currentBoardId) return sprintsState.sprints;
+    return sprintsState.sprints.filter((sprint) => sprint.boardId === currentBoardId);
+  }, [sprintsState.sprints, currentBoardId]);
+  const [createBoardModalOpen, setCreateBoardModalOpen] = useState(false);
+  const [editBoardModalOpen, setEditBoardModalOpen] = useState(false);
+  const [deleteBoardDialogOpen, setDeleteBoardDialogOpen] = useState(false);
+  const [selectedBoard, setSelectedBoard] = useState<Board | null>(null);
+
+  // Board-specific issues (for Board View)
+  // Show issues that belong to sprints in the current board, OR unassigned issues (backlog)
+  // Unassigned issues show on all boards as they can be added to any sprint
+  const boardIssues = React.useMemo(() => {
+    // If no board is selected, show all project issues (including unassigned)
+    if (!currentBoardId) {
+      return allProjectIssues;
+    }
+
+    // Get sprint IDs for the current board
+    // Debug: Log sprint boardIds
+    console.log('🔵 Sprint boardId check:', {
+      currentBoardId,
+      sprints: sprints.map((s) => ({ id: s.id, name: s.name, boardId: s.boardId, matches: s.boardId === currentBoardId })),
+    });
+    
+    const boardSprintIds = sprints
+      .filter((sprint) => sprint.boardId === currentBoardId)
+      .map((sprint) => sprint.id);
+
+    // Show issues that:
+    // 1. Belong to sprints in the current board, OR
+    // 2. Are unassigned (no sprintId) - these are backlog issues available to all boards
+    const filtered = allProjectIssues.filter(
+      (issue) => !issue.sprintId || boardSprintIds.includes(issue.sprintId)
+    );
+
+    console.log('🔵 Board filtering debug:', {
+      currentBoardId,
+      totalSprints: sprints.length,
+      sprints: sprints.map((s) => ({ id: s.id, name: s.name, boardId: s.boardId })),
+      boardSprintIds,
+      totalIssues: allProjectIssues.length,
+      allIssues: allProjectIssues.map((i) => ({ key: i.key, sprintId: i.sprintId, statusId: i.statusId })),
+      issuesWithSprintId: allProjectIssues.filter((i) => i.sprintId).length,
+      unassignedIssues: allProjectIssues.filter((i) => !i.sprintId).length,
+      filteredCount: filtered.length,
+      filteredIssues: filtered.map((i) => ({ key: i.key, sprintId: i.sprintId, statusId: i.statusId })),
+      boardColumns: boardColumns.map((c) => ({ id: c.id, name: c.name, statusIds: c.statusIds })),
+    });
+
+    return filtered;
+  }, [allProjectIssues, currentBoardId, sprints]);
 
   // Team state
   const [teamMembers, setTeamMembers] = useState<ProjectTeamMember[]>([]);
@@ -93,28 +214,70 @@ const ProjectDetail: React.FC = () => {
   // Activity state
   const [activityFilter, setActivityFilter] = useState<EntityTypeFilter>('all');
 
-  // Initialize with mock data when component mounts or projectId changes (only once per projectId)
+  // Fetch issues for the project using Redux
   useEffect(() => {
-    if (projectId && !initializedRef.current) {
-      // Load mock issues for this project only on first load
-      const projectIssues = mockIssues.filter((issue) => issue.projectId === projectId || issue.projectId === '1');
-      console.log('🔵 Loading initial mock issues for project:', projectId, 'count:', projectIssues.length);
-      setLocalIssues(projectIssues);
-      initializedRef.current = true;
-    } else if (projectId && initializedRef.current) {
-      // Reset ref when projectId changes
-      initializedRef.current = false;
-    }
-  }, [projectId]); // Only run when projectId changes
+    if (!projectId) return;
 
-  // Load sprints for the default board (boardId '1')
+    dispatch(
+      issuesActions.getIssuesRequest({
+        data: { projectId },
+        callback: {
+          onSuccess: () => {
+            // Issues loaded successfully
+          },
+          onError: (error: any) => {
+            console.error('Failed to fetch issues:', error);
+          },
+        },
+      } as any)
+    );
+  }, [projectId, dispatch]);
+
+  // Fetch boards for the project using Redux
   useEffect(() => {
-    // For now, use boardId '1' as default
-    // In real app, this would be based on the selected board
-    const boardId = '1';
-    const boardSprints = mockSprints.filter((s) => s.boardId === boardId);
-    setSprints(boardSprints);
-  }, [projectId]);
+    if (!projectId) return;
+
+    dispatch(
+      boardsActions.getBoardsByProjectRequest({
+        data: { projectId },
+        callback: {
+          onSuccess: (boards: any[]) => {
+            if (boards && boards.length > 0) {
+              // Use the first board's UUID
+              setCurrentBoardId(boards[0].id);
+            } else {
+              // No boards found for this project
+              setCurrentBoardId(null);
+              console.warn(`No boards found for project ${projectId}`);
+            }
+          },
+          onError: (error: any) => {
+            console.error('Failed to fetch boards:', error);
+            setCurrentBoardId(null);
+          },
+        },
+      } as any)
+    );
+  }, [projectId, dispatch]);
+
+  // Load sprints for the current board
+  useEffect(() => {
+    if (currentBoardId) {
+      dispatch(
+        sprintsActions.getSprintsByBoardRequest({
+          data: { boardId: currentBoardId },
+          callback: {
+            onSuccess: () => {
+              // Sprints loaded successfully
+            },
+            onError: (error: any) => {
+              console.error('Failed to load sprints:', error);
+            },
+          },
+        } as any)
+      );
+    }
+  }, [currentBoardId, dispatch]);
 
   // Load team members for the project
   useEffect(() => {
@@ -160,77 +323,181 @@ const ProjectDetail: React.FC = () => {
   };
 
   const handleIssueCreated = (newIssue: Issue) => {
-    console.log('🔵 handleIssueCreated called with:', newIssue);
-    console.log('🔵 Current localIssues before update:', localIssues.length);
-    // Add new issue to local state immediately
-    setLocalIssues((prev) => {
-      const updated = [newIssue, ...prev];
-      console.log('🔵 Updated issues count:', updated.length);
-      console.log('🔵 New issue added:', newIssue.key, newIssue.summary);
-      return updated;
-    });
+    // Issue is already added to Redux state by the saga
+    // Optionally reload issues to ensure consistency
+    if (projectId) {
+      dispatch(
+        issuesActions.getIssuesRequest({
+          data: { projectId },
+          callback: {},
+        } as any)
+      );
+    }
   };
 
   const handleIssueUpdated = (updatedIssue: Issue) => {
-    // Update issue in local state
-    setLocalIssues((prev) =>
-      prev.map((issue) => (issue.id === updatedIssue.id ? updatedIssue : issue))
-    );
+    // Issue is already updated in Redux state by the saga
+    // Optionally reload issues to ensure consistency
+    if (projectId) {
+      dispatch(
+        issuesActions.getIssuesRequest({
+          data: { projectId },
+          callback: {},
+        } as any)
+      );
+    }
   };
 
   const handleIssueDeleted = (issueId: string) => {
-    // Remove issue from local state
-    setLocalIssues((prev) => prev.filter((issue) => issue.id !== issueId));
+    // Issue is already removed from Redux state by the saga
+    // Optionally reload issues to ensure consistency
+    if (projectId) {
+      dispatch(
+        issuesActions.getIssuesRequest({
+          data: { projectId },
+          callback: {},
+        } as any)
+      );
+    }
   };
 
   const handleIssueMove = (issueId: string, newStatusId: string) => {
-    // Update issue status when moved on board
-    setLocalIssues((prev) =>
-      prev.map((issue) => {
-        if (issue.id === issueId) {
-          const newStatus = mockStatuses.find((s) => s.id === newStatusId);
-          return {
-            ...issue,
-            statusId: newStatusId,
-            status: newStatus,
-          };
-        }
-        return issue;
-      })
+    // Update issue status when moved on board using transition API
+    dispatch(
+      issuesActions.transitionIssueRequest({
+        data: {
+          id: issueId,
+          statusId: newStatusId,
+        },
+        callback: {
+          onSuccess: () => {
+            // Issue status updated successfully
+            // Reload issues to get updated data
+            if (projectId) {
+              dispatch(
+                issuesActions.getIssuesRequest({
+                  data: { projectId },
+                  callback: {},
+                } as any)
+              );
+            }
+          },
+          onError: (error: any) => {
+            console.error('Failed to transition issue:', error);
+          },
+        },
+      } as any)
     );
   };
 
   // Sprint handlers
-  const handleSprintCreated = (newSprint: Sprint) => {
-    setSprints((prev) => [...prev, newSprint]);
+  const handleSprintCreated = () => {
+    // Sprint is already added to Redux state by the saga
+    // Optionally reload sprints to ensure consistency
+    if (currentBoardId) {
+      dispatch(
+        sprintsActions.getSprintsByBoardRequest({
+          data: { boardId: currentBoardId },
+          callback: {},
+        } as any)
+      );
+    }
   };
 
-  const handleSprintUpdated = (updatedSprint: Sprint) => {
-    setSprints((prev) => prev.map((s) => (s.id === updatedSprint.id ? updatedSprint : s)));
+  const handleSprintUpdated = () => {
+    // Sprint is already updated in Redux state by the saga
     setSelectedSprint(null);
   };
 
-  const handleSprintDeleted = (sprintId: string) => {
-    setSprints((prev) => prev.filter((s) => s.id !== sprintId));
+  const handleSprintDeleted = () => {
+    // Sprint is already removed from Redux state by the saga
     setSelectedSprint(null);
+  };
+
+  // Board handlers
+  const handleBoardCreated = () => {
+    // Reload boards to get the new board
+    if (projectId) {
+      dispatch(
+        boardsActions.getBoardsByProjectRequest({
+          data: { projectId },
+          callback: {
+            onSuccess: (boards: any[]) => {
+              if (boards && boards.length > 0) {
+                // Use the first board's UUID (or the newly created one)
+                setCurrentBoardId(boards[0].id);
+              }
+            },
+            onError: (error: any) => {
+              console.error('Failed to reload boards:', error);
+            },
+          },
+        } as any)
+      );
+    }
+  };
+
+  const handleBoardUpdated = () => {
+    // Board is already updated in Redux state by the saga
+    setSelectedBoard(null);
+  };
+
+  const handleBoardDeleted = () => {
+    // Board is already removed from Redux state by the saga
+    setSelectedBoard(null);
+    setCurrentBoardId(null);
+    // Reload boards to see if there are any remaining
+    if (projectId) {
+      dispatch(
+        boardsActions.getBoardsByProjectRequest({
+          data: { projectId },
+          callback: {
+            onSuccess: (boards: any[]) => {
+              if (boards && boards.length > 0) {
+                setCurrentBoardId(boards[0].id);
+              } else {
+                setCurrentBoardId(null);
+              }
+            },
+            onError: (error: any) => {
+              console.error('Failed to reload boards:', error);
+            },
+          },
+        } as any)
+      );
+    }
   };
 
   const handleStartSprint = (sprint: Sprint) => {
-    const updatedSprint: Sprint = {
-      ...sprint,
-      status: 'active',
-      startDate: new Date().toISOString(),
-    };
-    handleSprintUpdated(updatedSprint);
+    dispatch(
+      sprintsActions.startSprintRequest({
+        data: { id: sprint.id },
+        callback: {
+          onSuccess: () => {
+            // Sprint started successfully
+          },
+          onError: (error: any) => {
+            console.error('Failed to start sprint:', error);
+          },
+        },
+      } as any)
+    );
   };
 
   const handleCompleteSprint = (sprint: Sprint) => {
-    const updatedSprint: Sprint = {
-      ...sprint,
-      status: 'closed',
-      endDate: new Date().toISOString(),
-    };
-    handleSprintUpdated(updatedSprint);
+    dispatch(
+      sprintsActions.completeSprintRequest({
+        data: { id: sprint.id },
+        callback: {
+          onSuccess: () => {
+            // Sprint completed successfully
+          },
+          onError: (error: any) => {
+            console.error('Failed to complete sprint:', error);
+          },
+        },
+      } as any)
+    );
   };
 
   const handleViewSprintIssues = (sprint: Sprint) => {
@@ -279,48 +546,27 @@ const ProjectDetail: React.FC = () => {
     setTeamMembers((prev) => prev.filter((m) => m.userId !== member.userId));
   };
 
-  // Load project data (for now using mock, later from projects store)
-  // In a real app, this would fetch from API using projectId
-  const [project, setProject] = useState<{
-    id: string;
-    key: string;
-    name: string;
-    type: string;
-    description: string;
-  } | null>(null);
+  // Load project data from Redux store
+  const projectsState = useSelectorProjects((state) => state);
+  const project = projectsState.currentProject || projectsState.projects.find((p) => p.id === projectId) || null;
 
   useEffect(() => {
     if (projectId) {
-      // TODO: Load project from API/store using projectId
-      // For now, we'll use mock data based on projectId
-      // In real implementation: fetch project by ID from projects store/API
-      const mockProjects = [
-        {
-          id: '1',
-          key: 'PROJ',
-          name: 'Sample Project',
-          type: 'software',
-          description: 'A sample project for testing',
-        },
-        {
-          id: '2',
-          key: 'DEV',
-          name: 'Development Project',
-          type: 'business',
-          description: 'Development team project',
-        },
-        {
-          id: '3',
-          key: 'TEST',
-          name: 'Test Project',
-          type: 'software',
-          description: 'Testing project',
-        },
-      ];
-      const foundProject = mockProjects.find((p) => p.id === projectId) || mockProjects[0];
-      setProject(foundProject);
+      // Fetch project by ID if not already in store or if current project doesn't match
+      if (!project || project.id !== projectId) {
+        dispatch(
+          projectsActions.getProjectByIdRequest({
+            data: { id: projectId },
+            callback: {
+              onError: (error: any) => {
+                console.error('Failed to fetch project:', error);
+              },
+            },
+          } as any)
+        );
+      }
     }
-  }, [projectId]);
+  }, [projectId, dispatch, project]);
 
   if (!project) {
     return (
@@ -384,7 +630,9 @@ const ProjectDetail: React.FC = () => {
           {viewSprintIssues ? (
             <SprintIssuesView
               sprint={viewSprintIssues}
-              issues={localIssues} // For mock data, show all issues. In real app, filter by sprintId
+              issues={viewSprintIssues 
+                ? allProjectIssues.filter((issue) => issue.sprintId === viewSprintIssues.id)
+                : []}
               onBack={handleBackFromSprintIssues}
             />
           ) : (
@@ -392,48 +640,199 @@ const ProjectDetail: React.FC = () => {
               {/* Sprints Section */}
               <Paper sx={{ p: 3, mb: 3 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                  <Typography variant="h6">Sprints</Typography>
-                  <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={() => setCreateSprintModalOpen(true)}
-                    size="small"
-                  >
-                    Create Sprint
-                  </Button>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Typography variant="h6">Sprints</Typography>
+                    {boardsState.boards.length > 1 ? (
+                      <FormControl size="small" sx={{ minWidth: 200 }}>
+                        <InputLabel>Select Board</InputLabel>
+                        <Select
+                          value={currentBoardId || ''}
+                          label="Select Board"
+                          onChange={(e) => setCurrentBoardId(e.target.value)}
+                        >
+                          {boardsState.boards.map((board) => (
+                            <MenuItem key={board.id} value={board.id}>
+                              {board.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    ) : boardsState.boards.length > 0 && currentBoardId ? (
+                      <Chip
+                        label={`Board: ${boardsState.boards.find((b) => b.id === currentBoardId)?.name || 'Unknown'}`}
+                        size="small"
+                        color="primary"
+                        variant="outlined"
+                      />
+                    ) : null}
+                  </Box>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    {boardsState.boards.length > 0 && currentBoardId && (
+                      <>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={() => {
+                            const board = boardsState.boards.find((b) => b.id === currentBoardId);
+                            if (board) {
+                              setSelectedBoard(board);
+                              setEditBoardModalOpen(true);
+                            }
+                          }}
+                        >
+                          Edit Board
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          size="small"
+                          onClick={() => {
+                            const board = boardsState.boards.find((b) => b.id === currentBoardId);
+                            if (board) {
+                              setSelectedBoard(board);
+                              setDeleteBoardDialogOpen(true);
+                            }
+                          }}
+                        >
+                          Delete Board
+                        </Button>
+                      </>
+                    )}
+                    {currentBoardId && (
+                      <Button
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        onClick={() => setCreateSprintModalOpen(true)}
+                        size="small"
+                        disabled={boardsState.getBoardsLoading}
+                      >
+                        Create Sprint
+                      </Button>
+                    )}
+                    {!currentBoardId && (
+                      <Button
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        onClick={() => setCreateBoardModalOpen(true)}
+                        size="small"
+                      >
+                        Create Board
+                      </Button>
+                    )}
+                  </Box>
                 </Box>
-                <SprintList
-                  sprints={sprints}
-                  onEdit={(sprint) => {
-                    setSelectedSprint(sprint);
-                    setEditSprintModalOpen(true);
-                  }}
-                  onDelete={(sprint) => {
-                    setSelectedSprint(sprint);
-                    setDeleteSprintDialogOpen(true);
-                  }}
-                  onStart={handleStartSprint}
-                  onComplete={handleCompleteSprint}
-                  onViewIssues={handleViewSprintIssues}
-                />
+                {boardsState.getBoardsLoading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                    <CircularProgress size={24} />
+                    <Typography variant="body2" sx={{ ml: 2 }}>
+                      Loading boards...
+                    </Typography>
+                  </Box>
+                ) : !currentBoardId ? (
+                  <Box>
+                    <Alert severity="info" sx={{ mb: 2 }}>
+                      No boards found for this project. Please create a board first to manage sprints.
+                      {projectId && (
+                        <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+                          Project ID: {projectId}
+                        </Typography>
+                      )}
+                    </Alert>
+                    <SprintList sprints={[]} emptyMessage="No sprints available (no board found)" />
+                  </Box>
+                ) : (
+                  <SprintList
+                    sprints={sprints}
+                    onEdit={(sprint) => {
+                      setSelectedSprint(sprint);
+                      setEditSprintModalOpen(true);
+                    }}
+                    onDelete={(sprint) => {
+                      setSelectedSprint(sprint);
+                      setDeleteSprintDialogOpen(true);
+                    }}
+                    onStart={handleStartSprint}
+                    onComplete={handleCompleteSprint}
+                    onViewIssues={handleViewSprintIssues}
+                  />
+                )}
               </Paper>
 
               {/* Board Section */}
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                  <Typography variant="h6">Board</Typography>
-                  <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={handleCreateIssue}
-                    size="small"
-                  >
-                    Create Issue
-                  </Button>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Typography variant="h6">Board View</Typography>
+                    {boardsState.boards.length > 1 ? (
+                      <FormControl size="small" sx={{ minWidth: 200 }}>
+                        <InputLabel>Select Board</InputLabel>
+                        <Select
+                          value={currentBoardId || ''}
+                          label="Select Board"
+                          onChange={(e) => setCurrentBoardId(e.target.value)}
+                        >
+                          {boardsState.boards.map((board) => (
+                            <MenuItem key={board.id} value={board.id}>
+                              {board.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    ) : boardsState.boards.length > 0 && currentBoardId ? (
+                      <Chip
+                        label={boardsState.boards.find((b) => b.id === currentBoardId)?.name || 'Unknown'}
+                        size="small"
+                        color="primary"
+                        variant="outlined"
+                      />
+                    ) : null}
+                  </Box>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    {boardsState.boards.length > 0 && currentBoardId && (
+                      <>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={() => {
+                            const board = boardsState.boards.find((b) => b.id === currentBoardId);
+                            if (board) {
+                              setSelectedBoard(board);
+                              setEditBoardModalOpen(true);
+                            }
+                          }}
+                        >
+                          Edit Board
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          size="small"
+                          onClick={() => {
+                            const board = boardsState.boards.find((b) => b.id === currentBoardId);
+                            if (board) {
+                              setSelectedBoard(board);
+                              setDeleteBoardDialogOpen(true);
+                            }
+                          }}
+                        >
+                          Delete Board
+                        </Button>
+                      </>
+                    )}
+                    <Button
+                      variant="contained"
+                      startIcon={<AddIcon />}
+                      onClick={handleCreateIssue}
+                      size="small"
+                      disabled={!currentBoardId}
+                    >
+                      Create Issue
+                    </Button>
+                  </Box>
                 </Box>
                 <BoardView
-                  issues={localIssues}
-                  columns={defaultBoardColumns}
+                  issues={boardIssues}
+                  columns={boardColumns}
                   onIssueMove={handleIssueMove}
                 />
               </Box>
@@ -471,7 +870,7 @@ const ProjectDetail: React.FC = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {localIssues.length === 0 ? (
+                  {allProjectIssues.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
                         <Typography variant="body2" color="text.secondary">
@@ -480,10 +879,10 @@ const ProjectDetail: React.FC = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    localIssues.map((issue) => {
-                      const type = issue.type || mockIssueTypes.find((t) => t.id === issue.typeId);
-                      const priority = issue.priority || mockPriorities.find((p) => p.id === issue.priorityId);
-                      const status = issue.status || mockStatuses.find((s) => s.id === issue.statusId);
+                    allProjectIssues.map((issue) => {
+                      const type = issue.type || referenceDataState.issueTypes.find((t) => t.id === issue.typeId);
+                      const priority = issue.priority || referenceDataState.priorities.find((p) => p.id === issue.priorityId);
+                      const status = issue.status || referenceDataState.statuses.find((s) => s.id === issue.statusId);
 
                       return (
                         <TableRow key={issue.id} hover>
@@ -647,12 +1046,14 @@ const ProjectDetail: React.FC = () => {
       )}
 
       {/* Sprint Modals */}
-      <CreateSprintModal
-        open={createSprintModalOpen}
-        onClose={() => setCreateSprintModalOpen(false)}
-        boardId="1" // Default board ID, in real app this would be from selected board
-        onSprintCreated={handleSprintCreated}
-      />
+      {currentBoardId && (
+        <CreateSprintModal
+          open={createSprintModalOpen}
+          onClose={() => setCreateSprintModalOpen(false)}
+          boardId={currentBoardId}
+          onSprintCreated={handleSprintCreated}
+        />
+      )}
       {selectedSprint && (
         <>
           <EditSprintModal
@@ -672,6 +1073,38 @@ const ProjectDetail: React.FC = () => {
             }}
             sprint={selectedSprint}
             onSprintDeleted={handleSprintDeleted}
+          />
+        </>
+      )}
+
+      {/* Board Modals */}
+      {projectId && (
+        <CreateBoardModal
+          open={createBoardModalOpen}
+          onClose={() => setCreateBoardModalOpen(false)}
+          projectId={projectId}
+          onBoardCreated={handleBoardCreated}
+        />
+      )}
+      {selectedBoard && (
+        <>
+          <EditBoardModal
+            open={editBoardModalOpen}
+            onClose={() => {
+              setEditBoardModalOpen(false);
+              setSelectedBoard(null);
+            }}
+            board={selectedBoard}
+            onBoardUpdated={handleBoardUpdated}
+          />
+          <DeleteBoardDialog
+            open={deleteBoardDialogOpen}
+            onClose={() => {
+              setDeleteBoardDialogOpen(false);
+              setSelectedBoard(null);
+            }}
+            board={selectedBoard}
+            onBoardDeleted={handleBoardDeleted}
           />
         </>
       )}

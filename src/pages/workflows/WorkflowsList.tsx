@@ -31,10 +31,11 @@ import {
 } from '../../features/workflows/src';
 import { mockWorkflows } from '../../features/workflows/src/store/mockData';
 import type { Workflow } from '../../features/workflows/src/store/states';
-import { mockProjects } from '../../features/projects/src';
+import { useSelectorProjects } from '../../features/projects/src/store';
 
 const WorkflowsList: React.FC = () => {
   const navigate = useNavigate();
+  const projectsState = useSelectorProjects((state) => state);
   const [workflows, setWorkflows] = useState<Workflow[]>(mockWorkflows);
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
@@ -87,7 +88,7 @@ const WorkflowsList: React.FC = () => {
     if (!projectId) {
       return 'Global';
     }
-    const project = mockProjects.find((p) => p.id === projectId);
+    const project = projectsState.projects.find((p) => p.id === projectId);
     return project ? project.name : 'Unknown';
   };
 

@@ -31,11 +31,12 @@ import {
 } from '../../features/workflows/src';
 import { mockWorkflows } from '../../features/workflows/src/store/mockData';
 import type { Workflow, WorkflowTransition } from '../../features/workflows/src/store/states';
-import { mockProjects } from '../../features/projects/src';
+import { useSelectorProjects } from '../../features/projects/src/store';
 
 const WorkflowDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const projectsState = useSelectorProjects((state) => state);
   const [workflow, setWorkflow] = useState<Workflow | null>(null);
   const [loading, setLoading] = useState(true);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -83,7 +84,7 @@ const WorkflowDetail: React.FC = () => {
     if (!projectId) {
       return 'Global (All Projects)';
     }
-    const project = mockProjects.find((p) => p.id === projectId);
+    const project = projectsState.projects.find((p) => p.id === projectId);
     return project ? project.name : 'Unknown';
   };
 

@@ -15,6 +15,7 @@ export interface Board {
   id: string;
   name: string;
   projectId: string;
+  type?: string; // 'kanban' or 'scrum'
   columns: BoardColumn[];
 }
 

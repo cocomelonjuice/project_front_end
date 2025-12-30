@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -14,21 +15,12 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
-
-interface Project {
-  id: string;
-  key: string;
-  name: string;
-  type: string;
-  description?: string;
-  lead?: { name: string; avatar: string };
-  starred?: boolean;
-}
+import { projectsActions, useSelectorProjects } from '../store';
 
 interface CreateProjectModalProps {
   open: boolean;
   onClose: () => void;
-  onProjectCreated?: (project: Project) => void;
+  onProjectCreated?: () => void;
   existingKeys?: string[]; // For validation - check if key already exists
 }
 
@@ -45,7 +37,8 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   onProjectCreated,
   existingKeys = [],
 }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const dispatch = useDispatch();
+  const projectsState = useSelectorProjects((state) => state);
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
@@ -59,7 +52,6 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     if (open) {
       // Reset form when modal opens
       setError(null);
-      setIsSubmitting(false);
       setFormData({
         name: '',
         key: '',
@@ -109,34 +101,35 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       return;
     }
 
-    setIsSubmitting(true);
     setError(null);
 
-    // Simulate a quick delay (mock API call)
-    setTimeout(() => {
-      // Create new project object
-      const newProject: Project = {
-        id: `project-${Date.now()}`,
-        key: formData.key.toUpperCase(),
-        name: formData.name.trim(),
-        type: formData.type,
-        description: formData.description.trim() || undefined,
-        lead: { name: 'Current User', avatar: 'CU' }, // Mock lead
-        starred: false,
-      };
-
-      // Call callback with new project
-      if (onProjectCreated) {
-        onProjectCreated(newProject);
-      }
-
-      setIsSubmitting(false);
-      onClose();
-    }, 500); // Simulate API delay
+    // Dispatch Redux action to create project
+    dispatch(
+      projectsActions.createProjectRequest({
+        data: {
+          key: formData.key.toUpperCase(),
+          name: formData.name.trim(),
+          type: formData.type,
+          description: formData.description.trim() || undefined,
+        },
+        callback: {
+          onSuccess: () => {
+            if (onProjectCreated) {
+              onProjectCreated();
+            }
+            onClose();
+          },
+          onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to create project';
+            setError(errorMessage);
+          },
+        },
+      } as any)
+    );
   };
 
   const handleClose = () => {
-    if (!isSubmitting) {
+    if (!projectsState.createProjectLoading) {
       onClose();
     }
   };
@@ -158,7 +151,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             fullWidth
             value={formData.name}
             onChange={handleChange('name')}
-            disabled={isSubmitting}
+            disabled={projectsState.createProjectLoading}
             placeholder="Enter project name"
             helperText="A descriptive name for your project"
           />
@@ -169,7 +162,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             fullWidth
             value={formData.key}
             onChange={handleKeyChange}
-            disabled={isSubmitting}
+            disabled={projectsState.createProjectLoading}
             placeholder="PROJ"
             helperText="Unique key (uppercase letters and numbers, max 20 characters)"
             inputProps={{ maxLength: 20 }}
@@ -181,7 +174,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               value={formData.type}
               onChange={handleChange('type')}
               label="Project Type"
-              disabled={isSubmitting}
+              disabled={projectsState.createProjectLoading}
             >
               {projectTypes.map((type) => (
                 <MenuItem key={type.value} value={type.value}>
@@ -198,23 +191,23 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             rows={4}
             value={formData.description}
             onChange={handleChange('description')}
-            disabled={isSubmitting}
+            disabled={projectsState.createProjectLoading}
             placeholder="Enter project description (optional)"
             helperText="Describe the purpose and goals of this project"
           />
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} disabled={isSubmitting}>
+        <Button onClick={handleClose} disabled={projectsState.createProjectLoading}>
           Cancel
         </Button>
         <Button
           onClick={handleSubmit}
           variant="contained"
-          disabled={isSubmitting || !formData.name.trim() || !formData.key.trim()}
-          startIcon={isSubmitting ? <CircularProgress size={16} /> : null}
+          disabled={projectsState.createProjectLoading || !formData.name.trim() || !formData.key.trim()}
+          startIcon={projectsState.createProjectLoading ? <CircularProgress size={16} /> : null}
         >
-          {isSubmitting ? 'Creating...' : 'Create Project'}
+          {projectsState.createProjectLoading ? 'Creating...' : 'Create Project'}
         </Button>
       </DialogActions>
     </Dialog>

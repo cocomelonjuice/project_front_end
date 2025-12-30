@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -14,7 +15,11 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
-import { mockIssueTypes, mockPriorities, mockStatuses, mockUsers } from '../store/mockData';
+import { mockUsers } from '../store/mockData';
+import { usersActions, useSelectorUsers } from '../../../users/src/store';
+import { referenceDataActions, useSelectorReferenceData } from '../../../reference-data/src/store';
+import { issuesActions, useSelectorIssues } from '../store';
+import { useSelectorAuth } from '../../../auth/src/store';
 import type { Issue } from '../store/states';
 
 interface CreateIssueModalProps {
@@ -25,9 +30,16 @@ interface CreateIssueModalProps {
   onIssueCreated?: (issue: Issue) => void;
 }
 
-const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, projectId, reporterId = '1', onIssueCreated }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, projectId, reporterId, onIssueCreated }) => {
+  const dispatch = useDispatch();
+  const usersState = useSelectorUsers((state) => state);
+  const referenceDataState = useSelectorReferenceData((state) => state);
+  const issuesState = useSelectorIssues((state) => state);
+  const authState = useSelectorAuth((state) => state);
   const [error, setError] = useState<string | null>(null);
+  
+  // Get current user ID from auth state, or use provided reporterId, or undefined
+  const currentReporterId = authState.user?.id || reporterId || undefined;
   
 
   const [formData, setFormData] = useState({
@@ -39,21 +51,90 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, proj
     assigneeId: '',
   });
 
+  // Fetch users when modal opens
+  useEffect(() => {
+    if (open && usersState.users.length === 0 && !usersState.getUsersLoading) {
+      dispatch(
+        usersActions.getUsersRequest({
+          data: {},
+          callback: {
+            onSuccess: () => {
+              // Users loaded successfully
+            },
+            onError: (error: any) => {
+              console.error('Failed to load users:', error);
+            },
+          },
+        } as any)
+      );
+    }
+  }, [open, dispatch, usersState.users.length, usersState.getUsersLoading]);
+
+  // Fetch reference data on component mount (only once)
+  useEffect(() => {
+    // Fetch issue types
+    dispatch(
+      referenceDataActions.getIssueTypesRequest({
+        data: {},
+        callback: {
+          onSuccess: () => {},
+          onError: (error: any) => {
+            console.error('Failed to load issue types:', error);
+          },
+        },
+      } as any)
+    );
+
+    // Fetch priorities
+    dispatch(
+      referenceDataActions.getPrioritiesRequest({
+        data: {},
+        callback: {
+          onSuccess: () => {},
+          onError: (error: any) => {
+            console.error('Failed to load priorities:', error);
+          },
+        },
+      } as any)
+    );
+
+    // Fetch statuses
+    dispatch(
+      referenceDataActions.getStatusesRequest({
+        data: {},
+        callback: {
+          onSuccess: () => {},
+          onError: (error: any) => {
+            console.error('Failed to load statuses:', error);
+          },
+        },
+      } as any)
+    );
+  }, [dispatch]);
+
   useEffect(() => {
     if (open) {
       // Reset form when modal opens
       setError(null);
-      setIsSubmitting(false);
+      const issueTypes = referenceDataState.issueTypes;
+      const priorities = referenceDataState.priorities;
+      const statuses = referenceDataState.statuses;
+      
+      // Find medium priority (orderNum around 3) or default to first
+      const mediumPriority = priorities.find((p) => p.orderNum === 3) || priorities[0];
+      // Find "To Do" status or default to first
+      const todoStatus = statuses.find((s) => s.category === 'todo' || s.name.toLowerCase().includes('todo')) || statuses[0];
+      
       setFormData({
         summary: '',
         description: '',
-        typeId: mockIssueTypes[0]?.id || '',
-        priorityId: mockPriorities[2]?.id || '', // Medium
-        statusId: mockStatuses[0]?.id || '', // To Do
+        typeId: issueTypes[0]?.id || '',
+        priorityId: mediumPriority?.id || '',
+        statusId: todoStatus?.id || '',
         assigneeId: '',
       });
     }
-  }, [open]);
+  }, [open, referenceDataState.issueTypes, referenceDataState.priorities, referenceDataState.statuses]);
 
   const handleChange = (field: string) => (event: any) => {
     setFormData((prev) => ({
@@ -68,56 +149,44 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, proj
       return;
     }
 
-    setIsSubmitting(true);
+    if (formData.summary.trim().length < 3) {
+      setError('Summary must be at least 3 characters');
+      return;
+    }
+
     setError(null);
 
-    // Simulate a quick delay (mock API call)
-    setTimeout(() => {
-      // Generate issue key
-      const projectKey = 'PROJ';
-      const issueNumber = Date.now();
-      const newKey = `${projectKey}-${issueNumber}`;
-
-      // Create new issue object
-      const newIssue: Issue = {
-        id: `issue-${Date.now()}`,
-        key: newKey,
-        summary: formData.summary,
-        description: formData.description || undefined,
-        typeId: formData.typeId,
-        type: mockIssueTypes.find((t) => t.id === formData.typeId),
-        priorityId: formData.priorityId,
-        priority: mockPriorities.find((p) => p.id === formData.priorityId),
-        statusId: formData.statusId,
-        status: mockStatuses.find((s) => s.id === formData.statusId),
-        assigneeId: formData.assigneeId || undefined,
-        assignee: formData.assigneeId ? mockUsers.find((u) => u.id === formData.assigneeId) : undefined,
-        reporterId: reporterId,
-        reporter: mockUsers.find((u) => u.id === reporterId),
-        projectId: projectId,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      // Call the callback to add issue to parent component
-      onIssueCreated?.(newIssue);
-
-      // Reset form and close
-      setFormData({
-        summary: '',
-        description: '',
-        typeId: mockIssueTypes[0]?.id || '',
-        priorityId: mockPriorities[2]?.id || '',
-        statusId: mockStatuses[0]?.id || '',
-        assigneeId: '',
-      });
-      setIsSubmitting(false);
-      onClose();
-    }, 300); // Small delay to simulate API
+    // Dispatch Redux action to create issue
+    dispatch(
+      issuesActions.createIssueRequest({
+        data: {
+          projectId, // Will be extracted in saga and used in URL
+          summary: formData.summary.trim(),
+          description: formData.description.trim() || undefined,
+          typeId: formData.typeId || undefined,
+          priorityId: formData.priorityId || undefined,
+          statusId: formData.statusId || undefined,
+          assigneeId: formData.assigneeId || undefined,
+          reporterId: currentReporterId || undefined,
+        },
+        callback: {
+          onSuccess: (newIssue: Issue) => {
+            if (onIssueCreated) {
+              onIssueCreated(newIssue);
+            }
+            onClose();
+          },
+          onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to create issue';
+            setError(errorMessage);
+          },
+        },
+      } as any)
+    );
   };
 
   const handleClose = () => {
-    if (!isSubmitting) {
+    if (!issuesState.createIssueLoading) {
       onClose();
     }
   };
@@ -144,7 +213,7 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, proj
             fullWidth
             value={formData.summary}
             onChange={handleChange('summary')}
-            disabled={isSubmitting}
+            disabled={issuesState.createIssueLoading}
             placeholder="Enter issue summary"
           />
 
@@ -155,51 +224,63 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, proj
             rows={4}
             value={formData.description}
             onChange={handleChange('description')}
-            disabled={isSubmitting}
+            disabled={issuesState.createIssueLoading}
             placeholder="Enter issue description (optional)"
           />
 
           <Box sx={{ display: 'flex', gap: 2 }}>
-            <FormControl fullWidth disabled={isSubmitting}>
+            <FormControl fullWidth disabled={issuesState.createIssueLoading || referenceDataState.getIssueTypesLoading}>
               <InputLabel>Type</InputLabel>
               <Select value={formData.typeId} onChange={handleChange('typeId')} label="Type">
-                {mockIssueTypes.map((type) => (
-                  <MenuItem key={type.id} value={type.id}>
-                    {type.icon} {type.name}
-                  </MenuItem>
-                ))}
+                {referenceDataState.issueTypes.length > 0 ? (
+                  referenceDataState.issueTypes.map((type) => (
+                    <MenuItem key={type.id} value={type.id}>
+                      {type.icon || ''} {type.name}
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem disabled>Loading types...</MenuItem>
+                )}
               </Select>
             </FormControl>
 
-            <FormControl fullWidth disabled={isSubmitting}>
+            <FormControl fullWidth disabled={issuesState.createIssueLoading || referenceDataState.getPrioritiesLoading}>
               <InputLabel>Priority</InputLabel>
               <Select value={formData.priorityId} onChange={handleChange('priorityId')} label="Priority">
-                {mockPriorities.map((priority) => (
-                  <MenuItem key={priority.id} value={priority.id}>
-                    {priority.name}
-                  </MenuItem>
-                ))}
+                {referenceDataState.priorities.length > 0 ? (
+                  referenceDataState.priorities.map((priority) => (
+                    <MenuItem key={priority.id} value={priority.id}>
+                      {priority.name}
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem disabled>Loading priorities...</MenuItem>
+                )}
               </Select>
             </FormControl>
           </Box>
 
           <Box sx={{ display: 'flex', gap: 2 }}>
-            <FormControl fullWidth disabled={isSubmitting}>
+            <FormControl fullWidth disabled={issuesState.createIssueLoading || referenceDataState.getStatusesLoading}>
               <InputLabel>Status</InputLabel>
               <Select value={formData.statusId} onChange={handleChange('statusId')} label="Status">
-                {mockStatuses.map((status) => (
-                  <MenuItem key={status.id} value={status.id}>
-                    {status.name}
-                  </MenuItem>
-                ))}
+                {referenceDataState.statuses.length > 0 ? (
+                  referenceDataState.statuses.map((status) => (
+                    <MenuItem key={status.id} value={status.id}>
+                      {status.name}
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem disabled>Loading statuses...</MenuItem>
+                )}
               </Select>
             </FormControl>
 
-            <FormControl fullWidth disabled={isSubmitting}>
+            <FormControl fullWidth disabled={issuesState.createIssueLoading || usersState.getUsersLoading}>
               <InputLabel>Assignee</InputLabel>
               <Select value={formData.assigneeId} onChange={handleChange('assigneeId')} label="Assignee">
                 <MenuItem value="">Unassigned</MenuItem>
-                {mockUsers.map((user) => (
+                {(usersState.users.length > 0 ? usersState.users : mockUsers).map((user) => (
                   <MenuItem key={user.id} value={user.id}>
                     {user.displayName}
                   </MenuItem>
@@ -210,16 +291,16 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, proj
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} disabled={isSubmitting}>
+        <Button onClick={handleClose} disabled={issuesState.createIssueLoading}>
           Cancel
         </Button>
         <Button
           onClick={handleSubmit}
           variant="contained"
-          disabled={isSubmitting || !formData.summary.trim()}
-          startIcon={isSubmitting ? <CircularProgress size={16} /> : null}
+          disabled={issuesState.createIssueLoading || !formData.summary.trim()}
+          startIcon={issuesState.createIssueLoading ? <CircularProgress size={16} /> : null}
         >
-          {isSubmitting ? 'Creating...' : 'Create'}
+          {issuesState.createIssueLoading ? 'Creating...' : 'Create'}
         </Button>
       </DialogActions>
     </Dialog>

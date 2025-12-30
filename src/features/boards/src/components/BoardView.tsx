@@ -24,8 +24,24 @@ const BoardView: React.FC<BoardViewProps> = ({ issues, columns, onIssueMove }) =
 
   // Group issues by status (column)
   const getIssuesForColumn = (column: BoardColumn): Issue[] => {
-    return issues.filter((issue) => column.statusIds.includes(issue.statusId));
+    const filtered = issues.filter((issue) => column.statusIds.includes(issue.statusId));
+    return filtered;
   };
+
+  // Debug: Log issues and columns on render
+  React.useEffect(() => {
+    console.log('🔵 BoardView render:', {
+      totalIssues: issues.length,
+      issues: issues.map((i) => ({ key: i.key, statusId: i.statusId })),
+      totalColumns: columns.length,
+      columns: columns.map((c) => ({ id: c.id, name: c.name, statusIds: c.statusIds })),
+      issuesByColumn: columns.map((c) => ({
+        columnId: c.id,
+        columnName: c.name,
+        issueCount: getIssuesForColumn(c).length,
+      })),
+    });
+  }, [issues, columns]);
 
   const handleDragStart = (e: React.DragEvent, issue: Issue) => {
     setDraggedIssue(issue);

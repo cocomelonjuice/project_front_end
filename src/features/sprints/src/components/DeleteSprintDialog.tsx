@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -11,13 +12,14 @@ import {
   Box,
   Typography,
 } from '@mui/material';
+import { sprintsActions, useSelectorSprints } from '../store';
 import type { Sprint } from '../store/states';
 
 interface DeleteSprintDialogProps {
   open: boolean;
   onClose: () => void;
   sprint: Sprint | null;
-  onSprintDeleted?: (sprintId: string) => void;
+  onSprintDeleted?: () => void;
 }
 
 const DeleteSprintDialog: React.FC<DeleteSprintDialogProps> = ({
@@ -26,36 +28,51 @@ const DeleteSprintDialog: React.FC<DeleteSprintDialogProps> = ({
   sprint,
   onSprintDeleted,
 }) => {
-  const [isDeleting, setIsDeleting] = useState(false);
+  const dispatch = useDispatch();
+  const sprintsState = useSelectorSprints((state) => state);
   const [error, setError] = useState<string | null>(null);
 
-  const handleDelete = async () => {
+  const isDeleting = sprintsState.deleteSprintLoading;
+
+  useEffect(() => {
+    if (open) {
+      setError(null);
+      dispatch(sprintsActions.clearErrors());
+    }
+  }, [open, dispatch]);
+
+  // Handle errors from Redux
+  useEffect(() => {
+    if (sprintsState.errors && sprintsState.errors.length > 0) {
+      setError(sprintsState.errors[0].msg);
+    }
+  }, [sprintsState.errors]);
+
+  const handleDelete = () => {
     if (!sprint) return;
 
-    setIsDeleting(true);
     setError(null);
 
-    try {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Call callback to remove from list
-      if (onSprintDeleted) {
-        onSprintDeleted(sprint.id);
-      }
-
-      // Close dialog
-      onClose();
-    } catch (err) {
-      setError('Failed to delete sprint. Please try again.');
-    } finally {
-      setIsDeleting(false);
-    }
+    dispatch(
+      sprintsActions.deleteSprintRequest({
+        data: { id: sprint.id },
+        callback: {
+          onSuccess: () => {
+            onSprintDeleted?.();
+            onClose();
+          },
+          onError: () => {
+            // Error is handled by Redux state
+          },
+        },
+      } as any)
+    );
   };
 
   const handleClose = () => {
     if (!isDeleting) {
       setError(null);
+      dispatch(sprintsActions.clearErrors());
       onClose();
     }
   };

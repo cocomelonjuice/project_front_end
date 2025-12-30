@@ -19,6 +19,12 @@ import storage from 'redux-persist/lib/storage';
 // Import feature stores here (similar to portal pattern)
 // Example: import { injectStore as exampleFeatureStore } from '@/features/example-feature/src/store';
 import { injectStore as issuesInjectStore } from '../features/issues/src/store';
+import { injectStore as authInjectStore } from '../features/auth/src/store';
+import { injectStore as sprintsInjectStore } from '../features/sprints/src/store';
+import { injectStore as usersInjectStore } from '../features/users/src/store';
+import { injectStore as referenceDataInjectStore } from '../features/reference-data/src/store';
+import { injectStore as projectsInjectStore } from '../features/projects/src/store';
+import { injectStore as boardsInjectStore } from '../features/boards/src/store';
 
 // Create saga middleware
 const sagaMiddleware = createSagaMiddleware();
@@ -27,6 +33,12 @@ const sagaMiddleware = createSagaMiddleware();
 const featureStores: InjectStore[] = [
   // Add feature stores here:
   issuesInjectStore,
+  authInjectStore,
+  sprintsInjectStore,
+  usersInjectStore,
+  referenceDataInjectStore,
+  projectsInjectStore,
+  boardsInjectStore,
 ];
 
 // Build combined reducers (similar to portal pattern)
@@ -42,7 +54,7 @@ const combinedReducers = combineReducers({
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: [MODULE_NAME, 'issues'], // Persist root and issues state
+  whitelist: [MODULE_NAME, 'issues', 'auth', 'sprints', 'users', 'referenceData', 'projects', 'boards'], // Persist root, issues, auth, sprints, users, referenceData, projects, and boards state
 };
 
 const persistedReducer = persistReducer(persistConfig, combinedReducers);
@@ -52,7 +64,7 @@ function* combinedRootSaga() {
   yield all([
     rootSaga(),
     // Add feature sagas dynamically
-    ...featureStores.map((fs) => fs.saga),
+    ...featureStores.map((fs) => fs.saga()),
   ]);
 }
 

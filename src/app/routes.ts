@@ -8,7 +8,20 @@ import type { RouteDefinition } from '../shared/navigation/src';
  * Similar to vaccine-rsa-web-v2 apps/portal/src/app/routes.ts
  */
 
+import Login from '../pages/Login';
+import Register from '../pages/Register';
+
 export const publicRoutes: RoutesType = [
+  {
+    name: 'Login',
+    path: '/login',
+    element: Login,
+  },
+  {
+    name: 'Register',
+    path: '/register',
+    element: Register,
+  },
   {
     path: '*',
     element: Page404,

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -9,20 +10,14 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
-
-interface Project {
-  id: string;
-  key: string;
-  name: string;
-  type: string;
-  description?: string;
-}
+import { projectsActions, useSelectorProjects } from '../store';
+import type { Project } from '../store/states';
 
 interface DeleteProjectDialogProps {
   open: boolean;
   onClose: () => void;
   project: Project | null;
-  onProjectDeleted?: (projectId: string) => void;
+  onProjectDeleted?: () => void;
 }
 
 const DeleteProjectDialog: React.FC<DeleteProjectDialogProps> = ({
@@ -31,35 +26,37 @@ const DeleteProjectDialog: React.FC<DeleteProjectDialogProps> = ({
   project,
   onProjectDeleted,
 }) => {
-  const [isDeleting, setIsDeleting] = useState(false);
+  const dispatch = useDispatch();
+  const projectsState = useSelectorProjects((state) => state);
   const [error, setError] = useState<string | null>(null);
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!project) return;
 
-    setIsDeleting(true);
     setError(null);
 
-    try {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Call callback to remove from list
-      if (onProjectDeleted) {
-        onProjectDeleted(project.id);
-      }
-
-      // Close dialog
-      onClose();
-    } catch (err) {
-      setError('Failed to delete project. Please try again.');
-    } finally {
-      setIsDeleting(false);
-    }
+    // Dispatch Redux action to delete project
+    dispatch(
+      projectsActions.deleteProjectRequest({
+        data: { id: project.id },
+        callback: {
+          onSuccess: () => {
+            if (onProjectDeleted) {
+              onProjectDeleted();
+            }
+            onClose();
+          },
+          onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete project';
+            setError(errorMessage);
+          },
+        },
+      } as any)
+    );
   };
 
   const handleClose = () => {
-    if (!isDeleting) {
+    if (!projectsState.deleteProjectLoading) {
       setError(null);
       onClose();
     }
@@ -86,17 +83,17 @@ const DeleteProjectDialog: React.FC<DeleteProjectDialogProps> = ({
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} disabled={isDeleting}>
+        <Button onClick={handleClose} disabled={projectsState.deleteProjectLoading}>
           Cancel
         </Button>
         <Button
           onClick={handleDelete}
           color="error"
           variant="contained"
-          disabled={isDeleting}
-          startIcon={isDeleting ? <CircularProgress size={16} /> : null}
+          disabled={projectsState.deleteProjectLoading}
+          startIcon={projectsState.deleteProjectLoading ? <CircularProgress size={16} /> : null}
         >
-          {isDeleting ? 'Deleting...' : 'Delete'}
+          {projectsState.deleteProjectLoading ? 'Deleting...' : 'Delete'}
         </Button>
       </DialogActions>
     </Dialog>

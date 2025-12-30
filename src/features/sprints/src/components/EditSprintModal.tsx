@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -10,13 +11,14 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
-import type { Sprint } from '../store/states';
+import { sprintsActions, useSelectorSprints } from '../store';
+import type { Sprint, UpdateSprintData } from '../store/states';
 
 interface EditSprintModalProps {
   open: boolean;
   onClose: () => void;
   sprint: Sprint | null;
-  onSprintUpdated?: (sprint: Sprint) => void;
+  onSprintUpdated?: () => void;
 }
 
 const EditSprintModal: React.FC<EditSprintModalProps> = ({
@@ -25,24 +27,34 @@ const EditSprintModal: React.FC<EditSprintModalProps> = ({
   sprint,
   onSprintUpdated,
 }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const dispatch = useDispatch();
+  const sprintsState = useSelectorSprints((state) => state);
   const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [goal, setGoal] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
+  const isSubmitting = sprintsState.updateSprintLoading;
+
   useEffect(() => {
     if (open && sprint) {
       // Populate form with sprint data
       setError(null);
-      setIsSubmitting(false);
+      dispatch(sprintsActions.clearErrors());
       setName(sprint.name);
       setGoal(sprint.goal || '');
       setStartDate(sprint.startDate ? sprint.startDate.split('T')[0] : '');
       setEndDate(sprint.endDate ? sprint.endDate.split('T')[0] : '');
     }
-  }, [open, sprint]);
+  }, [open, sprint, dispatch]);
+
+  // Handle errors from Redux
+  useEffect(() => {
+    if (sprintsState.errors && sprintsState.errors.length > 0) {
+      setError(sprintsState.errors[0].msg);
+    }
+  }, [sprintsState.errors]);
 
   const handleSubmit = () => {
     if (!sprint) return;
@@ -67,28 +79,35 @@ const EditSprintModal: React.FC<EditSprintModalProps> = ({
       }
     }
 
-    setIsSubmitting(true);
     setError(null);
 
-    // Simulate API call delay
-    setTimeout(() => {
-      const updatedSprint: Sprint = {
-        ...sprint,
-        name: name.trim(),
-        goal: goal.trim() || undefined,
-        startDate: startDate ? new Date(startDate).toISOString() : undefined,
-        endDate: endDate ? new Date(endDate).toISOString() : undefined,
-      };
+    const updateData: UpdateSprintData = {
+      name: name.trim(),
+      goal: goal.trim() || undefined,
+      startDate: startDate ? new Date(startDate).toISOString() : undefined,
+      endDate: endDate ? new Date(endDate).toISOString() : undefined,
+    };
 
-      onSprintUpdated?.(updatedSprint);
-
-      setIsSubmitting(false);
-      onClose();
-    }, 300);
+    dispatch(
+      sprintsActions.updateSprintRequest({
+        data: { id: sprint.id, ...updateData },
+        callback: {
+          onSuccess: () => {
+            onSprintUpdated?.();
+            onClose();
+          },
+          onError: () => {
+            // Error is handled by Redux state
+          },
+        },
+      } as any)
+    );
   };
 
   const handleClose = () => {
     if (!isSubmitting) {
+      setError(null);
+      dispatch(sprintsActions.clearErrors());
       onClose();
     }
   };

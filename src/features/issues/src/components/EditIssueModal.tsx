@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -14,7 +15,9 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
-import { mockIssueTypes, mockPriorities, mockStatuses, mockUsers } from '../store/mockData';
+import { mockUsers } from '../store/mockData';
+import { usersActions, useSelectorUsers } from '../../../users/src/store';
+import { referenceDataActions, useSelectorReferenceData } from '../../../reference-data/src/store';
 import type { Issue } from '../store/states';
 
 interface EditIssueModalProps {
@@ -25,6 +28,9 @@ interface EditIssueModalProps {
 }
 
 const EditIssueModal: React.FC<EditIssueModalProps> = ({ open, onClose, issue, onIssueUpdated }) => {
+  const dispatch = useDispatch();
+  const usersState = useSelectorUsers((state) => state);
+  const referenceDataState = useSelectorReferenceData((state) => state);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,6 +42,67 @@ const EditIssueModal: React.FC<EditIssueModalProps> = ({ open, onClose, issue, o
     statusId: '',
     assigneeId: '',
   });
+
+  // Fetch users when modal opens
+  useEffect(() => {
+    if (open && usersState.users.length === 0 && !usersState.getUsersLoading) {
+      dispatch(
+        usersActions.getUsersRequest({
+          data: {},
+          callback: {
+            onSuccess: () => {
+              // Users loaded successfully
+            },
+            onError: (error: any) => {
+              console.error('Failed to load users:', error);
+            },
+          },
+        } as any)
+      );
+    }
+  }, [open, dispatch, usersState.users.length, usersState.getUsersLoading]);
+
+  // Fetch reference data on component mount (only once)
+  useEffect(() => {
+    // Fetch issue types
+    dispatch(
+      referenceDataActions.getIssueTypesRequest({
+        data: {},
+        callback: {
+          onSuccess: () => {},
+          onError: (error: any) => {
+            console.error('Failed to load issue types:', error);
+          },
+        },
+      } as any)
+    );
+
+    // Fetch priorities
+    dispatch(
+      referenceDataActions.getPrioritiesRequest({
+        data: {},
+        callback: {
+          onSuccess: () => {},
+          onError: (error: any) => {
+            console.error('Failed to load priorities:', error);
+          },
+        },
+      } as any)
+    );
+
+    // Fetch statuses
+    dispatch(
+      referenceDataActions.getStatusesRequest({
+        data: {},
+        callback: {
+          onSuccess: () => {},
+          onError: (error: any) => {
+            console.error('Failed to load statuses:', error);
+          },
+        },
+      } as any)
+    );
+  }, [dispatch]);
 
   useEffect(() => {
     if (open && issue) {
@@ -74,18 +141,24 @@ const EditIssueModal: React.FC<EditIssueModalProps> = ({ open, onClose, issue, o
     // Simulate a quick delay (mock API call)
     setTimeout(() => {
       // Create updated issue object
+      const issueType = referenceDataState.issueTypes.find((t) => t.id === formData.typeId);
+      const priority = referenceDataState.priorities.find((p) => p.id === formData.priorityId);
+      const status = referenceDataState.statuses.find((s) => s.id === formData.statusId);
+      
       const updatedIssue: Issue = {
         ...issue,
         summary: formData.summary,
         description: formData.description || undefined,
         typeId: formData.typeId,
-        type: mockIssueTypes.find((t) => t.id === formData.typeId),
+        type: issueType ? { id: issueType.id, name: issueType.name, icon: issueType.icon, color: issueType.color } : issue.type,
         priorityId: formData.priorityId,
-        priority: mockPriorities.find((p) => p.id === formData.priorityId),
+        priority: priority ? { id: priority.id, name: priority.name, level: priority.orderNum, color: priority.color } : issue.priority,
         statusId: formData.statusId,
-        status: mockStatuses.find((s) => s.id === formData.statusId),
+        status: status ? { id: status.id, name: status.name, category: status.category, color: status.color } : issue.status,
         assigneeId: formData.assigneeId || undefined,
-        assignee: formData.assigneeId ? mockUsers.find((u) => u.id === formData.assigneeId) : undefined,
+        assignee: formData.assigneeId 
+          ? (usersState.users.find((u) => u.id === formData.assigneeId) || mockUsers.find((u) => u.id === formData.assigneeId))
+          : undefined,
         updatedAt: new Date().toISOString(),
       };
 
@@ -137,46 +210,58 @@ const EditIssueModal: React.FC<EditIssueModalProps> = ({ open, onClose, issue, o
           />
 
           <Box sx={{ display: 'flex', gap: 2 }}>
-            <FormControl fullWidth disabled={isSubmitting}>
+            <FormControl fullWidth disabled={isSubmitting || referenceDataState.getIssueTypesLoading}>
               <InputLabel>Type</InputLabel>
               <Select value={formData.typeId} onChange={handleChange('typeId')} label="Type">
-                {mockIssueTypes.map((type) => (
-                  <MenuItem key={type.id} value={type.id}>
-                    {type.icon} {type.name}
-                  </MenuItem>
-                ))}
+                {referenceDataState.issueTypes.length > 0 ? (
+                  referenceDataState.issueTypes.map((type) => (
+                    <MenuItem key={type.id} value={type.id}>
+                      {type.icon || ''} {type.name}
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem disabled>Loading types...</MenuItem>
+                )}
               </Select>
             </FormControl>
 
-            <FormControl fullWidth disabled={isSubmitting}>
+            <FormControl fullWidth disabled={isSubmitting || referenceDataState.getPrioritiesLoading}>
               <InputLabel>Priority</InputLabel>
               <Select value={formData.priorityId} onChange={handleChange('priorityId')} label="Priority">
-                {mockPriorities.map((priority) => (
-                  <MenuItem key={priority.id} value={priority.id}>
-                    {priority.name}
-                  </MenuItem>
-                ))}
+                {referenceDataState.priorities.length > 0 ? (
+                  referenceDataState.priorities.map((priority) => (
+                    <MenuItem key={priority.id} value={priority.id}>
+                      {priority.name}
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem disabled>Loading priorities...</MenuItem>
+                )}
               </Select>
             </FormControl>
           </Box>
 
           <Box sx={{ display: 'flex', gap: 2 }}>
-            <FormControl fullWidth disabled={isSubmitting}>
+            <FormControl fullWidth disabled={isSubmitting || referenceDataState.getStatusesLoading}>
               <InputLabel>Status</InputLabel>
               <Select value={formData.statusId} onChange={handleChange('statusId')} label="Status">
-                {mockStatuses.map((status) => (
-                  <MenuItem key={status.id} value={status.id}>
-                    {status.name}
-                  </MenuItem>
-                ))}
+                {referenceDataState.statuses.length > 0 ? (
+                  referenceDataState.statuses.map((status) => (
+                    <MenuItem key={status.id} value={status.id}>
+                      {status.name}
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem disabled>Loading statuses...</MenuItem>
+                )}
               </Select>
             </FormControl>
 
-            <FormControl fullWidth disabled={isSubmitting}>
+            <FormControl fullWidth disabled={isSubmitting || usersState.getUsersLoading}>
               <InputLabel>Assignee</InputLabel>
               <Select value={formData.assigneeId} onChange={handleChange('assigneeId')} label="Assignee">
                 <MenuItem value="">Unassigned</MenuItem>
-                {mockUsers.map((user) => (
+                {(usersState.users.length > 0 ? usersState.users : mockUsers).map((user) => (
                   <MenuItem key={user.id} value={user.id}>
                     {user.displayName}
                   </MenuItem>

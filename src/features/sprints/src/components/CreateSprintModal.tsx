@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -10,14 +11,14 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
-import type { Sprint } from '../store/states';
-import { getNextSprintId } from '../store/mockData';
+import { sprintsActions, useSelectorSprints } from '../store';
+import type { CreateSprintData } from '../store/states';
 
 interface CreateSprintModalProps {
   open: boolean;
   onClose: () => void;
   boardId: string;
-  onSprintCreated?: (sprint: Sprint) => void;
+  onSprintCreated?: () => void;
 }
 
 const CreateSprintModal: React.FC<CreateSprintModalProps> = ({
@@ -26,24 +27,34 @@ const CreateSprintModal: React.FC<CreateSprintModalProps> = ({
   boardId,
   onSprintCreated,
 }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const dispatch = useDispatch();
+  const sprintsState = useSelectorSprints((state) => state);
   const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [goal, setGoal] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
+  const isSubmitting = sprintsState.createSprintLoading;
+
   useEffect(() => {
     if (open) {
       // Reset form when modal opens
       setError(null);
-      setIsSubmitting(false);
+      dispatch(sprintsActions.clearErrors());
       setName('');
       setGoal('');
       setStartDate('');
       setEndDate('');
     }
-  }, [open]);
+  }, [open, dispatch]);
+
+  // Handle errors from Redux
+  useEffect(() => {
+    if (sprintsState.errors && sprintsState.errors.length > 0) {
+      setError(sprintsState.errors[0].msg);
+    }
+  }, [sprintsState.errors]);
 
   const handleSubmit = () => {
     // Validation
@@ -66,35 +77,42 @@ const CreateSprintModal: React.FC<CreateSprintModalProps> = ({
       }
     }
 
-    setIsSubmitting(true);
     setError(null);
 
-    // Simulate API call delay
-    setTimeout(() => {
-      const newSprint: Sprint = {
-        id: getNextSprintId(),
-        name: name.trim(),
-        goal: goal.trim() || undefined,
-        startDate: startDate || undefined,
-        endDate: endDate || undefined,
-        status: 'planned',
-        boardId: boardId,
-      };
+    const sprintData: CreateSprintData = {
+      name: name.trim(),
+      goal: goal.trim() || undefined,
+      startDate: startDate || undefined,
+      endDate: endDate || undefined,
+      status: 'planned',
+      boardId: boardId,
+    };
 
-      onSprintCreated?.(newSprint);
-
-      // Reset form and close
-      setName('');
-      setGoal('');
-      setStartDate('');
-      setEndDate('');
-      setIsSubmitting(false);
-      onClose();
-    }, 300);
+    dispatch(
+      sprintsActions.createSprintRequest({
+        data: sprintData,
+        callback: {
+          onSuccess: () => {
+            // Reset form and close
+            setName('');
+            setGoal('');
+            setStartDate('');
+            setEndDate('');
+            onSprintCreated?.();
+            onClose();
+          },
+          onError: () => {
+            // Error is handled by Redux state
+          },
+        },
+      } as any)
+    );
   };
 
   const handleClose = () => {
     if (!isSubmitting) {
+      setError(null);
+      dispatch(sprintsActions.clearErrors());
       onClose();
     }
   };

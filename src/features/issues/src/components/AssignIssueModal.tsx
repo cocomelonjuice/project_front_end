@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -24,6 +25,7 @@ import {
 } from '@mui/icons-material';
 import type { User } from '../store/states';
 import { mockUsers } from '../store/mockData';
+import { usersActions, useSelectorUsers } from '../../../users/src/store';
 
 interface AssignIssueModalProps {
   open: boolean;
@@ -39,12 +41,36 @@ const AssignIssueModal: React.FC<AssignIssueModalProps> = ({
   onClose,
   issueId,
   currentAssigneeId,
-  availableUsers = mockUsers,
+  availableUsers: propAvailableUsers,
   onIssueAssigned,
 }) => {
+  const dispatch = useDispatch();
+  const usersState = useSelectorUsers((state) => state);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string>(currentAssigneeId || '');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Use users from Redux if available, otherwise use prop or mockUsers
+  const availableUsers = propAvailableUsers || (usersState.users.length > 0 ? usersState.users : mockUsers);
+
+  // Fetch users when modal opens
+  useEffect(() => {
+    if (open && usersState.users.length === 0 && !usersState.getUsersLoading && !propAvailableUsers) {
+      dispatch(
+        usersActions.getUsersRequest({
+          data: {},
+          callback: {
+            onSuccess: () => {
+              // Users loaded successfully
+            },
+            onError: (error: any) => {
+              console.error('Failed to load users:', error);
+            },
+          },
+        } as any)
+      );
+    }
+  }, [open, dispatch, usersState.users.length, usersState.getUsersLoading, propAvailableUsers]);
 
   useEffect(() => {
     if (open) {

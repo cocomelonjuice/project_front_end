@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { GlobalHeader } from '../shared/ui/header';
 import { NavigationSidebar } from '../shared/ui/sidebar';
 import { Logout as LogoutIcon, Person as PersonIcon } from '@mui/icons-material';
@@ -9,12 +10,14 @@ import { APP_CONFIG } from '../shared/constants/src/config';
 import { NotificationsDropdown } from '../features/notifications/src';
 import { mockNotifications } from '../features/notifications/src/store/mockData';
 import type { Notification } from '../features/notifications/src/store/states';
+import { authActions } from '../features/auth/src/store';
 interface LayoutProps {
   children: ReactNode;
 }
 
 const Layout = ({ children }: LayoutProps) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -68,10 +71,11 @@ const Layout = ({ children }: LayoutProps) => {
   };
 
   const handleLogout = () => {
-    // Add your logout logic here
     console.log('Logout clicked');
-    // Example: localStorage.removeItem('token');
-    // navigate('/login');
+    // Dispatch logout action to clear Redux state
+    dispatch(authActions.logout());
+    // Redirect to login page
+    navigate('/login');
   };
 
   const userMenuItems = [

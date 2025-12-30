@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { rootActions } from '../../../../store';
+import { useLocation } from 'react-router-dom';
+import { authActions } from '../../../../features/auth/src/store';
 import { AuthStateContext, useAuth as useAuthInternal } from './auth.service';
 import type { AppDispatch } from '../../../../store';
 
@@ -17,9 +18,49 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const dispatch = useDispatch<AppDispatch>();
+  const location = useLocation();
 
   // Initialize auth data on mount
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+    const isPublicRoute = location.pathname === '/login' || location.pathname === '/register';
+
+    // Don't fetch profile on public routes (login/register)
+    if (isPublicRoute) {
+      return;
+    }
+
+    // If token exists, try to load user profile
+    if (token) {
+      // If user data exists in localStorage, restore it
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          // Restore auth state from localStorage
+          dispatch(authActions.loginSuccess({ data: { user, accessToken: token } } as any));
+        } catch (e) {
+          console.error('Failed to parse user from localStorage:', e);
+        }
+      }
+
+      // Always try to fetch fresh user data from API
+      dispatch(
+        authActions.getProfileRequest({
+          data: {},
+          callback: {
+            onSuccess: () => {
+              // User profile loaded successfully
+            },
+            onError: () => {
+              // If profile fetch fails, clear auth state
+              dispatch(authActions.logout());
+            },
+          },
+        } as any)
+      );
+    }
+
     // TODO: add role and permission, routing
     // // Fetch role and permissions
     // // In a real app, this would be called after login
@@ -44,14 +85,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     //     },
     //   } as any)
     // );
-
-    // Set mock user for demo
-    dispatch(
-      rootActions.setUser({
-        data: { id: '1', name: 'Demo User', email: 'demo@example.com' },
-      } as any)
-    );
-  }, [dispatch]);
+  }, [dispatch, location.pathname]);
 
   // Get auth data from store
   const authData = useAuthInternal();

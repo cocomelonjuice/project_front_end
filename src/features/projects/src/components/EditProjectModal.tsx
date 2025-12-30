@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -14,22 +15,14 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
-
-interface Project {
-  id: string;
-  key: string;
-  name: string;
-  type: string;
-  description?: string;
-  lead?: { name: string; avatar: string };
-  starred?: boolean;
-}
+import { projectsActions, useSelectorProjects } from '../store';
+import type { Project } from '../store/states';
 
 interface EditProjectModalProps {
   open: boolean;
   onClose: () => void;
   project: Project | null; // Project to edit
-  onProjectUpdated?: (project: Project) => void;
+  onProjectUpdated?: () => void;
   existingKeys?: string[]; // For validation - check if key already exists
 }
 
@@ -47,7 +40,8 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
   onProjectUpdated,
   existingKeys = [],
 }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const dispatch = useDispatch();
+  const projectsState = useSelectorProjects((state) => state);
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
@@ -61,7 +55,6 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
     if (open && project) {
       // Pre-fill form with existing project data
       setError(null);
-      setIsSubmitting(false);
       setFormData({
         name: project.name || '',
         key: project.key || '',
@@ -114,32 +107,37 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
       return;
     }
 
-    setIsSubmitting(true);
     setError(null);
 
-    // Simulate a quick delay (mock API call)
-    setTimeout(() => {
-      // Update project object
-      const updatedProject: Project = {
-        ...project,
-        key: formData.key.toUpperCase(),
-        name: formData.name.trim(),
-        type: formData.type,
-        description: formData.description.trim() || undefined,
-      };
-
-      // Call callback with updated project
-      if (onProjectUpdated) {
-        onProjectUpdated(updatedProject);
-      }
-
-      setIsSubmitting(false);
-      onClose();
-    }, 500); // Simulate API delay
+    // Dispatch Redux action to update project
+    // Note: Don't include 'id' in the data - it's passed separately as the first parameter
+    dispatch(
+      projectsActions.updateProjectRequest({
+        data: {
+          id: project.id, // This is used to identify which project to update
+          key: formData.key.toUpperCase(),
+          name: formData.name.trim(),
+          type: formData.type,
+          description: formData.description.trim() || undefined,
+        },
+        callback: {
+          onSuccess: () => {
+            if (onProjectUpdated) {
+              onProjectUpdated();
+            }
+            onClose();
+          },
+          onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update project';
+            setError(errorMessage);
+          },
+        },
+      } as any)
+    );
   };
 
   const handleClose = () => {
-    if (!isSubmitting) {
+    if (!projectsState.updateProjectLoading) {
       onClose();
     }
   };
@@ -165,7 +163,7 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
             fullWidth
             value={formData.name}
             onChange={handleChange('name')}
-            disabled={isSubmitting}
+            disabled={projectsState.updateProjectLoading}
             placeholder="Enter project name"
             helperText="A descriptive name for your project"
           />
@@ -176,7 +174,7 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
             fullWidth
             value={formData.key}
             onChange={handleKeyChange}
-            disabled={isSubmitting}
+            disabled={projectsState.updateProjectLoading}
             placeholder="PROJ"
             helperText="Unique key (uppercase letters and numbers, max 20 characters)"
             inputProps={{ maxLength: 20 }}
@@ -188,7 +186,7 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
               value={formData.type}
               onChange={handleChange('type')}
               label="Project Type"
-              disabled={isSubmitting}
+              disabled={projectsState.updateProjectLoading}
             >
               {projectTypes.map((type) => (
                 <MenuItem key={type.value} value={type.value}>
@@ -205,23 +203,23 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
             rows={4}
             value={formData.description}
             onChange={handleChange('description')}
-            disabled={isSubmitting}
+            disabled={projectsState.updateProjectLoading}
             placeholder="Enter project description (optional)"
             helperText="Describe the purpose and goals of this project"
           />
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} disabled={isSubmitting}>
+        <Button onClick={handleClose} disabled={projectsState.updateProjectLoading}>
           Cancel
         </Button>
         <Button
           onClick={handleSubmit}
           variant="contained"
-          disabled={isSubmitting || !formData.name.trim() || !formData.key.trim()}
-          startIcon={isSubmitting ? <CircularProgress size={16} /> : null}
+          disabled={projectsState.updateProjectLoading || !formData.name.trim() || !formData.key.trim()}
+          startIcon={projectsState.updateProjectLoading ? <CircularProgress size={16} /> : null}
         >
-          {isSubmitting ? 'Saving...' : 'Save Changes'}
+          {projectsState.updateProjectLoading ? 'Saving...' : 'Save Changes'}
         </Button>
       </DialogActions>
     </Dialog>

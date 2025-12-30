@@ -636,7 +636,6 @@ const IssueDetail: React.FC = () => {
         onClose={() => setTransitionStatusModalOpen(false)}
         issueId={issueId || ''}
         currentStatusId={issue?.statusId || ''}
-        availableStatuses={mockStatuses}
         onStatusTransitioned={handleStatusTransitioned}
       />
     </Box>

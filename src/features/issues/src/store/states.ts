@@ -46,6 +46,7 @@ export interface Issue {
   reporterId: string;
   reporter?: User;
   projectId: string;
+  sprintId?: string; // Sprint the issue belongs to (optional - unassigned issues are backlog)
   labelIds?: string[]; // Array of label IDs
   labels?: Array<{ id: string; name: string; color?: string; description?: string }>; // Full label objects
   createdAt: string;
