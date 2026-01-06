@@ -27,6 +27,7 @@ export const API_ENDPOINTS = {
     GET_BY_ID: (id: string) => `/projects/${id}`,
     UPDATE: (id: string) => `/projects/${id}`,
     DELETE: (id: string) => `/projects/${id}`,
+    GET_TEAM_MEMBERS: (id: string) => `/projects/${id}/team-members`,
   },
   // Boards
   BOARDS: {
@@ -78,6 +79,53 @@ export const API_ENDPOINTS = {
     DELETE: (id: string) => `/issues/${id}`,
     ASSIGN: (id: string) => `/issues/${id}/assign`,
     TRANSITION: (id: string) => `/issues/${id}/transition`,
+  },
+  // Comments
+  COMMENTS: {
+    CREATE: (issueId: string) => `/issues/${issueId}/comments`,
+    GET_BY_ISSUE: (issueId: string) => `/issues/${issueId}/comments`,
+    GET_BY_ID: (id: string) => `/comments/${id}`,
+    UPDATE: (id: string) => `/comments/${id}`,
+    DELETE: (id: string) => `/comments/${id}`,
+  },
+  // Attachments
+  ATTACHMENTS: {
+    CREATE: (issueId: string) => `/issues/${issueId}/attachments`,
+    GET_BY_ISSUE: (issueId: string) => `/issues/${issueId}/attachments`,
+    GET_BY_ID: (id: string) => `/attachments/${id}`,
+    DOWNLOAD: (id: string) => `/attachments/${id}/download`,
+    DELETE: (id: string) => `/attachments/${id}`,
+  },
+  // Labels
+  LABELS: {
+    CREATE: '/labels',
+    GET_ALL: '/labels',
+    GET_BY_ID: (id: string) => `/labels/${id}`,
+    UPDATE: (id: string) => `/labels/${id}`,
+    DELETE: (id: string) => `/labels/${id}`,
+    ADD_TO_ISSUE: (issueId: string, labelId: string) => `/labels/issues/${issueId}/labels/${labelId}`,
+    REMOVE_FROM_ISSUE: (issueId: string, labelId: string) => `/labels/issues/${issueId}/labels/${labelId}`,
+  },
+  // Workflows
+  WORKFLOWS: {
+    CREATE: '/workflows',
+    GET_ALL: '/workflows',
+    GET_BY_ID: (id: string) => `/workflows/${id}`,
+    UPDATE: (id: string) => `/workflows/${id}`,
+    DELETE: (id: string) => `/workflows/${id}`,
+    GET_TRANSITIONS: (id: string) => `/workflows/${id}/transitions`,
+    ADD_TRANSITION: (id: string) => `/workflows/${id}/transitions`,
+    DELETE_TRANSITION: (id: string, transitionId: string) => `/workflows/${id}/transitions/${transitionId}`,
+  },
+  // Roles
+  ROLES: {
+    CREATE: '/roles',
+    GET_ALL: '/roles',
+    GET_BY_ID: (id: string) => `/roles/${id}`,
+    UPDATE: (id: string) => `/roles/${id}`,
+    DELETE: (id: string) => `/roles/${id}`,
+    ASSIGN_TO_USER_IN_PROJECT: (projectId: string, roleId: string, userId: string) => `/roles/projects/${projectId}/roles/${roleId}/users/${userId}`,
+    REMOVE_FROM_USER_IN_PROJECT: (projectId: string, roleId: string, userId: string) => `/roles/projects/${projectId}/roles/${roleId}/users/${userId}`,
   },
   // Add more endpoints as needed
 } as const;

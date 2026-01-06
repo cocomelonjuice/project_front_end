@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -23,6 +24,7 @@ import {
   Add as AddIcon,
 } from '@mui/icons-material';
 import LabelChip from './LabelChip';
+import labelsApi from '../store/api';
 import type { Label } from '../store/states';
 
 interface AssignLabelsModalProps {
@@ -44,6 +46,7 @@ const AssignLabelsModal: React.FC<AssignLabelsModalProps> = ({
   onLabelsAssigned,
   onCreateLabel,
 }) => {
+  const dispatch = useDispatch();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedLabelIds, setSelectedLabelIds] = useState<string[]>([]);
@@ -68,16 +71,34 @@ const AssignLabelsModal: React.FC<AssignLabelsModalProps> = ({
     });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setIsSubmitting(true);
     setError(null);
 
-    // Simulate API call delay
-    setTimeout(() => {
+    try {
+      // Calculate which labels to add and remove
+      const labelsToAdd = selectedLabelIds.filter((id) => !assignedLabelIds.includes(id));
+      const labelsToRemove = assignedLabelIds.filter((id) => !selectedLabelIds.includes(id));
+
+      // Add labels to issue
+      for (const labelId of labelsToAdd) {
+        await labelsApi.addLabelToIssue(issueId, labelId);
+      }
+
+      // Remove labels from issue
+      for (const labelId of labelsToRemove) {
+        await labelsApi.removeLabelFromIssue(issueId, labelId);
+      }
+
+      // Call callback with new label IDs
       onLabelsAssigned?.(selectedLabelIds);
-      setIsSubmitting(false);
       onClose();
-    }, 300);
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update labels';
+      setError(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleClose = () => {

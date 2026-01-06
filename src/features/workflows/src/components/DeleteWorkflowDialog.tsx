@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -8,6 +9,7 @@ import {
   Button,
   CircularProgress,
 } from '@mui/material';
+import { workflowsActions, useSelectorWorkflows } from '../store';
 import type { Workflow } from '../store/states';
 
 interface DeleteWorkflowDialogProps {
@@ -23,25 +25,33 @@ const DeleteWorkflowDialog: React.FC<DeleteWorkflowDialogProps> = ({
   workflow,
   onWorkflowDeleted,
 }) => {
-  const [isDeleting, setIsDeleting] = useState(false);
+  const dispatch = useDispatch();
+  const workflowsState = useSelectorWorkflows((state) => state);
 
   const handleDelete = () => {
     if (!workflow) {
       return;
     }
 
-    setIsDeleting(true);
-
-    // Simulate API call delay
-    setTimeout(() => {
-      onWorkflowDeleted?.(workflow.id);
-      setIsDeleting(false);
-      onClose();
-    }, 300);
+    dispatch(
+      workflowsActions.deleteWorkflowRequest({
+        data: { id: workflow.id },
+        callback: {
+          onSuccess: () => {
+            onWorkflowDeleted?.(workflow.id);
+            onClose();
+          },
+          onError: (error: any) => {
+            console.error('Failed to delete workflow:', error);
+            alert('Failed to delete workflow. Please try again.');
+          },
+        },
+      } as any)
+    );
   };
 
   const handleClose = () => {
-    if (!isDeleting) {
+    if (!workflowsState.deleteWorkflowLoading) {
       onClose();
     }
   };
@@ -66,17 +76,17 @@ const DeleteWorkflowDialog: React.FC<DeleteWorkflowDialogProps> = ({
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} disabled={isDeleting}>
+        <Button onClick={handleClose} disabled={workflowsState.deleteWorkflowLoading}>
           Cancel
         </Button>
         <Button
           onClick={handleDelete}
           color="error"
           variant="contained"
-          disabled={isDeleting}
-          startIcon={isDeleting ? <CircularProgress size={16} /> : null}
+          disabled={workflowsState.deleteWorkflowLoading}
+          startIcon={workflowsState.deleteWorkflowLoading ? <CircularProgress size={16} /> : null}
         >
-          {isDeleting ? 'Deleting...' : 'Delete'}
+          {workflowsState.deleteWorkflowLoading ? 'Deleting...' : 'Delete'}
         </Button>
       </DialogActions>
     </Dialog>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import {
   Box,
   Typography,
@@ -28,34 +29,57 @@ import {
   EditWorkflowModal,
   DeleteWorkflowDialog,
   AddTransitionModal,
+  workflowsActions,
+  useSelectorWorkflows,
 } from '../../features/workflows/src';
-import { mockWorkflows } from '../../features/workflows/src/store/mockData';
 import type { Workflow, WorkflowTransition } from '../../features/workflows/src/store/states';
 import { useSelectorProjects } from '../../features/projects/src/store';
 
 const WorkflowDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const projectsState = useSelectorProjects((state) => state);
-  const [workflow, setWorkflow] = useState<Workflow | null>(null);
-  const [loading, setLoading] = useState(true);
+  const workflowsState = useSelectorWorkflows((state) => state);
+  const workflow = workflowsState.currentWorkflow;
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [addTransitionModalOpen, setAddTransitionModalOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
-      // Simulate API call
-      setTimeout(() => {
-        const foundWorkflow = mockWorkflows.find((w) => w.id === id);
-        setWorkflow(foundWorkflow || null);
-        setLoading(false);
-      }, 300);
+      // Fetch workflow from API
+      dispatch(
+        workflowsActions.getWorkflowByIdRequest({
+          data: { id },
+          callback: {
+            onSuccess: (loadedWorkflow: Workflow) => {
+              // Workflow loaded successfully, it's in Redux state as currentWorkflow
+              // Verify the workflow ID matches
+              if (loadedWorkflow.id !== id) {
+                console.warn('Workflow ID mismatch:', { expected: id, received: loadedWorkflow.id });
+              }
+            },
+            onError: (error: any) => {
+              console.error('Failed to load workflow:', error);
+            },
+          },
+        } as any)
+      );
     }
-  }, [id]);
+  }, [id, dispatch]);
 
   const handleWorkflowUpdated = (updatedWorkflow: Workflow) => {
-    setWorkflow(updatedWorkflow);
+    // Workflow is already updated in Redux state by the saga
+    // Refresh to get the latest data with transitions
+    if (id) {
+      dispatch(
+        workflowsActions.getWorkflowByIdRequest({
+          data: { id },
+          callback: {},
+        } as any)
+      );
+    }
   };
 
   const handleWorkflowDeleted = () => {
@@ -63,20 +87,41 @@ const WorkflowDetail: React.FC = () => {
   };
 
   const handleTransitionAdded = (transition: WorkflowTransition) => {
-    if (workflow) {
-      setWorkflow({
-        ...workflow,
-        transitions: [...(workflow.transitions || []), transition],
-      });
+    // Transition is already added to Redux state by the saga
+    // Refresh to get the latest workflow data
+    if (id) {
+      dispatch(
+        workflowsActions.getWorkflowByIdRequest({
+          data: { id },
+          callback: {},
+        } as any)
+      );
     }
   };
 
   const handleTransitionDeleted = (transitionId: string) => {
-    if (workflow) {
-      setWorkflow({
-        ...workflow,
-        transitions: workflow.transitions?.filter((t) => t.id !== transitionId) || [],
-      });
+    if (id) {
+      dispatch(
+        workflowsActions.deleteTransitionRequest({
+          data: { workflowId: id, transitionId },
+          callback: {
+            onSuccess: () => {
+              // Transition deleted successfully, it's already removed from Redux state
+              // Optionally refresh to get latest workflow data
+              dispatch(
+                workflowsActions.getWorkflowByIdRequest({
+                  data: { id },
+                  callback: {},
+                } as any)
+              );
+            },
+            onError: (error: any) => {
+              console.error('Failed to delete transition:', error);
+              alert('Failed to delete transition. Please try again.');
+            },
+          },
+        } as any)
+      );
     }
   };
 
@@ -88,7 +133,7 @@ const WorkflowDetail: React.FC = () => {
     return project ? project.name : 'Unknown';
   };
 
-  if (loading) {
+  if (workflowsState.getWorkflowLoading && !workflow) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
         <CircularProgress />
@@ -96,7 +141,7 @@ const WorkflowDetail: React.FC = () => {
     );
   }
 
-  if (!workflow) {
+  if (!workflowsState.getWorkflowLoading && !workflow) {
     return (
       <Box sx={{ p: 3 }}>
         <Alert severity="error">Workflow not found</Alert>
@@ -105,6 +150,10 @@ const WorkflowDetail: React.FC = () => {
         </Button>
       </Box>
     );
+  }
+
+  if (!workflow) {
+    return null; // Still loading or workflow not yet available
   }
 
   return (
@@ -196,6 +245,7 @@ const WorkflowDetail: React.FC = () => {
                             size="small"
                             color="error"
                             onClick={() => handleTransitionDeleted(transition.id)}
+                            disabled={workflowsState.deleteTransitionLoading}
                           >
                             <DeleteIcon />
                           </IconButton>

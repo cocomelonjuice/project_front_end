@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -11,9 +12,11 @@ import {
   Switch,
   Autocomplete,
   CircularProgress,
+  Alert,
 } from '@mui/material';
+import { workflowsActions, useSelectorWorkflows } from '../store';
+import { useSelectorProjects } from '../../../projects/src/store';
 import type { Workflow } from '../store/states';
-import { mockProjects } from '../../../projects/src';
 
 interface EditWorkflowModalProps {
   open: boolean;
@@ -28,12 +31,15 @@ const EditWorkflowModal: React.FC<EditWorkflowModalProps> = ({
   workflow,
   onWorkflowUpdated,
 }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const dispatch = useDispatch();
+  const workflowsState = useSelectorWorkflows((state) => state);
+  const projectsState = useSelectorProjects((state) => state);
+  const projects = projectsState.projects;
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [projectId, setProjectId] = useState<string | null>(null);
   const [isActive, setIsActive] = useState(true);
-  const [errors, setErrors] = useState<{ name?: string }>({});
+  const [errors, setErrors] = useState<{ name?: string; general?: string }>({});
 
   useEffect(() => {
     if (open && workflow) {
@@ -42,7 +48,6 @@ const EditWorkflowModal: React.FC<EditWorkflowModalProps> = ({
       setProjectId(workflow.projectId || null);
       setIsActive(workflow.isActive ?? true);
       setErrors({});
-      setIsSubmitting(false);
     }
   }, [open, workflow]);
 
@@ -64,26 +69,34 @@ const EditWorkflowModal: React.FC<EditWorkflowModalProps> = ({
       return;
     }
 
-    setIsSubmitting(true);
+    setErrors({});
 
-    // Simulate API call delay
-    setTimeout(() => {
-      const updatedWorkflow: Workflow = {
-        ...workflow,
-        projectId: projectId || null,
-        name: name.trim(),
-        description: description.trim() || undefined,
-        isActive,
-      };
-
-      onWorkflowUpdated?.(updatedWorkflow);
-      setIsSubmitting(false);
-      onClose();
-    }, 300);
+    dispatch(
+      workflowsActions.updateWorkflowRequest({
+        data: {
+          id: workflow.id,
+          name: name.trim(),
+          description: description.trim() || undefined,
+          projectId: projectId || null,
+          isActive,
+        },
+        callback: {
+          onSuccess: (updatedWorkflow: Workflow) => {
+            onWorkflowUpdated?.(updatedWorkflow);
+            onClose();
+          },
+          onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update workflow';
+            setErrors({ general: errorMessage });
+          },
+        },
+      } as any)
+    );
   };
 
   const handleClose = () => {
-    if (!isSubmitting) {
+    if (!workflowsState.updateWorkflowLoading) {
+      setErrors({});
       onClose();
     }
   };
@@ -97,6 +110,9 @@ const EditWorkflowModal: React.FC<EditWorkflowModalProps> = ({
       <DialogTitle>Edit Workflow</DialogTitle>
       <DialogContent>
         <Box sx={{ pt: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {errors.general && (
+            <Alert severity="error">{errors.general}</Alert>
+          )}
           <TextField
             label="Name"
             value={name}
@@ -118,10 +134,10 @@ const EditWorkflowModal: React.FC<EditWorkflowModalProps> = ({
           />
 
           <Autocomplete
-            options={[{ id: 'global', name: 'Global (All Projects)' }, ...mockProjects]}
+            options={[{ id: 'global', name: 'Global (All Projects)' }, ...projects]}
             getOptionLabel={(option) => (option.id === 'global' ? 'Global (All Projects)' : option.name)}
             isOptionEqualToValue={(option, value) => option.id === value.id}
-            value={projectId ? mockProjects.find((p) => p.id === projectId) || null : { id: 'global', name: 'Global (All Projects)' }}
+            value={projectId ? projects.find((p) => p.id === projectId) || null : { id: 'global', name: 'Global (All Projects)' }}
             onChange={(_event, newValue) => {
               if (newValue && newValue.id === 'global') {
                 setProjectId(null);
@@ -138,7 +154,7 @@ const EditWorkflowModal: React.FC<EditWorkflowModalProps> = ({
                 fullWidth
               />
             )}
-            disabled={isSubmitting}
+            disabled={workflowsState.updateWorkflowLoading}
           />
 
           <FormControlLabel
@@ -148,16 +164,16 @@ const EditWorkflowModal: React.FC<EditWorkflowModalProps> = ({
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} disabled={isSubmitting}>
+        <Button onClick={handleClose} disabled={workflowsState.updateWorkflowLoading}>
           Cancel
         </Button>
         <Button
           onClick={handleSubmit}
           variant="contained"
-          disabled={isSubmitting || !name.trim()}
-          startIcon={isSubmitting ? <CircularProgress size={16} /> : null}
+          disabled={workflowsState.updateWorkflowLoading || !name.trim()}
+          startIcon={workflowsState.updateWorkflowLoading ? <CircularProgress size={16} /> : null}
         >
-          {isSubmitting ? 'Updating...' : 'Update'}
+          {workflowsState.updateWorkflowLoading ? 'Updating...' : 'Update'}
         </Button>
       </DialogActions>
     </Dialog>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -11,6 +12,7 @@ import {
   CircularProgress,
   Typography,
 } from '@mui/material';
+import { labelsActions, useSelectorLabels } from '../store';
 import type { Label } from '../store/states';
 import { isValidHexColor } from '../store/mockData';
 
@@ -29,7 +31,8 @@ const EditLabelModal: React.FC<EditLabelModalProps> = ({
   onLabelUpdated,
   existingLabels = [],
 }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const dispatch = useDispatch();
+  const labelsState = useSelectorLabels((state) => state);
   const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [color, setColor] = useState('#FF5733');
@@ -39,7 +42,6 @@ const EditLabelModal: React.FC<EditLabelModalProps> = ({
     if (open && label) {
       // Populate form with label data
       setError(null);
-      setIsSubmitting(false);
       setName(label.name);
       setColor(label.color || '#FF5733');
       setDescription(label.description || '');
@@ -75,27 +77,33 @@ const EditLabelModal: React.FC<EditLabelModalProps> = ({
       return;
     }
 
-    setIsSubmitting(true);
     setError(null);
 
-    // Simulate API call delay
-    setTimeout(() => {
-      const updatedLabel: Label = {
-        ...label,
-        name: name.trim(),
-        color: color || undefined,
-        description: description.trim() || undefined,
-      };
-
-      onLabelUpdated?.(updatedLabel);
-
-      setIsSubmitting(false);
-      onClose();
-    }, 300);
+    dispatch(
+      labelsActions.updateLabelRequest({
+        data: {
+          id: label.id,
+          name: name.trim(),
+          color: color || undefined,
+          description: description.trim() || undefined,
+        },
+        callback: {
+          onSuccess: (updatedLabel: Label) => {
+            onLabelUpdated?.(updatedLabel);
+            onClose();
+          },
+          onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update label';
+            setError(errorMessage);
+          },
+        },
+      } as any)
+    );
   };
 
   const handleClose = () => {
-    if (!isSubmitting) {
+    if (!labelsState.updateLabelLoading) {
+      setError(null);
       onClose();
     }
   };
@@ -119,7 +127,7 @@ const EditLabelModal: React.FC<EditLabelModalProps> = ({
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            disabled={isSubmitting}
+            disabled={labelsState.updateLabelLoading}
             placeholder="e.g., bug, feature, urgent"
             autoFocus
             sx={{ mb: 2 }}
@@ -153,7 +161,7 @@ const EditLabelModal: React.FC<EditLabelModalProps> = ({
                     setColor('#' + value);
                   }
                 }}
-                disabled={isSubmitting}
+                disabled={labelsState.updateLabelLoading}
                 placeholder="#FF5733"
                 size="small"
                 sx={{ flex: 1 }}
@@ -170,22 +178,22 @@ const EditLabelModal: React.FC<EditLabelModalProps> = ({
             rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            disabled={isSubmitting}
+            disabled={labelsState.updateLabelLoading}
             placeholder="Describe what this label is used for..."
           />
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} disabled={isSubmitting}>
+        <Button onClick={handleClose} disabled={labelsState.updateLabelLoading}>
           Cancel
         </Button>
         <Button
           onClick={handleSubmit}
           variant="contained"
-          disabled={isSubmitting || !name.trim()}
-          startIcon={isSubmitting ? <CircularProgress size={16} /> : null}
+          disabled={labelsState.updateLabelLoading || !name.trim()}
+          startIcon={labelsState.updateLabelLoading ? <CircularProgress size={16} /> : null}
         >
-          {isSubmitting ? 'Updating...' : 'Update Label'}
+          {labelsState.updateLabelLoading ? 'Updating...' : 'Update Label'}
         </Button>
       </DialogActions>
     </Dialog>

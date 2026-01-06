@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -10,6 +11,8 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
+import { commentsActions, useSelectorComments } from '../store';
+import { useSelectorAuth } from '../../../auth/src/store';
 
 interface CreateCommentModalProps {
   open: boolean;
@@ -23,10 +26,17 @@ const CreateCommentModal: React.FC<CreateCommentModalProps> = ({
   open,
   onClose,
   issueId,
-  authorId = '1',
+  authorId,
   onCommentCreated,
 }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const dispatch = useDispatch();
+  const authState = useSelectorAuth((state) => state);
+  const currentUser = authState.user;
+  const commentsState = useSelectorComments((state) => state);
+  
+  // Get authorId from current user if not provided
+  const finalAuthorId = authorId || currentUser?.id || '';
+  
   const [error, setError] = useState<string | null>(null);
   const [content, setContent] = useState('');
 
@@ -34,7 +44,6 @@ const CreateCommentModal: React.FC<CreateCommentModalProps> = ({
     if (open) {
       // Reset form when modal opens
       setError(null);
-      setIsSubmitting(false);
       setContent('');
     }
   }, [open]);
@@ -45,39 +54,38 @@ const CreateCommentModal: React.FC<CreateCommentModalProps> = ({
       return;
     }
 
-    setIsSubmitting(true);
+    if (!finalAuthorId) {
+      setError('User not authenticated');
+      return;
+    }
+
     setError(null);
 
-    // Simulate a quick delay (mock API call)
-    setTimeout(() => {
-      // Create new comment object
-      const newComment = {
-        id: `comment-${Date.now()}`,
-        content: content.trim(),
-        authorId: authorId,
-        author: {
-          id: authorId,
-          username: 'current.user',
-          email: 'current@example.com',
-          displayName: 'Current User',
+    dispatch(
+      commentsActions.createCommentRequest({
+        data: {
+          issueId,
+          authorId: finalAuthorId,
+          content: content.trim(),
         },
-        issueId: issueId,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      // Call the callback to add comment to parent component
-      onCommentCreated?.(newComment);
-
-      // Reset form and close
-      setContent('');
-      setIsSubmitting(false);
-      onClose();
-    }, 300); // Small delay to simulate API
+        callback: {
+          onSuccess: (comment: any) => {
+            onCommentCreated?.(comment);
+            setContent('');
+            onClose();
+          },
+          onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to create comment';
+            setError(errorMessage);
+          },
+        },
+      } as any)
+    );
   };
 
   const handleClose = () => {
-    if (!isSubmitting) {
+    if (!commentsState.createCommentLoading) {
+      setError(null);
       onClose();
     }
   };
@@ -100,23 +108,23 @@ const CreateCommentModal: React.FC<CreateCommentModalProps> = ({
             rows={6}
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            disabled={isSubmitting}
+            disabled={commentsState.createCommentLoading}
             placeholder="Write a comment..."
             autoFocus
           />
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} disabled={isSubmitting}>
+        <Button onClick={handleClose} disabled={commentsState.createCommentLoading}>
           Cancel
         </Button>
         <Button
           onClick={handleSubmit}
           variant="contained"
-          disabled={isSubmitting || !content.trim()}
-          startIcon={isSubmitting ? <CircularProgress size={16} /> : null}
+          disabled={commentsState.createCommentLoading || !content.trim()}
+          startIcon={commentsState.createCommentLoading ? <CircularProgress size={16} /> : null}
         >
-          {isSubmitting ? 'Posting...' : 'Post Comment'}
+          {commentsState.createCommentLoading ? 'Posting...' : 'Post Comment'}
         </Button>
       </DialogActions>
     </Dialog>

@@ -25,6 +25,11 @@ import { injectStore as usersInjectStore } from '../features/users/src/store';
 import { injectStore as referenceDataInjectStore } from '../features/reference-data/src/store';
 import { injectStore as projectsInjectStore } from '../features/projects/src/store';
 import { injectStore as boardsInjectStore } from '../features/boards/src/store';
+import { injectStore as commentsInjectStore } from '../features/comments/src/store';
+import { injectStore as attachmentsInjectStore } from '../features/attachments/src/store';
+import { injectStore as labelsInjectStore } from '../features/labels/src/store';
+import { injectStore as workflowsInjectStore } from '../features/workflows/src/store';
+import { injectStore as teamInjectStore } from '../features/team/src/store';
 
 // Create saga middleware
 const sagaMiddleware = createSagaMiddleware();
@@ -39,6 +44,11 @@ const featureStores: InjectStore[] = [
   referenceDataInjectStore,
   projectsInjectStore,
   boardsInjectStore,
+  commentsInjectStore,
+  attachmentsInjectStore,
+  labelsInjectStore,
+  workflowsInjectStore,
+  teamInjectStore,
 ];
 
 // Build combined reducers (similar to portal pattern)

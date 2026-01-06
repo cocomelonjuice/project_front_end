@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Box,
   Typography,
@@ -15,6 +16,7 @@ import {
   Menu,
   MenuItem,
   Alert,
+  CircularProgress,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -28,20 +30,40 @@ import {
   CreateWorkflowModal,
   EditWorkflowModal,
   DeleteWorkflowDialog,
+  workflowsActions,
+  useSelectorWorkflows,
 } from '../../features/workflows/src';
-import { mockWorkflows } from '../../features/workflows/src/store/mockData';
 import type { Workflow } from '../../features/workflows/src/store/states';
 import { useSelectorProjects } from '../../features/projects/src/store';
 
 const WorkflowsList: React.FC = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const projectsState = useSelectorProjects((state) => state);
-  const [workflows, setWorkflows] = useState<Workflow[]>(mockWorkflows);
+  const workflowsState = useSelectorWorkflows((state) => state);
+  const workflows = workflowsState.workflows;
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  useEffect(() => {
+    // Fetch workflows on mount
+    dispatch(
+      workflowsActions.getWorkflowsRequest({
+        data: {},
+        callback: {
+          onSuccess: () => {
+            // Workflows loaded successfully, they're in Redux state
+          },
+          onError: (error: any) => {
+            console.error('Failed to load workflows:', error);
+          },
+        },
+      } as any)
+    );
+  }, [dispatch]);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, workflow: Workflow) => {
     setMenuAnchor(event.currentTarget);
@@ -73,15 +95,29 @@ const WorkflowsList: React.FC = () => {
   };
 
   const handleWorkflowCreated = (workflow: Workflow) => {
-    setWorkflows((prev) => [...prev, workflow]);
+    // Workflow is already added to Redux state by the saga
+    // Optionally refresh the list
+    dispatch(
+      workflowsActions.getWorkflowsRequest({
+        data: {},
+        callback: {},
+      } as any)
+    );
   };
 
   const handleWorkflowUpdated = (updatedWorkflow: Workflow) => {
-    setWorkflows((prev) => prev.map((w) => (w.id === updatedWorkflow.id ? updatedWorkflow : w)));
+    // Workflow is already updated in Redux state by the saga
+    // Optionally refresh the list
+    dispatch(
+      workflowsActions.getWorkflowsRequest({
+        data: {},
+        callback: {},
+      } as any)
+    );
   };
 
   const handleWorkflowDeleted = (workflowId: string) => {
-    setWorkflows((prev) => prev.filter((w) => w.id !== workflowId));
+    // Workflow is already removed from Redux state by the saga
   };
 
   const getProjectName = (projectId: string | null | undefined): string => {
@@ -107,7 +143,11 @@ const WorkflowsList: React.FC = () => {
         </Button>
       </Box>
 
-      {workflows.length === 0 ? (
+      {workflowsState.getWorkflowsLoading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : workflows.length === 0 ? (
         <Alert severity="info">No workflows found. Create your first workflow to get started.</Alert>
       ) : (
         <TableContainer component={Paper}>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -12,9 +13,11 @@ import {
   Autocomplete,
   CircularProgress,
   Typography,
+  Alert,
 } from '@mui/material';
+import { workflowsActions, useSelectorWorkflows } from '../store';
+import { useSelectorProjects } from '../../../projects/src/store';
 import type { Workflow } from '../store/states';
-import { mockProjects } from '../../../projects/src';
 
 interface CreateWorkflowModalProps {
   open: boolean;
@@ -27,12 +30,15 @@ const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
   onClose,
   onWorkflowCreated,
 }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const dispatch = useDispatch();
+  const workflowsState = useSelectorWorkflows((state) => state);
+  const projectsState = useSelectorProjects((state) => state);
+  const projects = projectsState.projects;
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [projectId, setProjectId] = useState<string | null>(null);
   const [isActive, setIsActive] = useState(true);
-  const [errors, setErrors] = useState<{ name?: string }>({});
+  const [errors, setErrors] = useState<{ name?: string; general?: string }>({});
 
   useEffect(() => {
     if (open) {
@@ -42,7 +48,6 @@ const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
       setProjectId(null);
       setIsActive(true);
       setErrors({});
-      setIsSubmitting(false);
     }
   }, [open]);
 
@@ -64,27 +69,33 @@ const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
       return;
     }
 
-    setIsSubmitting(true);
+    setErrors({});
 
-    // Simulate API call delay
-    setTimeout(() => {
-      const newWorkflow: Workflow = {
-        id: `w${Date.now()}`,
-        projectId: projectId || null,
-        name: name.trim(),
-        description: description.trim() || undefined,
-        isActive,
-        transitions: [],
-      };
-
-      onWorkflowCreated?.(newWorkflow);
-      setIsSubmitting(false);
-      onClose();
-    }, 300);
+    dispatch(
+      workflowsActions.createWorkflowRequest({
+        data: {
+          name: name.trim(),
+          description: description.trim() || undefined,
+          projectId: projectId || undefined,
+          isActive,
+        },
+        callback: {
+          onSuccess: (newWorkflow: Workflow) => {
+            onWorkflowCreated?.(newWorkflow);
+            onClose();
+          },
+          onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to create workflow';
+            setErrors({ general: errorMessage });
+          },
+        },
+      } as any)
+    );
   };
 
   const handleClose = () => {
-    if (!isSubmitting) {
+    if (!workflowsState.createWorkflowLoading) {
+      setErrors({});
       onClose();
     }
   };
@@ -94,6 +105,9 @@ const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
       <DialogTitle>Create Workflow</DialogTitle>
       <DialogContent>
         <Box sx={{ pt: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {errors.general && (
+            <Alert severity="error">{errors.general}</Alert>
+          )}
           <TextField
             label="Name"
             value={name}
@@ -115,10 +129,10 @@ const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
           />
 
           <Autocomplete
-            options={[{ id: 'global', name: 'Global (All Projects)' }, ...mockProjects]}
+            options={[{ id: 'global', name: 'Global (All Projects)' }, ...projects]}
             getOptionLabel={(option) => (option.id === 'global' ? 'Global (All Projects)' : option.name)}
             isOptionEqualToValue={(option, value) => option.id === value.id}
-            value={projectId ? mockProjects.find((p) => p.id === projectId) || null : { id: 'global', name: 'Global (All Projects)' }}
+            value={projectId ? projects.find((p) => p.id === projectId) || null : { id: 'global', name: 'Global (All Projects)' }}
             onChange={(_event, newValue) => {
               if (newValue && newValue.id === 'global') {
                 setProjectId(null);
@@ -135,7 +149,7 @@ const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
                 fullWidth
               />
             )}
-            disabled={isSubmitting}
+            disabled={workflowsState.createWorkflowLoading}
           />
 
           <FormControlLabel
@@ -145,16 +159,16 @@ const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} disabled={isSubmitting}>
+        <Button onClick={handleClose} disabled={workflowsState.createWorkflowLoading}>
           Cancel
         </Button>
         <Button
           onClick={handleSubmit}
           variant="contained"
-          disabled={isSubmitting || !name.trim()}
-          startIcon={isSubmitting ? <CircularProgress size={16} /> : null}
+          disabled={workflowsState.createWorkflowLoading || !name.trim()}
+          startIcon={workflowsState.createWorkflowLoading ? <CircularProgress size={16} /> : null}
         >
-          {isSubmitting ? 'Creating...' : 'Create'}
+          {workflowsState.createWorkflowLoading ? 'Creating...' : 'Create'}
         </Button>
       </DialogActions>
     </Dialog>

@@ -92,7 +92,7 @@ export const mockAttachments: Attachment[] = [
 ];
 
 // Flag to use mock data
-export const USE_MOCK_DATA = true;
+export const USE_MOCK_DATA = false;
 
 // Helper to simulate API delay
 export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

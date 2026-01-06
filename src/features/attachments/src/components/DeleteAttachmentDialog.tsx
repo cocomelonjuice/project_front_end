@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -12,6 +13,7 @@ import {
   Typography,
 } from '@mui/material';
 import { InsertDriveFile as FileIcon } from '@mui/icons-material';
+import { attachmentsActions, useSelectorAttachments } from '../store';
 import type { Attachment } from '../store/states';
 import { formatFileSize } from '../store/mockData';
 
@@ -28,35 +30,36 @@ const DeleteAttachmentDialog: React.FC<DeleteAttachmentDialogProps> = ({
   attachment,
   onAttachmentDeleted,
 }) => {
-  const [isDeleting, setIsDeleting] = useState(false);
+  const dispatch = useDispatch();
+  const attachmentsState = useSelectorAttachments((state) => state);
   const [error, setError] = useState<string | null>(null);
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!attachment) return;
 
-    setIsDeleting(true);
     setError(null);
 
-    try {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Call callback to remove from list
-      if (onAttachmentDeleted) {
-        onAttachmentDeleted(attachment.id);
-      }
-
-      // Close dialog
-      onClose();
-    } catch (err) {
-      setError('Failed to delete attachment. Please try again.');
-    } finally {
-      setIsDeleting(false);
-    }
+    dispatch(
+      attachmentsActions.deleteAttachmentRequest({
+        data: {
+          id: attachment.id,
+        },
+        callback: {
+          onSuccess: () => {
+            onAttachmentDeleted?.(attachment.id);
+            onClose();
+          },
+          onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete attachment';
+            setError(errorMessage);
+          },
+        },
+      } as any)
+    );
   };
 
   const handleClose = () => {
-    if (!isDeleting) {
+    if (!attachmentsState.deleteAttachmentLoading) {
       setError(null);
       onClose();
     }
@@ -94,17 +97,17 @@ const DeleteAttachmentDialog: React.FC<DeleteAttachmentDialogProps> = ({
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} disabled={isDeleting}>
+        <Button onClick={handleClose} disabled={attachmentsState.deleteAttachmentLoading}>
           Cancel
         </Button>
         <Button
           onClick={handleDelete}
           color="error"
           variant="contained"
-          disabled={isDeleting}
-          startIcon={isDeleting ? <CircularProgress size={16} /> : null}
+          disabled={attachmentsState.deleteAttachmentLoading}
+          startIcon={attachmentsState.deleteAttachmentLoading ? <CircularProgress size={16} /> : null}
         >
-          {isDeleting ? 'Deleting...' : 'Delete'}
+          {attachmentsState.deleteAttachmentLoading ? 'Deleting...' : 'Delete'}
         </Button>
       </DialogActions>
     </Dialog>

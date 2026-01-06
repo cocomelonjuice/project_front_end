@@ -18,6 +18,7 @@ import {
 import { mockUsers } from '../store/mockData';
 import { usersActions, useSelectorUsers } from '../../../users/src/store';
 import { referenceDataActions, useSelectorReferenceData } from '../../../reference-data/src/store';
+import { issuesActions } from '../store';
 import type { Issue } from '../store/states';
 
 interface EditIssueModalProps {
@@ -138,36 +139,33 @@ const EditIssueModal: React.FC<EditIssueModalProps> = ({ open, onClose, issue, o
     setIsSubmitting(true);
     setError(null);
 
-    // Simulate a quick delay (mock API call)
-    setTimeout(() => {
-      // Create updated issue object
-      const issueType = referenceDataState.issueTypes.find((t) => t.id === formData.typeId);
-      const priority = referenceDataState.priorities.find((p) => p.id === formData.priorityId);
-      const status = referenceDataState.statuses.find((s) => s.id === formData.statusId);
-      
-      const updatedIssue: Issue = {
-        ...issue,
-        summary: formData.summary,
-        description: formData.description || undefined,
-        typeId: formData.typeId,
-        type: issueType ? { id: issueType.id, name: issueType.name, icon: issueType.icon, color: issueType.color } : issue.type,
-        priorityId: formData.priorityId,
-        priority: priority ? { id: priority.id, name: priority.name, level: priority.orderNum, color: priority.color } : issue.priority,
-        statusId: formData.statusId,
-        status: status ? { id: status.id, name: status.name, category: status.category, color: status.color } : issue.status,
-        assigneeId: formData.assigneeId || undefined,
-        assignee: formData.assigneeId 
-          ? (usersState.users.find((u) => u.id === formData.assigneeId) || mockUsers.find((u) => u.id === formData.assigneeId))
-          : undefined,
-        updatedAt: new Date().toISOString(),
-      };
-
-      // Call the callback to update issue in parent component
-      onIssueUpdated?.(updatedIssue);
-
-      setIsSubmitting(false);
-      onClose();
-    }, 300); // Small delay to simulate API
+    // Dispatch Redux action to update issue via API
+    dispatch(
+      issuesActions.updateIssueRequest({
+        data: {
+          id: issue.id,
+          summary: formData.summary,
+          description: formData.description || undefined,
+          typeId: formData.typeId,
+          priorityId: formData.priorityId,
+          statusId: formData.statusId,
+          assigneeId: formData.assigneeId || undefined,
+        },
+        callback: {
+          onSuccess: (updatedIssue: Issue) => {
+            // Issue updated successfully
+            onIssueUpdated?.(updatedIssue);
+            setIsSubmitting(false);
+            onClose();
+          },
+          onError: (error: any) => {
+            console.error('Failed to update issue:', error);
+            setError(error?.response?.data?.message || 'Failed to update issue. Please try again.');
+            setIsSubmitting(false);
+          },
+        },
+      } as any)
+    );
   };
 
   const handleClose = () => {

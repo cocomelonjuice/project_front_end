@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -16,9 +17,10 @@ import {
   Close as CloseIcon,
   InsertDriveFile as FileIcon,
 } from '@mui/icons-material';
+import { attachmentsActions, useSelectorAttachments } from '../store';
+import { useSelectorAuth } from '../../../auth/src/store';
 import type { Attachment } from '../store/states';
-import { formatFileSize, getNextAttachmentId } from '../store/mockData';
-import { mockUsers } from '../../../issues/src/store/mockData';
+import { formatFileSize } from '../store/mockData';
 
 interface UploadAttachmentModalProps {
   open: boolean;
@@ -32,10 +34,17 @@ const UploadAttachmentModal: React.FC<UploadAttachmentModalProps> = ({
   open,
   onClose,
   issueId,
-  uploadedById = '1',
+  uploadedById,
   onAttachmentUploaded,
 }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const dispatch = useDispatch();
+  const authState = useSelectorAuth((state) => state);
+  const currentUser = authState.user;
+  const attachmentsState = useSelectorAttachments((state) => state);
+  
+  // Get uploadedById from current user if not provided
+  const finalUploadedById = uploadedById || currentUser?.id || '';
+  
   const [error, setError] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -44,7 +53,6 @@ const UploadAttachmentModal: React.FC<UploadAttachmentModalProps> = ({
     if (open) {
       // Reset form when modal opens
       setError(null);
-      setIsSubmitting(false);
       setSelectedFile(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -80,40 +88,41 @@ const UploadAttachmentModal: React.FC<UploadAttachmentModalProps> = ({
       return;
     }
 
-    setIsSubmitting(true);
+    if (!finalUploadedById) {
+      setError('User not authenticated');
+      return;
+    }
+
     setError(null);
 
-    // Simulate file upload delay
-    setTimeout(() => {
-      // Create new attachment object
-      const newAttachment: Attachment = {
-        id: getNextAttachmentId(),
-        filename: `${Date.now()}-${Math.random().toString(36).substring(7)}${selectedFile.name.substring(selectedFile.name.lastIndexOf('.'))}`,
-        originalFilename: selectedFile.name,
-        mimeType: selectedFile.type || 'application/octet-stream',
-        size: selectedFile.size,
-        filePath: `/uploads/${Date.now()}-${Math.random().toString(36).substring(7)}${selectedFile.name.substring(selectedFile.name.lastIndexOf('.'))}`,
-        issueId: issueId,
-        uploadedById: uploadedById,
-        uploadedBy: mockUsers.find((u) => u.id === uploadedById) || mockUsers[0],
-        createdAt: new Date().toISOString(),
-      };
-
-      // Call the callback to add attachment to parent component
-      onAttachmentUploaded?.(newAttachment);
-
-      // Reset form and close
-      setSelectedFile(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-      setIsSubmitting(false);
-      onClose();
-    }, 500); // Simulate upload delay
+    dispatch(
+      attachmentsActions.uploadAttachmentRequest({
+        data: {
+          issueId,
+          file: selectedFile,
+          uploadedById: finalUploadedById,
+        },
+        callback: {
+          onSuccess: (attachment: Attachment) => {
+            onAttachmentUploaded?.(attachment);
+            setSelectedFile(null);
+            if (fileInputRef.current) {
+              fileInputRef.current.value = '';
+            }
+            onClose();
+          },
+          onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to upload attachment';
+            setError(errorMessage);
+          },
+        },
+      } as any)
+    );
   };
 
   const handleClose = () => {
-    if (!isSubmitting) {
+    if (!attachmentsState.uploadAttachmentLoading) {
+      setError(null);
       onClose();
     }
   };
@@ -157,7 +166,7 @@ const UploadAttachmentModal: React.FC<UploadAttachmentModalProps> = ({
                 type="file"
                 hidden
                 onChange={handleFileSelect}
-                disabled={isSubmitting}
+                disabled={attachmentsState.uploadAttachmentLoading}
               />
             </Box>
           ) : (
@@ -184,7 +193,7 @@ const UploadAttachmentModal: React.FC<UploadAttachmentModalProps> = ({
               <IconButton
                 size="small"
                 onClick={handleRemoveFile}
-                disabled={isSubmitting}
+                disabled={attachmentsState.uploadAttachmentLoading}
                 color="error"
               >
                 <CloseIcon />
@@ -194,16 +203,16 @@ const UploadAttachmentModal: React.FC<UploadAttachmentModalProps> = ({
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} disabled={isSubmitting}>
+        <Button onClick={handleClose} disabled={attachmentsState.uploadAttachmentLoading}>
           Cancel
         </Button>
         <Button
           onClick={handleSubmit}
           variant="contained"
-          disabled={isSubmitting || !selectedFile}
-          startIcon={isSubmitting ? <CircularProgress size={16} /> : <CloudUploadIcon />}
+          disabled={attachmentsState.uploadAttachmentLoading || !selectedFile}
+          startIcon={attachmentsState.uploadAttachmentLoading ? <CircularProgress size={16} /> : <CloudUploadIcon />}
         >
-          {isSubmitting ? 'Uploading...' : 'Upload'}
+          {attachmentsState.uploadAttachmentLoading ? 'Uploading...' : 'Upload'}
         </Button>
       </DialogActions>
     </Dialog>

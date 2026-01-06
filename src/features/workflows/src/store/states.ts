@@ -32,6 +32,7 @@ const initialState = {
   updateWorkflowLoading: false,
   deleteWorkflowLoading: false,
   addTransitionLoading: false,
+  deleteTransitionLoading: false,
   errors: null as Array<{ type: string; msg: string }> | null,
 };
 

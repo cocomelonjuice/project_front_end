@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -11,8 +12,9 @@ import {
   CircularProgress,
   Typography,
 } from '@mui/material';
+import { labelsActions, useSelectorLabels } from '../store';
 import type { Label } from '../store/states';
-import { getRandomColor, isValidHexColor, getNextLabelId } from '../store/mockData';
+import { getRandomColor, isValidHexColor } from '../store/mockData';
 
 interface CreateLabelModalProps {
   open: boolean;
@@ -27,7 +29,8 @@ const CreateLabelModal: React.FC<CreateLabelModalProps> = ({
   onLabelCreated,
   existingLabels = [],
 }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const dispatch = useDispatch();
+  const labelsState = useSelectorLabels((state) => state);
   const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [color, setColor] = useState('#FF5733');
@@ -37,7 +40,6 @@ const CreateLabelModal: React.FC<CreateLabelModalProps> = ({
     if (open) {
       // Reset form when modal opens
       setError(null);
-      setIsSubmitting(false);
       setName('');
       setColor(getRandomColor());
       setDescription('');
@@ -71,31 +73,35 @@ const CreateLabelModal: React.FC<CreateLabelModalProps> = ({
       return;
     }
 
-    setIsSubmitting(true);
     setError(null);
 
-    // Simulate API call delay
-    setTimeout(() => {
-      const newLabel: Label = {
-        id: getNextLabelId(),
-        name: name.trim(),
-        color: color || undefined,
-        description: description.trim() || undefined,
-      };
-
-      onLabelCreated?.(newLabel);
-
-      // Reset form and close
-      setName('');
-      setColor(getRandomColor());
-      setDescription('');
-      setIsSubmitting(false);
-      onClose();
-    }, 300);
+    dispatch(
+      labelsActions.createLabelRequest({
+        data: {
+          name: name.trim(),
+          color: color || undefined,
+          description: description.trim() || undefined,
+        },
+        callback: {
+          onSuccess: (newLabel: Label) => {
+            onLabelCreated?.(newLabel);
+            setName('');
+            setColor(getRandomColor());
+            setDescription('');
+            onClose();
+          },
+          onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to create label';
+            setError(errorMessage);
+          },
+        },
+      } as any)
+    );
   };
 
   const handleClose = () => {
-    if (!isSubmitting) {
+    if (!labelsState.createLabelLoading) {
+      setError(null);
       onClose();
     }
   };
@@ -117,7 +123,7 @@ const CreateLabelModal: React.FC<CreateLabelModalProps> = ({
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            disabled={isSubmitting}
+            disabled={labelsState.createLabelLoading}
             placeholder="e.g., bug, feature, urgent"
             autoFocus
             sx={{ mb: 2 }}
@@ -151,7 +157,7 @@ const CreateLabelModal: React.FC<CreateLabelModalProps> = ({
                     setColor('#' + value);
                   }
                 }}
-                disabled={isSubmitting}
+                disabled={labelsState.createLabelLoading}
                 placeholder="#FF5733"
                 size="small"
                 sx={{ flex: 1 }}
@@ -168,22 +174,22 @@ const CreateLabelModal: React.FC<CreateLabelModalProps> = ({
             rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            disabled={isSubmitting}
+            disabled={labelsState.createLabelLoading}
             placeholder="Describe what this label is used for..."
           />
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} disabled={isSubmitting}>
+        <Button onClick={handleClose} disabled={labelsState.createLabelLoading}>
           Cancel
         </Button>
         <Button
           onClick={handleSubmit}
           variant="contained"
-          disabled={isSubmitting || !name.trim()}
-          startIcon={isSubmitting ? <CircularProgress size={16} /> : null}
+          disabled={labelsState.createLabelLoading || !name.trim()}
+          startIcon={labelsState.createLabelLoading ? <CircularProgress size={16} /> : null}
         >
-          {isSubmitting ? 'Creating...' : 'Create Label'}
+          {labelsState.createLabelLoading ? 'Creating...' : 'Create Label'}
         </Button>
       </DialogActions>
     </Dialog>

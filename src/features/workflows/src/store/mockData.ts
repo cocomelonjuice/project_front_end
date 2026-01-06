@@ -90,9 +90,18 @@ export const mockWorkflows: Workflow[] = [
 ];
 
 // Flag to use mock data
-export const USE_MOCK_DATA = true;
+export const USE_MOCK_DATA = false;
 
 // Helper to simulate API delay
 export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Helper to generate next workflow ID
+export const getNextWorkflowId = (): string => {
+  const maxId = mockWorkflows.reduce((max, workflow) => {
+    const numId = parseInt(workflow.id.replace('w', ''));
+    return numId > max ? numId : max;
+  }, 0);
+  return `w${maxId + 1}`;
+};
 
 

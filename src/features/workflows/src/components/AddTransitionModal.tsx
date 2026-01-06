@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -10,9 +11,11 @@ import {
   TextField,
   CircularProgress,
   Typography,
+  Alert,
 } from '@mui/material';
+import { workflowsActions, useSelectorWorkflows } from '../store';
+import { useSelectorReferenceData, referenceDataActions } from '../../../reference-data/src/store';
 import type { WorkflowTransition, Status } from '../store/states';
-import { mockStatuses } from '../../../issues/src/store/mockData';
 
 interface AddTransitionModalProps {
   open: boolean;
@@ -29,19 +32,37 @@ const AddTransitionModal: React.FC<AddTransitionModalProps> = ({
   existingTransitions = [],
   onTransitionAdded,
 }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const dispatch = useDispatch();
+  const workflowsState = useSelectorWorkflows((state) => state);
+  const referenceDataState = useSelectorReferenceData((state) => state);
+  const statuses = referenceDataState.statuses;
   const [fromStatus, setFromStatus] = useState<Status | null>(null);
   const [toStatus, setToStatus] = useState<Status | null>(null);
-  const [errors, setErrors] = useState<{ fromStatus?: string; toStatus?: string }>({});
+  const [errors, setErrors] = useState<{ fromStatus?: string; toStatus?: string; general?: string }>({});
 
+  // Fetch statuses when modal opens
   useEffect(() => {
     if (open) {
+      // Always fetch statuses when modal opens to ensure fresh data
+      dispatch(
+        referenceDataActions.getStatusesRequest({
+          data: {},
+          callback: {
+            onSuccess: () => {
+              // Statuses loaded successfully
+            },
+            onError: (error: any) => {
+              console.error('Failed to load statuses:', error);
+            },
+          },
+        } as any)
+      );
+      
       setFromStatus(null);
       setToStatus(null);
       setErrors({});
-      setIsSubmitting(false);
     }
-  }, [open]);
+  }, [open, dispatch]);
 
   const validate = (): boolean => {
     const newErrors: { fromStatus?: string; toStatus?: string } = {};
@@ -72,27 +93,32 @@ const AddTransitionModal: React.FC<AddTransitionModalProps> = ({
       return;
     }
 
-    setIsSubmitting(true);
+    setErrors({});
 
-    // Simulate API call delay
-    setTimeout(() => {
-      const newTransition: WorkflowTransition = {
-        id: `t${Date.now()}`,
-        workflowId,
-        fromStatusId: fromStatus.id,
-        fromStatus,
-        toStatusId: toStatus.id,
-        toStatus,
-      };
-
-      onTransitionAdded?.(newTransition);
-      setIsSubmitting(false);
-      onClose();
-    }, 300);
+    dispatch(
+      workflowsActions.addTransitionRequest({
+        data: {
+          workflowId,
+          fromStatusId: fromStatus.id,
+          toStatusId: toStatus.id,
+        },
+        callback: {
+          onSuccess: (newTransition: WorkflowTransition) => {
+            onTransitionAdded?.(newTransition);
+            onClose();
+          },
+          onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to add transition';
+            setErrors({ general: errorMessage });
+          },
+        },
+      } as any)
+    );
   };
 
   const handleClose = () => {
-    if (!isSubmitting) {
+    if (!workflowsState.addTransitionLoading) {
+      setErrors({});
       onClose();
     }
   };
@@ -102,8 +128,11 @@ const AddTransitionModal: React.FC<AddTransitionModalProps> = ({
       <DialogTitle>Add Transition</DialogTitle>
       <DialogContent>
         <Box sx={{ pt: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {errors.general && (
+            <Alert severity="error">{errors.general}</Alert>
+          )}
           <Autocomplete
-            options={mockStatuses}
+            options={statuses}
             getOptionLabel={(option) => option.name}
             isOptionEqualToValue={(option, value) => option.id === value.id}
             value={fromStatus}
@@ -123,7 +152,7 @@ const AddTransitionModal: React.FC<AddTransitionModalProps> = ({
                 required
               />
             )}
-            disabled={isSubmitting}
+            disabled={workflowsState.addTransitionLoading}
           />
 
           <Box sx={{ textAlign: 'center' }}>
@@ -133,7 +162,7 @@ const AddTransitionModal: React.FC<AddTransitionModalProps> = ({
           </Box>
 
           <Autocomplete
-            options={mockStatuses}
+            options={statuses}
             getOptionLabel={(option) => option.name}
             isOptionEqualToValue={(option, value) => option.id === value.id}
             value={toStatus}
@@ -153,21 +182,21 @@ const AddTransitionModal: React.FC<AddTransitionModalProps> = ({
                 required
               />
             )}
-            disabled={isSubmitting}
+            disabled={workflowsState.addTransitionLoading}
           />
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} disabled={isSubmitting}>
+        <Button onClick={handleClose} disabled={workflowsState.addTransitionLoading}>
           Cancel
         </Button>
         <Button
           onClick={handleSubmit}
           variant="contained"
-          disabled={isSubmitting || !fromStatus || !toStatus}
-          startIcon={isSubmitting ? <CircularProgress size={16} /> : null}
+          disabled={workflowsState.addTransitionLoading || !fromStatus || !toStatus}
+          startIcon={workflowsState.addTransitionLoading ? <CircularProgress size={16} /> : null}
         >
-          {isSubmitting ? 'Adding...' : 'Add Transition'}
+          {workflowsState.addTransitionLoading ? 'Adding...' : 'Add Transition'}
         </Button>
       </DialogActions>
     </Dialog>

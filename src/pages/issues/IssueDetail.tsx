@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import {
   Box,
   Typography,
@@ -15,6 +16,7 @@ import {
   Menu,
   MenuItem,
   Alert,
+  CircularProgress,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -23,43 +25,56 @@ import {
   Delete as DeleteIcon,
   Person as PersonIcon,
 } from '@mui/icons-material';
-import { EditIssueModal, DeleteIssueDialog, AssignIssueModal, TransitionStatusModal } from '../../features/issues/src';
-import { mockIssueTypes, mockPriorities, mockStatuses, mockUsers, mockIssues } from '../../features/issues/src/store/mockData';
+import { EditIssueModal, DeleteIssueDialog, AssignIssueModal, TransitionStatusModal, issuesActions, useSelectorIssues } from '../../features/issues/src';
+import { mockIssueTypes, mockPriorities, mockStatuses, mockUsers } from '../../features/issues/src/store/mockData';
 import type { Issue } from '../../features/issues/src/store/states';
 import {
   CommentList,
   CreateCommentModal,
   EditCommentModal,
   DeleteCommentDialog,
+  commentsActions,
+  useSelectorComments,
 } from '../../features/comments/src';
-import { mockComments } from '../../features/comments/src/store/mockData';
 import type { Comment } from '../../features/comments/src/store/states';
+import { useSelectorAuth } from '../../features/auth/src/store';
 import {
   AttachmentList,
   UploadAttachmentModal,
   DeleteAttachmentDialog,
+  attachmentsActions,
+  useSelectorAttachments,
 } from '../../features/attachments/src';
-import { mockAttachments } from '../../features/attachments/src/store/mockData';
+import attachmentsApi from '../../features/attachments/src/store/api';
 import type { Attachment } from '../../features/attachments/src/store/states';
 import {
   LabelsList,
   CreateLabelModal,
   EditLabelModal,
   AssignLabelsModal,
+  labelsActions,
+  useSelectorLabels,
 } from '../../features/labels/src';
-import { mockLabels } from '../../features/labels/src/store/mockData';
 import type { Label } from '../../features/labels/src/store/states';
 
 const IssueDetail: React.FC = () => {
   const { projectId, issueId } = useParams<{ projectId: string; issueId: string }>();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  // Load issue from mock data
-  const [issue, setIssue] = useState<Issue | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const [allLabels, setAllLabels] = useState<Label[]>(mockLabels);
-  const [issueLabels, setIssueLabels] = useState<Label[]>([]);
+  // Redux state
+  const authState = useSelectorAuth((state) => state);
+  const currentUser = authState.user;
+  const commentsState = useSelectorComments((state) => state);
+  const comments = commentsState.comments.filter((c) => c.issueId === issueId);
+  const issuesState = useSelectorIssues((state) => state);
+  const issue = issuesState.currentIssue;
+  const attachmentsState = useSelectorAttachments((state) => state);
+  const attachments = attachmentsState.attachments.filter((a) => a.issueId === issueId);
+  const labelsState = useSelectorLabels((state) => state);
+  const allLabels = labelsState.labels;
+  // Get issue labels from the issue object (which comes from Redux)
+  const issueLabels = issue?.labels || [];
 
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -88,29 +103,68 @@ const IssueDetail: React.FC = () => {
 
   useEffect(() => {
     if (issueId) {
-      // Find issue in mock data
-      const foundIssue = mockIssues.find((i) => i.id === issueId);
-      if (foundIssue) {
-        setIssue(foundIssue);
-      }
+      // Load all labels from API
+      dispatch(
+        labelsActions.getLabelsRequest({
+          data: {},
+          callback: {
+            onSuccess: () => {
+              // Labels loaded successfully, they're in Redux state
+            },
+            onError: (error: any) => {
+              console.error('Failed to load labels:', error);
+            },
+          },
+        } as any)
+      );
 
-      // Load comments for this issue
-      const issueComments = mockComments.filter((c) => c.issueId === issueId);
-      setComments(issueComments);
+      // Load issue from API
+      dispatch(
+        issuesActions.getIssueByIdRequest({
+          data: { id: issueId },
+          callback: {
+            onSuccess: () => {
+              // Issue loaded successfully, it's in Redux state as currentIssue
+              // Labels are already in the issue object from the API
+            },
+            onError: (error: any) => {
+              console.error('Failed to load issue:', error);
+            },
+          },
+        } as any)
+      );
 
-      // Load attachments for this issue
-      const issueAttachments = mockAttachments.filter((a) => a.issueId === issueId);
-      setAttachments(issueAttachments);
+      // Load comments for this issue from API
+      dispatch(
+        commentsActions.getCommentsByIssueRequest({
+          data: { issueId },
+          callback: {
+            onSuccess: () => {
+              // Comments loaded successfully, they're in Redux state
+            },
+            onError: (error: any) => {
+              console.error('Failed to load comments:', error);
+            },
+          },
+        } as any)
+      );
 
-      // Load labels for this issue
-      if (foundIssue && foundIssue.labelIds) {
-        const labels = mockLabels.filter((l) => foundIssue.labelIds?.includes(l.id));
-        setIssueLabels(labels);
-      } else {
-        setIssueLabels([]);
-      }
+      // Load attachments for this issue from API
+      dispatch(
+        attachmentsActions.getAttachmentsByIssueRequest({
+          data: { issueId },
+          callback: {
+            onSuccess: () => {
+              // Attachments loaded successfully, they're in Redux state
+            },
+            onError: (error: any) => {
+              console.error('Failed to load attachments:', error);
+            },
+          },
+        } as any)
+      );
     }
-  }, [issueId]);
+  }, [issueId, dispatch]);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setMenuAnchor(event.currentTarget);
@@ -135,8 +189,8 @@ const IssueDetail: React.FC = () => {
   };
 
   const handleIssueUpdated = (updatedIssue: Issue) => {
-    // Update issue in local state
-    setIssue(updatedIssue);
+    // Issue is already updated in Redux state by the saga
+    // No need to update local state
   };
 
   const handleIssueDeleted = (deletedIssueId: string) => {
@@ -146,17 +200,26 @@ const IssueDetail: React.FC = () => {
 
   // Comment handlers
   const handleCommentCreated = (newComment: Comment) => {
-    setComments((prev) => [newComment, ...prev]);
+    // Comment is already added to Redux state by the saga
+    // Just refresh the comments list
+    if (issueId) {
+      dispatch(
+        commentsActions.getCommentsByIssueRequest({
+          data: { issueId },
+          callback: {},
+        } as any)
+      );
+    }
   };
 
   const handleCommentUpdated = (updatedComment: Comment) => {
-    setComments((prev) =>
-      prev.map((c) => (c.id === updatedComment.id ? updatedComment : c))
-    );
+    // Comment is already updated in Redux state by the saga
+    // No need to do anything
   };
 
   const handleCommentDeleted = (commentId: string) => {
-    setComments((prev) => prev.filter((c) => c.id !== commentId));
+    // Comment is already removed from Redux state by the saga
+    // No need to do anything
   };
 
   const handleEditComment = (comment: Comment) => {
@@ -171,11 +234,13 @@ const IssueDetail: React.FC = () => {
 
   // Attachment handlers
   const handleAttachmentUploaded = (newAttachment: Attachment) => {
-    setAttachments((prev) => [newAttachment, ...prev]);
+    // Attachment is already added to Redux state by the saga
+    // No need to do anything
   };
 
   const handleAttachmentDeleted = (attachmentId: string) => {
-    setAttachments((prev) => prev.filter((a) => a.id !== attachmentId));
+    // Attachment is already removed from Redux state by the saga
+    // No need to do anything
   };
 
   const handleDeleteAttachment = (attachment: Attachment) => {
@@ -183,21 +248,28 @@ const IssueDetail: React.FC = () => {
     setDeleteAttachmentDialogOpen(true);
   };
 
-  const handleDownloadAttachment = (attachment: Attachment) => {
-    // In real implementation, this would download from the API
-    // For mock, we'll just log it
-    console.log('Downloading attachment:', attachment.originalFilename);
-    // Simulate download
-    const link = document.createElement('a');
-    link.href = '#'; // In real app, this would be the download URL
-    link.download = attachment.originalFilename;
-    // For now, just show an alert
-    alert(`Downloading ${attachment.originalFilename} (mock)`);
+  const handleDownloadAttachment = async (attachment: Attachment) => {
+    try {
+      // Download attachment from API
+      const response = await attachmentsApi.downloadAttachment(attachment.id);
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = attachment.originalFilename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download attachment:', error);
+      alert(`Failed to download ${attachment.originalFilename}`);
+    }
   };
 
   // Label handlers
   const handleLabelCreated = (newLabel: Label) => {
-    setAllLabels((prev) => [...prev, newLabel]);
+    // Label is already added to Redux state by the saga
     // If creating from assign modal, open assign modal again
     if (assignLabelsModalOpen) {
       setAssignLabelsModalOpen(false);
@@ -206,19 +278,27 @@ const IssueDetail: React.FC = () => {
   };
 
   const handleLabelUpdated = (updatedLabel: Label) => {
-    setAllLabels((prev) => prev.map((l) => (l.id === updatedLabel.id ? updatedLabel : l)));
-    setIssueLabels((prev) =>
-      prev.map((l) => (l.id === updatedLabel.id ? updatedLabel : l))
-    );
+    // Label is already updated in Redux state by the saga
     setSelectedLabel(null);
   };
 
   const handleLabelsAssigned = (labelIds: string[]) => {
-    const labels = allLabels.filter((l) => labelIds.includes(l.id));
-    setIssueLabels(labels);
-    // Update issue in local state
-    if (issue) {
-      setIssue({ ...issue, labelIds, labels });
+    // Labels are assigned via API in AssignLabelsModal
+    // Refresh the issue to get updated labels
+    if (issueId) {
+      dispatch(
+        issuesActions.getIssueByIdRequest({
+          data: { id: issueId },
+          callback: {
+            onSuccess: () => {
+              // Issue refreshed with updated labels
+            },
+            onError: (error: any) => {
+              console.error('Failed to refresh issue:', error);
+            },
+          },
+        } as any)
+      );
     }
   };
 
@@ -229,27 +309,23 @@ const IssueDetail: React.FC = () => {
 
   // Assign and Transition handlers
   const handleIssueAssigned = (assigneeId: string) => {
-    if (issue) {
-      const newAssignee = assigneeId ? mockUsers.find((u) => u.id === assigneeId) : undefined;
-      setIssue({
-        ...issue,
-        assigneeId: assigneeId || undefined,
-        assignee: newAssignee,
-      });
-    }
+    // Issue will be updated in Redux state by the assign issue action
   };
 
   const handleStatusTransitioned = (statusId: string) => {
-    if (issue) {
-      const newStatus = mockStatuses.find((s) => s.id === statusId);
-      setIssue({
-        ...issue,
-        statusId: statusId,
-        status: newStatus,
-      });
-    }
+    // Issue will be updated in Redux state by the transition status action
   };
 
+  // Show loading state while fetching issue
+  if (issuesState.getIssueByIdLoading) {
+    return (
+      <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  // Show error if issue not found
   if (!issue) {
     return (
       <Box sx={{ p: 3 }}>
@@ -386,7 +462,7 @@ const IssueDetail: React.FC = () => {
               comments={comments}
               onEdit={handleEditComment}
               onDelete={handleDeleteComment}
-              currentUserId="1" // Mock current user ID
+              currentUserId={currentUser?.id}
             />
           </Paper>
         </Grid>
@@ -544,7 +620,7 @@ const IssueDetail: React.FC = () => {
         open={createCommentModalOpen}
         onClose={() => setCreateCommentModalOpen(false)}
         issueId={issueId || ''}
-        authorId="1"
+        authorId={currentUser?.id}
         onCommentCreated={handleCommentCreated}
       />
       {selectedComment && (
@@ -575,7 +651,7 @@ const IssueDetail: React.FC = () => {
         open={uploadAttachmentModalOpen}
         onClose={() => setUploadAttachmentModalOpen(false)}
         issueId={issueId || ''}
-        uploadedById="1"
+        uploadedById={currentUser?.id}
         onAttachmentUploaded={handleAttachmentUploaded}
       />
       {selectedAttachment && (

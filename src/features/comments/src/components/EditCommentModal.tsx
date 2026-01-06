@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -10,6 +11,7 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
+import { commentsActions, useSelectorComments } from '../store';
 import type { Comment } from '../store/states';
 
 interface EditCommentModalProps {
@@ -25,7 +27,8 @@ const EditCommentModal: React.FC<EditCommentModalProps> = ({
   comment,
   onCommentUpdated,
 }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const dispatch = useDispatch();
+  const commentsState = useSelectorComments((state) => state);
   const [error, setError] = useState<string | null>(null);
   const [content, setContent] = useState('');
 
@@ -33,7 +36,6 @@ const EditCommentModal: React.FC<EditCommentModalProps> = ({
     if (open && comment) {
       // Reset error and pre-fill form with comment data
       setError(null);
-      setIsSubmitting(false);
       setContent(comment.content || '');
     }
   }, [open, comment]);
@@ -46,28 +48,30 @@ const EditCommentModal: React.FC<EditCommentModalProps> = ({
 
     if (!comment) return;
 
-    setIsSubmitting(true);
     setError(null);
 
-    // Simulate a quick delay (mock API call)
-    setTimeout(() => {
-      // Create updated comment object
-      const updatedComment: Comment = {
-        ...comment,
-        content: content.trim(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      // Call the callback to update comment in parent component
-      onCommentUpdated?.(updatedComment);
-
-      setIsSubmitting(false);
-      onClose();
-    }, 300); // Small delay to simulate API
+    dispatch(
+      commentsActions.updateCommentRequest({
+        data: {
+          id: comment.id,
+          content: content.trim(),
+        },
+        callback: {
+          onSuccess: (updatedComment: Comment) => {
+            onCommentUpdated?.(updatedComment);
+            onClose();
+          },
+          onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update comment';
+            setError(errorMessage);
+          },
+        },
+      } as any)
+    );
   };
 
   const handleClose = () => {
-    if (!isSubmitting) {
+    if (!commentsState.updateCommentLoading) {
       setError(null);
       onClose();
     }
@@ -93,23 +97,23 @@ const EditCommentModal: React.FC<EditCommentModalProps> = ({
             rows={6}
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            disabled={isSubmitting}
+            disabled={commentsState.updateCommentLoading}
             placeholder="Write a comment..."
             autoFocus
           />
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} disabled={isSubmitting}>
+        <Button onClick={handleClose} disabled={commentsState.updateCommentLoading}>
           Cancel
         </Button>
         <Button
           onClick={handleSubmit}
           variant="contained"
-          disabled={isSubmitting || !content.trim()}
-          startIcon={isSubmitting ? <CircularProgress size={16} /> : null}
+          disabled={commentsState.updateCommentLoading || !content.trim()}
+          startIcon={commentsState.updateCommentLoading ? <CircularProgress size={16} /> : null}
         >
-          {isSubmitting ? 'Updating...' : 'Update Comment'}
+          {commentsState.updateCommentLoading ? 'Updating...' : 'Update Comment'}
         </Button>
       </DialogActions>
     </Dialog>

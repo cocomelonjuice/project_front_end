@@ -24,6 +24,11 @@ import {
   FormControl,
   InputLabel,
   Select,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -54,7 +59,8 @@ import {
   TeamList,
   AssignRoleModal,
 } from '../../features/team/src';
-import { mockRoles, mockProjectTeamMembers } from '../../features/team/src/store/mockData';
+import { teamActions, useSelectorTeam } from '../../features/team/src/store';
+import { usersActions, useSelectorUsers } from '../../features/users/src/store';
 import type { ProjectTeamMember, Role } from '../../features/team/src/store/states';
 import {
   ActivityFeed,
@@ -71,6 +77,8 @@ const ProjectDetail: React.FC = () => {
   const boardsState = useSelectorBoards((state) => state);
   const issuesState = useSelectorIssues((state) => state);
   const referenceDataState = useSelectorReferenceData((state) => state);
+  const teamState = useSelectorTeam((state) => state);
+  const usersState = useSelectorUsers((state) => state);
 
   // All project issues (for Issues tab)
   const allProjectIssues = issuesState.issues.filter((issue) => issue.projectId === projectId);
@@ -207,9 +215,13 @@ const ProjectDetail: React.FC = () => {
   }, [allProjectIssues, currentBoardId, sprints]);
 
   // Team state
-  const [teamMembers, setTeamMembers] = useState<ProjectTeamMember[]>([]);
   const [assignRoleModalOpen, setAssignRoleModalOpen] = useState(false);
   const [editingTeamMember, setEditingTeamMember] = useState<ProjectTeamMember | null>(null);
+  const [removeTeamMemberDialogOpen, setRemoveTeamMemberDialogOpen] = useState(false);
+  const [memberToRemove, setMemberToRemove] = useState<ProjectTeamMember | null>(null);
+
+  // Get team members from Redux state
+  const teamMembers = teamState.teamMembers;
 
   // Activity state
   const [activityFilter, setActivityFilter] = useState<EntityTypeFilter>('all');
@@ -279,13 +291,56 @@ const ProjectDetail: React.FC = () => {
     }
   }, [currentBoardId, dispatch]);
 
-  // Load team members for the project
+  // Fetch roles on mount
   useEffect(() => {
-    // For now, use projectId '1' as default
-    // In real app, this would fetch from API
-    const projectTeam = mockProjectTeamMembers.filter((m) => true); // All members for now
-    setTeamMembers(projectTeam);
-  }, [projectId]);
+    dispatch(
+      teamActions.getRolesRequest({
+        callback: {
+          onSuccess: () => {
+            // Roles loaded successfully
+          },
+          onError: (error: any) => {
+            console.error('Failed to fetch roles:', error);
+          },
+        },
+      } as any)
+    );
+  }, [dispatch]);
+
+  // Fetch users on mount
+  useEffect(() => {
+    dispatch(
+      usersActions.getUsersRequest({
+        callback: {
+          onSuccess: () => {
+            // Users loaded successfully
+          },
+          onError: (error: any) => {
+            console.error('Failed to fetch users:', error);
+          },
+        },
+      } as any)
+    );
+  }, [dispatch]);
+
+  // Fetch team members for the project
+  useEffect(() => {
+    if (projectId) {
+      dispatch(
+        teamActions.getTeamMembersRequest({
+          data: { projectId },
+          callback: {
+            onSuccess: () => {
+              // Team members loaded successfully
+            },
+            onError: (error: any) => {
+              console.error('Failed to fetch team members:', error);
+            },
+          },
+        } as any)
+      );
+    }
+  }, [projectId, dispatch]);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -510,31 +565,24 @@ const ProjectDetail: React.FC = () => {
 
   // Team handlers
   const handleRoleAssigned = (userId: string, roleId: string) => {
-    const user = mockUsers.find((u) => u.id === userId);
-    const role = mockRoles.find((r) => r.id === roleId);
-    
-    if (!user || !role) return;
-
-    if (editingTeamMember) {
-      // Update existing member
-      setTeamMembers((prev) =>
-        prev.map((m) =>
-          m.userId === userId
-            ? { ...m, roleId, role }
-            : m
-        )
+    // Role assignment is handled by Redux
+    // Refetch team members to show the newly added member
+    if (projectId) {
+      dispatch(
+        teamActions.getTeamMembersRequest({
+          data: { projectId },
+          callback: {
+            onSuccess: () => {
+              // Team members refreshed
+            },
+            onError: (error: any) => {
+              console.error('Failed to refresh team members:', error);
+            },
+          },
+        } as any)
       );
-      setEditingTeamMember(null);
-    } else {
-      // Add new member
-      const newMember: ProjectTeamMember = {
-        userId,
-        user,
-        roleId,
-        role,
-      };
-      setTeamMembers((prev) => [...prev, newMember]);
     }
+    setEditingTeamMember(null);
   };
 
   const handleEditTeamMember = (member: ProjectTeamMember) => {
@@ -543,7 +591,45 @@ const ProjectDetail: React.FC = () => {
   };
 
   const handleRemoveTeamMember = (member: ProjectTeamMember) => {
-    setTeamMembers((prev) => prev.filter((m) => m.userId !== member.userId));
+    setMemberToRemove(member);
+    setRemoveTeamMemberDialogOpen(true);
+  };
+
+  const handleConfirmRemoveTeamMember = () => {
+    if (!projectId || !memberToRemove) return;
+
+    dispatch(
+      teamActions.removeRoleFromUserInProjectRequest({
+        data: {
+          projectId,
+          roleId: memberToRemove.roleId,
+          userId: memberToRemove.userId,
+        },
+        callback: {
+          onSuccess: () => {
+            // Refetch team members to update the list
+            dispatch(
+              teamActions.getTeamMembersRequest({
+                data: { projectId },
+                callback: {
+                  onSuccess: () => {
+                    // Team members refreshed
+                  },
+                  onError: (error: any) => {
+                    console.error('Failed to refresh team members:', error);
+                  },
+                },
+              } as any)
+            );
+            setRemoveTeamMemberDialogOpen(false);
+            setMemberToRemove(null);
+          },
+          onError: (error: any) => {
+            console.error('Failed to remove team member:', error);
+          },
+        },
+      } as any)
+    );
   };
 
   // Load project data from Redux store
@@ -1117,12 +1203,36 @@ const ProjectDetail: React.FC = () => {
           setEditingTeamMember(null);
         }}
         projectId={projectId || ''}
-        availableUsers={mockUsers}
-        availableRoles={mockRoles}
+        availableUsers={usersState.users}
+        availableRoles={teamState.roles}
         existingTeamMembers={teamMembers}
         editingMember={editingTeamMember}
         onRoleAssigned={handleRoleAssigned}
       />
+
+      {/* Remove Team Member Dialog */}
+      <Dialog open={removeTeamMemberDialogOpen} onClose={() => setRemoveTeamMemberDialogOpen(false)}>
+        <DialogTitle>Remove Team Member</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to remove <strong>{memberToRemove?.user.displayName}</strong> ({memberToRemove?.role.name}) from this project team?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRemoveTeamMemberDialogOpen(false)} disabled={teamState.removeRoleLoading}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirmRemoveTeamMember}
+            color="error"
+            variant="contained"
+            disabled={teamState.removeRoleLoading}
+            startIcon={teamState.removeRoleLoading ? <CircularProgress size={16} /> : null}
+          >
+            {teamState.removeRoleLoading ? 'Removing...' : 'Remove'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

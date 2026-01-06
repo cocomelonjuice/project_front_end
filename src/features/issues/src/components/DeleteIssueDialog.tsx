@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -9,6 +10,7 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
+import { issuesActions } from '../store';
 import type { Issue } from '../store/states';
 
 interface DeleteIssueDialogProps {
@@ -24,31 +26,35 @@ const DeleteIssueDialog: React.FC<DeleteIssueDialogProps> = ({
   issue,
   onIssueDeleted,
 }) => {
+  const dispatch = useDispatch();
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!issue) return;
 
     setIsDeleting(true);
     setError(null);
 
-    try {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Call callback to remove from list
-      if (onIssueDeleted) {
-        onIssueDeleted(issue.id);
-      }
-
-      // Close dialog
-      onClose();
-    } catch (err) {
-      setError('Failed to delete issue. Please try again.');
-    } finally {
-      setIsDeleting(false);
-    }
+    // Dispatch Redux action to delete issue via API
+    dispatch(
+      issuesActions.deleteIssueRequest({
+        data: { id: issue.id },
+        callback: {
+          onSuccess: () => {
+            // Issue deleted successfully
+            onIssueDeleted?.(issue.id);
+            setIsDeleting(false);
+            onClose();
+          },
+          onError: (error: any) => {
+            console.error('Failed to delete issue:', error);
+            setError(error?.response?.data?.message || 'Failed to delete issue. Please try again.');
+            setIsDeleting(false);
+          },
+        },
+      } as any)
+    );
   };
 
   const handleClose = () => {

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -9,6 +10,7 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
+import { commentsActions, useSelectorComments } from '../store';
 import type { Comment } from '../store/states';
 
 interface DeleteCommentDialogProps {
@@ -24,35 +26,36 @@ const DeleteCommentDialog: React.FC<DeleteCommentDialogProps> = ({
   comment,
   onCommentDeleted,
 }) => {
-  const [isDeleting, setIsDeleting] = useState(false);
+  const dispatch = useDispatch();
+  const commentsState = useSelectorComments((state) => state);
   const [error, setError] = useState<string | null>(null);
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!comment) return;
 
-    setIsDeleting(true);
     setError(null);
 
-    try {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Call callback to remove from list
-      if (onCommentDeleted) {
-        onCommentDeleted(comment.id);
-      }
-
-      // Close dialog
-      onClose();
-    } catch (err) {
-      setError('Failed to delete comment. Please try again.');
-    } finally {
-      setIsDeleting(false);
-    }
+    dispatch(
+      commentsActions.deleteCommentRequest({
+        data: {
+          id: comment.id,
+        },
+        callback: {
+          onSuccess: () => {
+            onCommentDeleted?.(comment.id);
+            onClose();
+          },
+          onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete comment';
+            setError(errorMessage);
+          },
+        },
+      } as any)
+    );
   };
 
   const handleClose = () => {
-    if (!isDeleting) {
+    if (!commentsState.deleteCommentLoading) {
       setError(null);
       onClose();
     }
@@ -78,17 +81,17 @@ const DeleteCommentDialog: React.FC<DeleteCommentDialogProps> = ({
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} disabled={isDeleting}>
+        <Button onClick={handleClose} disabled={commentsState.deleteCommentLoading}>
           Cancel
         </Button>
         <Button
           onClick={handleDelete}
           color="error"
           variant="contained"
-          disabled={isDeleting}
-          startIcon={isDeleting ? <CircularProgress size={16} /> : null}
+          disabled={commentsState.deleteCommentLoading}
+          startIcon={commentsState.deleteCommentLoading ? <CircularProgress size={16} /> : null}
         >
-          {isDeleting ? 'Deleting...' : 'Delete'}
+          {commentsState.deleteCommentLoading ? 'Deleting...' : 'Delete'}
         </Button>
       </DialogActions>
     </Dialog>
