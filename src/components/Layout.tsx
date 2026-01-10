@@ -8,7 +8,6 @@ import { NavigationSidebar } from '../shared/ui/sidebar';
 import { Logout as LogoutIcon, Person as PersonIcon } from '@mui/icons-material';
 import { APP_CONFIG } from '../shared/constants/src/config';
 import { NotificationsDropdown } from '../features/notifications/src';
-import { mockNotifications } from '../features/notifications/src/store/mockData';
 import type { Notification } from '../features/notifications/src/store/states';
 import { authActions } from '../features/auth/src/store';
 interface LayoutProps {
@@ -23,8 +22,8 @@ const Layout = ({ children }: LayoutProps) => {
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const mainContentRef = useRef<HTMLDivElement>(null);
   
-  // Notifications state
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  // Notifications state - using empty array since notifications API is skipped
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   const handleSidebarToggle = () => {
@@ -33,20 +32,28 @@ const Layout = ({ children }: LayoutProps) => {
   };
 
   const handleSearch = (query: string) => {
-    console.log('Search query:', query);
-    // Add your search logic here
+    // Search functionality - to be implemented
+    // For now, if on home page, could filter projects
+    // Could navigate to search results page in the future
+    if (query.trim()) {
+      // Future: Implement global search
+      console.log('Search query:', query);
+    }
   };
 
   const handleCreate = () => {
-    console.log('Create clicked');
-    // Add your create logic here, e.g., navigate('/create')
+    // Create functionality - navigate to home where create project button is available
+    // Future: Could show a menu with options (Create Project, Create Issue, etc.)
+    navigate('/');
   };
 
   const handleNotificationClick = (notification: Notification) => {
     if (notification.issueId) {
       // Navigate to the issue detail page
-      const projectId = notification.issue?.projectId || '1'; // Fallback to project 1
-      navigate(`/projects/${projectId}/issues/${notification.issueId}`);
+      const projectId = notification.issue?.projectId;
+      if (projectId) {
+        navigate(`/projects/${projectId}/issues/${notification.issueId}`);
+      }
     }
   };
 
@@ -61,17 +68,18 @@ const Layout = ({ children }: LayoutProps) => {
   };
 
   const handleHelp = () => {
-    console.log('Help clicked');
-    // Add your help logic here
+    // Help functionality - could open help documentation or support page
+    // For now, could navigate to an about/help page
+    navigate('/about');
   };
 
   const handleSettings = () => {
-    console.log('Settings clicked');
-    // Add your settings logic here
+    // Settings functionality - could navigate to settings page
+    // For now, navigate to admin if user has permissions, or show message
+    navigate('/admin');
   };
 
   const handleLogout = () => {
-    console.log('Logout clicked');
     // Dispatch logout action to clear Redux state
     dispatch(authActions.logout());
     // Redirect to login page
@@ -139,13 +147,13 @@ const Layout = ({ children }: LayoutProps) => {
         searchPlaceholder="Search"
         onCreateClick={handleCreate}
         createButtonText="Create"
-        trialInfo={{
-          daysLeft: 26,
-          onClick: () => {
-            console.log('Trial info clicked');
-            // Add your trial/plan logic here
-          },
-        }}
+        // Trial info removed - not needed for this project
+        // trialInfo={{
+        //   daysLeft: 26,
+        //   onClick: () => {
+        //     // Trial/plan logic
+        //   },
+        // }}
         notificationComponent={
           <NotificationsDropdown
             notifications={notifications}
@@ -158,9 +166,9 @@ const Layout = ({ children }: LayoutProps) => {
         onHelpClick={handleHelp}
         onSettingsClick={handleSettings}
         userMenuItems={userMenuItems}
-        showAppLauncher={true}
+        showAppLauncher={false}
         onAppLauncherClick={() => {
-          console.log('App launcher clicked');
+          // App launcher functionality
         }}
       />
       <Box

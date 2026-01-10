@@ -38,7 +38,6 @@ import {
   Add as AddIcon,
 } from '@mui/icons-material';
 import { CreateIssueModal, EditIssueModal, DeleteIssueDialog } from '../../features/issues/src';
-import { mockUsers } from '../../features/issues/src/store/mockData';
 import { useSelectorReferenceData } from '../../features/reference-data/src/store';
 import type { Issue } from '../../features/issues/src/store/states';
 import { BoardView, CreateBoardModal, EditBoardModal, DeleteBoardDialog } from '../../features/boards/src';
@@ -66,13 +65,15 @@ import {
   ActivityFeed,
   ActivityFilter,
 } from '../../features/activity/src';
-import { mockAuditLogs } from '../../features/activity/src/store/mockData';
 import type { EntityTypeFilter } from '../../features/activity/src/components/ActivityFilter';
+import { useSelectorAuth } from '../../features/auth/src/store';
 
 const ProjectDetail: React.FC = () => {
   const { id: projectId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const authState = useSelectorAuth((state) => state);
+  const currentUser = authState.user;
   const sprintsState = useSelectorSprints((state) => state);
   const boardsState = useSelectorBoards((state) => state);
   const issuesState = useSelectorIssues((state) => state);
@@ -82,16 +83,6 @@ const ProjectDetail: React.FC = () => {
 
   // All project issues (for Issues tab)
   const allProjectIssues = issuesState.issues.filter((issue) => issue.projectId === projectId);
-  
-  // Debug: Log issues state
-  React.useEffect(() => {
-    console.log('🔵 Issues state debug:', {
-      totalIssuesInRedux: issuesState.issues.length,
-      projectId,
-      filteredProjectIssues: allProjectIssues.length,
-      issues: allProjectIssues.map((i) => ({ key: i.key, sprintId: i.sprintId, projectId: i.projectId })),
-    });
-  }, [issuesState.issues, projectId, allProjectIssues.length]);
 
   // Generate board columns dynamically from statuses
   const boardColumns: BoardColumn[] = React.useMemo(() => {
@@ -180,12 +171,6 @@ const ProjectDetail: React.FC = () => {
     }
 
     // Get sprint IDs for the current board
-    // Debug: Log sprint boardIds
-    console.log('🔵 Sprint boardId check:', {
-      currentBoardId,
-      sprints: sprints.map((s) => ({ id: s.id, name: s.name, boardId: s.boardId, matches: s.boardId === currentBoardId })),
-    });
-    
     const boardSprintIds = sprints
       .filter((sprint) => sprint.boardId === currentBoardId)
       .map((sprint) => sprint.id);
@@ -196,20 +181,6 @@ const ProjectDetail: React.FC = () => {
     const filtered = allProjectIssues.filter(
       (issue) => !issue.sprintId || boardSprintIds.includes(issue.sprintId)
     );
-
-    console.log('🔵 Board filtering debug:', {
-      currentBoardId,
-      totalSprints: sprints.length,
-      sprints: sprints.map((s) => ({ id: s.id, name: s.name, boardId: s.boardId })),
-      boardSprintIds,
-      totalIssues: allProjectIssues.length,
-      allIssues: allProjectIssues.map((i) => ({ key: i.key, sprintId: i.sprintId, statusId: i.statusId })),
-      issuesWithSprintId: allProjectIssues.filter((i) => i.sprintId).length,
-      unassignedIssues: allProjectIssues.filter((i) => !i.sprintId).length,
-      filteredCount: filtered.length,
-      filteredIssues: filtered.map((i) => ({ key: i.key, sprintId: i.sprintId, statusId: i.statusId })),
-      boardColumns: boardColumns.map((c) => ({ id: c.id, name: c.name, statusIds: c.statusIds })),
-    });
 
     return filtered;
   }, [allProjectIssues, currentBoardId, sprints]);
@@ -260,7 +231,6 @@ const ProjectDetail: React.FC = () => {
             } else {
               // No boards found for this project
               setCurrentBoardId(null);
-              console.warn(`No boards found for project ${projectId}`);
             }
           },
           onError: (error: any) => {
@@ -1097,7 +1067,7 @@ const ProjectDetail: React.FC = () => {
               onEntityTypeChange={setActivityFilter}
             />
             <ActivityFeed
-              auditLogs={mockAuditLogs}
+              auditLogs={[]}
               entityType={activityFilter === 'all' ? undefined : activityFilter}
               entityId={projectId}
               emptyMessage="No activity for this project"
@@ -1111,7 +1081,7 @@ const ProjectDetail: React.FC = () => {
         open={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
         projectId={projectId || ''}
-        reporterId="1"
+        reporterId={currentUser?.id || ''}
         onIssueCreated={handleIssueCreated}
       />
       {selectedIssue && (

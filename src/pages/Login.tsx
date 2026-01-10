@@ -25,7 +25,6 @@ const Login: React.FC = () => {
 
   // Always reset loading states when entering login page
   useEffect(() => {
-    console.log('[LOGIN] Resetting loading states on mount');
     dispatch(authActions.resetLoadingStates());
   }, [dispatch]);
 

@@ -55,9 +55,9 @@ const WorkflowDetail: React.FC = () => {
           callback: {
             onSuccess: (loadedWorkflow: Workflow) => {
               // Workflow loaded successfully, it's in Redux state as currentWorkflow
-              // Verify the workflow ID matches
+              // Verify the workflow ID matches (silently handle mismatch)
               if (loadedWorkflow.id !== id) {
-                console.warn('Workflow ID mismatch:', { expected: id, received: loadedWorkflow.id });
+                // Workflow ID mismatch - this should not happen in normal flow
               }
             },
             onError: (error: any) => {

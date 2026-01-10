@@ -12,16 +12,15 @@ import {
   Box,
   Typography,
   Chip,
+  Tooltip,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
-  Apps as AppsIcon,
   Search as SearchIcon,
   Add as AddIcon,
   Notifications as NotificationsIcon,
   HelpOutline as HelpIcon,
   Settings as SettingsIcon,
-  ArrowBack as ArrowBackIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../auth/src';
 import type { ReactNode } from 'react';
@@ -162,10 +161,9 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
   const { auth } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
-  const [appLauncherAnchor, setAppLauncherAnchor] = useState<null | HTMLElement>(null);
 
   // Get user name from auth if not provided
-  const displayUserName = userName || auth.user?.profile?.full_name || auth.user?.profile?.name || 'User';
+  const displayUserName = userName || auth.user?.displayName || auth.user?.username || 'User';
   const displayUserInitials = displayUserName
     .split(' ')
     .map((n) => n[0])
@@ -188,162 +186,194 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
     setUserMenuAnchor(null);
   };
 
-  const handleAppLauncherOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAppLauncherAnchor(event.currentTarget);
-  };
-
-  const handleAppLauncherClose = () => {
-    setAppLauncherAnchor(null);
-  };
 
   return (
     <AppBar
       position="sticky"
       elevation={0}
       sx={{
-        backgroundColor: '#ffffff',
-        borderBottom: '1px solid #e0e0e0',
-        color: '#333',
-        height: '56px',
+        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.85) 0%, rgba(79, 70, 229, 0.85) 100%)',
+        backdropFilter: 'blur(12px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        color: '#ffffff',
+        height: '64px',
         top: 0,
         zIndex: (theme) => theme.zIndex.drawer + 1,
+        boxShadow: '0 4px 6px rgba(99, 102, 241, 0.15), 0 2px 4px rgba(99, 102, 241, 0.1)',
       }}
     >
       <Toolbar
         sx={{
-          minHeight: '56px !important',
-          height: '56px',
-          paddingX: { xs: 1, sm: 2 },
+          minHeight: '64px !important',
+          height: '64px',
+          paddingX: { xs: 2, sm: 4 },
           justifyContent: 'space-between',
+          gap: 3,
         }}
       >
-        {/* Left Section */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        {/* Left Section - Logo/Brand */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
           {/* Sidebar Toggle */}
           {onSidebarToggle && (
-            <IconButton
-              edge="start"
-              color="inherit"
-              aria-label="toggle sidebar"
-              onClick={onSidebarToggle}
-              sx={{
-                color: '#666',
-                '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' },
-              }}
-            >
-              {sidebarCollapsed ? <MenuIcon /> : <ArrowBackIcon />}
-            </IconButton>
-          )}
-
-          {/* App Launcher */}
-          {showAppLauncher && (
-            <>
+            <Tooltip title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"} arrow placement="bottom">
               <IconButton
+                edge="start"
                 color="inherit"
-                aria-label="app launcher"
-                onClick={handleAppLauncherOpen}
+                aria-label="toggle sidebar"
+                onClick={onSidebarToggle}
+                size="small"
                 sx={{
-                  color: '#666',
-                  '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' },
+                  color: '#ffffff',
+                  padding: '8px',
+                  textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
+                  '&:hover': { 
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    color: '#ffffff',
+                    transform: 'scale(1.1) translateY(-1px)',
+                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+                  },
+                  transition: 'all 0.2s ease',
                 }}
               >
-                <AppsIcon />
+                <MenuIcon fontSize="small" />
               </IconButton>
-              <Menu
-                anchorEl={appLauncherAnchor}
-                open={Boolean(appLauncherAnchor)}
-                onClose={handleAppLauncherClose}
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'left',
-                }}
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'left',
-                }}
-              >
-                <MenuItem onClick={handleAppLauncherClose}>App 1</MenuItem>
-                <MenuItem onClick={handleAppLauncherClose}>App 2</MenuItem>
-                <MenuItem onClick={handleAppLauncherClose}>App 3</MenuItem>
-              </Menu>
-            </>
+            </Tooltip>
           )}
 
           {/* Logo */}
           {logo && <Box sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>{logo}</Box>}
 
-          {/* App Name */}
+          {/* App Name - Brand */}
           <Typography
             variant="h6"
             component="div"
             sx={{
-              fontWeight: 500,
-              color: '#333',
-              fontSize: '16px',
+              fontWeight: 700,
+              color: '#ffffff',
+              fontSize: '18px',
               display: { xs: 'none', sm: 'block' },
+              cursor: 'pointer',
+              letterSpacing: '-0.02em',
+              textShadow: '0 2px 4px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2)',
+              '&:hover': {
+                color: '#ffffff',
+                transform: 'translateX(2px)',
+                textShadow: '0 3px 6px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3)',
+              },
+              transition: 'all 0.2s ease',
             }}
+            onClick={() => window.location.href = '/'}
           >
             {appName}
-            
           </Typography>
         </Box>
 
-        {/* Center Section - Search */}
-        <Box
-          component="form"
-          onSubmit={handleSearch}
-          sx={{
-            flex: { xs: 0.8, md: 0.4 },
-            maxWidth: '600px',
-            display: { xs: 'none', sm: 'flex' },
-            alignItems: 'center',
-            backgroundColor: '#f5f5f5',
-            borderRadius: '6px',
-            padding: '0 12px',
-            height: '36px',
-            marginX: 2,
-          }}
-        >
-          <SearchIcon sx={{ color: '#999', fontSize: '20px', mr: 1 }} />
-          <InputBase
-            placeholder={searchPlaceholder}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            sx={{
-              flex: 1,
-              fontSize: '14px',
-              '& .MuiInputBase-input': {
-                padding: 0,
-              },
-            }}
-          />
+        {/* Center Section - Navigation Items (if needed) */}
+        <Box sx={{ 
+          display: { xs: 'none', md: 'flex' }, 
+          alignItems: 'center', 
+          gap: 0.5,
+          flex: 1,
+          justifyContent: 'center',
+        }}>
+          {/* Navigation items can be added here if needed */}
         </Box>
 
-        {/* Right Section */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          {/* Create Button */}
-          {onCreateClick && (
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={onCreateClick}
+        {/* Right Section - Actions */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexShrink: 0 }}>
+          {/* Search Bar - Moved to right section */}
+          <Tooltip title="Search projects, issues, and more" arrow placement="bottom">
+            <Box
+              component="form"
+              onSubmit={handleSearch}
               sx={{
-                backgroundColor: '#0052CC',
-                color: '#fff',
-                borderRadius: '6px',
-                textTransform: 'none',
-                fontSize: '14px',
-                fontWeight: 500,
-                paddingX: 2,
-                paddingY: 0.75,
-                '&:hover': {
-                  backgroundColor: '#0065FF',
-                },
                 display: { xs: 'none', sm: 'flex' },
+                alignItems: 'center',
+                backgroundColor: '#ffffff',
+                borderRadius: '8px',
+                padding: '0 12px',
+                height: '38px',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.5)',
+                transition: 'all 0.2s ease',
+                cursor: 'text',
+                '&:hover': {
+                  backgroundColor: '#ffffff',
+                  borderColor: 'rgba(255, 255, 255, 0.3)',
+                  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.6)',
+                  transform: 'translateY(-1px)',
+                },
+                '&:focus-within': {
+                  backgroundColor: '#ffffff',
+                  borderColor: '#ffffff',
+                  boxShadow: '0 0 0 3px rgba(255, 255, 255, 0.3), 0 6px 12px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.7)',
+                  transform: 'translateY(-1px)',
+                },
               }}
             >
-              {createButtonText}
-            </Button>
+              <SearchIcon sx={{ color: '#6366f1', fontSize: '18px', mr: 1 }} />
+              <InputBase
+                placeholder={searchPlaceholder}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                sx={{
+                  flex: 1,
+                  fontSize: '13px',
+                  color: '#111827',
+                  fontWeight: 500,
+                  width: '200px',
+                  '& .MuiInputBase-input': {
+                    padding: 0,
+                    '&::placeholder': {
+                      color: '#9ca3af',
+                      opacity: 1,
+                      fontWeight: 400,
+                    },
+                  },
+                }}
+              />
+            </Box>
+          </Tooltip>
+
+          {/* Create Button - CTA Style */}
+          {onCreateClick && (
+            <Tooltip title="Create new project, issue, or sprint" arrow placement="bottom">
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={onCreateClick}
+                sx={{
+                  color: '#6366f1',
+                  backgroundColor: '#ffffff',
+                  borderColor: '#ffffff',
+                  borderRadius: '8px',
+                  textTransform: 'none',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  paddingX: 2.5,
+                  paddingY: 0.875,
+                  minWidth: 'auto',
+                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.5)',
+                  textShadow: 'none',
+                  '&:hover': {
+                    backgroundColor: '#f8fafc',
+                    color: '#6366f1',
+                    borderColor: '#ffffff',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.6)',
+                  },
+                  '&:active': {
+                    transform: 'translateY(0px)',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.1)',
+                  },
+                  display: { xs: 'none', sm: 'flex' },
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                {createButtonText}
+              </Button>
+            </Tooltip>
           )}
 
           {/* Trial Info */}
@@ -394,55 +424,96 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
 
           {/* Help */}
           {onHelpClick && (
-            <IconButton
-              color="inherit"
-              aria-label="help"
-              onClick={onHelpClick}
-              sx={{
-                color: '#666',
-                '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' },
-              }}
-            >
-              <HelpIcon />
-            </IconButton>
+            <Tooltip title="Help & Documentation" arrow placement="bottom">
+              <IconButton
+                color="inherit"
+                aria-label="help"
+                onClick={onHelpClick}
+                size="small"
+                sx={{
+                  color: '#ffffff',
+                  padding: '8px',
+                  textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                  '&:hover': { 
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    color: '#ffffff',
+                    transform: 'scale(1.1) translateY(-1px)',
+                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+                  },
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <HelpIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
           )}
 
           {/* Settings */}
           {onSettingsClick && (
-            <IconButton
-              color="inherit"
-              aria-label="settings"
-              onClick={onSettingsClick}
-              sx={{
-                color: '#666',
-                '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' },
-              }}
-            >
-              <SettingsIcon />
-            </IconButton>
+            <Tooltip title="Settings & Preferences" arrow placement="bottom">
+              <IconButton
+                color="inherit"
+                aria-label="settings"
+                onClick={onSettingsClick}
+                size="small"
+                sx={{
+                  color: '#ffffff',
+                  padding: '8px',
+                  textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                  '&:hover': { 
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    color: '#ffffff',
+                    transform: 'scale(1.1) translateY(-1px)',
+                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+                  },
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <SettingsIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
           )}
 
           {/* User Avatar */}
-          <IconButton
-            onClick={handleUserMenuOpen}
-            sx={{
-              padding: 0.5,
-              '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' },
-            }}
-          >
-            <Avatar
-              src={userAvatarUrl}
+          <Tooltip title={`${displayUserName} - Account menu`} arrow placement="bottom">
+            <IconButton
+              onClick={handleUserMenuOpen}
+              size="small"
               sx={{
-                width: 32,
-                height: 32,
-                backgroundColor: '#7C3AED',
-                fontSize: '14px',
-                fontWeight: 600,
+                padding: '4px',
+                marginLeft: 0.5,
+                '&:hover': { 
+                  backgroundColor: 'transparent',
+                },
+                transition: 'all 0.15s ease',
               }}
             >
-              {!userAvatarUrl && displayUserInitials}
-            </Avatar>
-          </IconButton>
+              <Avatar
+                src={userAvatarUrl}
+                sx={{
+                  width: 32,
+                  height: 32,
+                  backgroundColor: '#ffffff',
+                  color: '#6366f1',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  border: '2px solid rgba(255, 255, 255, 0.4)',
+                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.5)',
+                  '&:hover': {
+                    borderColor: 'rgba(255, 255, 255, 0.6)',
+                    boxShadow: '0 6px 12px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.6)',
+                    transform: 'translateY(-1px) scale(1.05)',
+                  },
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                {!userAvatarUrl && displayUserInitials}
+              </Avatar>
+            </IconButton>
+          </Tooltip>
 
           {/* User Menu */}
           <Menu
@@ -463,9 +534,9 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
                 <Typography variant="body2" sx={{ fontWeight: 600 }}>
                   {displayUserName}
                 </Typography>
-                {auth.user?.profile?.email && (
+                {auth.user?.email && (
                   <Typography variant="caption" color="text.secondary">
-                    {auth.user.profile.email}
+                    {auth.user.email}
                   </Typography>
                 )}
               </Box>

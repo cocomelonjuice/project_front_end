@@ -1,23 +1,9 @@
 import React from 'react';
-import { Box } from '@mui/material';
 import {
-  Person as PersonIcon,
-  AccessTime as RecentIcon,
-  StarBorder as StarredIcon,
-  Apps as AppsIcon,
-  ViewQuilt as PlansIcon,
-  Public as SpacesIcon,
-  Add as AddIcon,
-  MoreHoriz as MoreIcon,
-  Settings as SettingsIcon,
-  People as PeopleIcon,
-  HeadsetMic as HeadsetIcon,
-  AccountTree as RoadmapIcon,
-  ViewList as ViewAllIcon,
-  OpenInNew as ExternalIcon,
+  Home as HomeIcon,
   AccountTree as WorkflowIcon,
   AdminPanelSettings as AdminIcon,
-  Home as HomeIcon,
+  Info as AboutIcon,
 } from '@mui/icons-material';
 import { BaseSidebar } from './BaseSidebar';
 import type { SidebarGroup, SidebarNavItem } from './types';
@@ -37,13 +23,10 @@ export interface NavigationSidebarProps {
 /**
  * NavigationSidebar Component
  * 
- * A sidebar implementation based on Confluence-style navigation.
+ * Main navigation sidebar for the application.
  * Features:
- * - Primary navigation (For you, Recent, Starred, Apps, Plans, Spaces)
- * - Recent items section
- * - Recommended section
- * - Categorized links
- * - External application links
+ * - Primary navigation (Projects, Workflows)
+ * - Secondary navigation (Admin, About)
  * 
  * @example
  * ```tsx
@@ -60,14 +43,14 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Primary navigation items
+  // Primary navigation items - main features
   const primaryNavItems: SidebarNavItem[] = [
     {
       id: 'home',
-      label: 'Home',
+      label: 'Projects',
       icon: <HomeIcon />,
       path: '/',
-      active: location.pathname === '/',
+      active: location.pathname === '/' || location.pathname.startsWith('/projects'),
     },
     {
       id: 'workflows',
@@ -78,123 +61,8 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
     },
   ];
 
-  // Recent spaces items
-  const recentSpacesItems: SidebarNavItem[] = [
-    {
-      id: 'test-project',
-      label: 'Test_Project',
-      icon: (
-        <Box
-          component="span"
-          sx={{
-            width: 24,
-            height: 24,
-            borderRadius: '4px',
-            backgroundColor: '#0052CC',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '12px',
-            color: '#fff',
-          }}
-        >
-          TP
-        </Box>
-      ),
-      path: '/spaces/test-project',
-      active: location.pathname === '/spaces/test-project',
-    },
-    {
-      id: 'company-test-project',
-      label: 'COMPANY_TEST_PROJECT',
-      icon: (
-        <Box
-          component="span"
-          sx={{
-            width: 24,
-            height: 24,
-            borderRadius: '4px',
-            backgroundColor: '#4FC3F7',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '12px',
-            color: '#fff',
-          }}
-        >
-          CP
-        </Box>
-      ),
-      path: '/spaces/company-test-project',
-    },
-    {
-      id: 'support',
-      label: 'Support',
-      icon: (
-        <Box
-          component="span"
-          sx={{
-            width: 24,
-            height: 24,
-            borderRadius: '4px',
-            backgroundColor: '#4FC3F7',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '12px',
-            color: '#fff',
-          }}
-        >
-          S
-        </Box>
-      ),
-      path: '/spaces/support',
-    },
-  ];
-
-  // Recommended items
-  const recommendedItems: SidebarNavItem[] = [
-    {
-      id: 'create-roadmap',
-      label: 'Create a roadmap',
-      icon: (
-        <Box
-          component="span"
-          sx={{
-            width: 24,
-            height: 24,
-            borderRadius: '4px',
-            backgroundColor: '#7C3AED',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '12px',
-            color: '#fff',
-          }}
-        >
-          R
-        </Box>
-      ),
-      path: '/create-roadmap',
-      actionButton: {
-        label: 'TRY',
-        onClick: () => {
-          console.log('Try roadmap clicked');
-        },
-        variant: 'outlined',
-        color: 'secondary',
-      },
-    },
-    {
-      id: 'view-all-spaces',
-      label: 'View all spaces',
-      icon: <ViewAllIcon />,
-      path: '/spaces/all',
-    },
-  ];
-
-  // Categorized links
-  const categorizedItems: SidebarNavItem[] = [
+  // Secondary navigation items - admin and info
+  const secondaryNavItems: SidebarNavItem[] = [
     {
       id: 'admin',
       label: 'Admin',
@@ -203,87 +71,11 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
       active: location.pathname.startsWith('/admin'),
     },
     {
-      id: 'settings',
-      label: 'Settings',
-      icon: <SettingsIcon />,
-      expandable: true,
-      path: '/settings',
-    },
-  ];
-
-  // External application links
-  const externalAppItems: SidebarNavItem[] = [
-    {
-      id: 'confluence',
-      label: 'Confluence',
-      icon: (
-        <Box
-          component="span"
-          sx={{
-            width: 24,
-            height: 24,
-            borderRadius: '4px',
-            backgroundColor: '#0052CC',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '12px',
-            color: '#fff',
-          }}
-        >
-          C
-        </Box>
-      ),
-      path: '/external/confluence',
-      external: true,
-    },
-    {
-      id: 'assets',
-      label: 'Assets',
-      icon: (
-        <Box
-          component="span"
-          sx={{
-            width: 24,
-            height: 24,
-            borderRadius: '4px',
-            backgroundColor: '#FFB300',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '12px',
-            color: '#fff',
-          }}
-        >
-          A
-        </Box>
-      ),
-      path: '/external/assets',
-      external: true,
-    },
-    {
-      id: 'teams',
-      label: 'Teams',
-      icon: (
-        <Box
-          component="span"
-          sx={{
-            width: 24,
-            height: 24,
-            borderRadius: '4px',
-            backgroundColor: '#424242',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '12px',
-            color: '#fff',
-          }}
-        >
-          T
-        </Box>
-      ),
-      path: '/external/teams',
-      external: true,
+      id: 'about',
+      label: 'About',
+      icon: <AboutIcon />,
+      path: '/about',
+      active: location.pathname === '/about',
     },
   ];
 
@@ -311,51 +103,11 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
       ],
     },
     {
-      id: 'spaces',
+      id: 'secondary',
       sections: [
         {
-          id: 'recent-spaces',
-          title: 'Recent',
-          items: recentSpacesItems,
-        },
-      ],
-    },
-    {
-      id: 'recommended',
-      sections: [
-        {
-          id: 'recommended-items',
-          title: 'Recommended',
-          items: recommendedItems,
-        },
-      ],
-    },
-    {
-      id: 'categories',
-      sections: [
-        {
-          id: 'categorized-links',
-          items: categorizedItems,
-        },
-      ],
-    },
-    {
-      id: 'external',
-      sections: [
-        {
-          id: 'external-apps',
-          items: externalAppItems,
-        },
-        {
-          id: 'more',
-          items: [
-            {
-              id: 'more',
-              label: 'More',
-              icon: <MoreIcon />,
-              path: '/more',
-            },
-          ],
+          id: 'secondary-nav',
+          items: secondaryNavItems,
         },
       ],
     },

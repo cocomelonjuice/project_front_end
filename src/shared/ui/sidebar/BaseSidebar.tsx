@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Collapse, Typography, Chip, IconButton } from '@mui/material';
+import { Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Collapse, Typography, Chip, IconButton, Tooltip } from '@mui/material';
 import { ExpandMore, ExpandLess, OpenInNew } from '@mui/icons-material';
 import type { BaseSidebarProps, SidebarNavItem, SidebarSection, SidebarGroup } from './types';
 
@@ -115,7 +115,7 @@ export const BaseSidebar: React.FC<BaseSidebarComponentProps> = ({
     const isExpanded = expandedItems.has(item.id);
     const hasChildren = item.children && item.children.length > 0;
 
-    return (
+    const itemElement = (
       <React.Fragment key={item.id}>
         <ListItem
           disablePadding
@@ -123,27 +123,53 @@ export const BaseSidebar: React.FC<BaseSidebarComponentProps> = ({
             pl: level * 2,
             '& .MuiListItemButton-root': {
               minHeight: 40,
-              borderRadius: 1,
+              borderRadius: '8px',
               mx: 1,
               mb: 0.5,
-              backgroundColor: isActive ? 'rgba(0, 82, 204, 0.1)' : 'transparent',
+              backgroundColor: isActive 
+                ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(79, 70, 229, 0.15) 100%)' 
+                : 'transparent',
+              background: isActive 
+                ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(79, 70, 229, 0.15) 100%)' 
+                : 'transparent',
+              borderLeft: isActive ? '3px solid #6366f1' : '3px solid transparent',
+              boxShadow: isActive ? '0 2px 4px rgba(99, 102, 241, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3)' : 'none',
               '&:hover': {
-                backgroundColor: isActive ? 'rgba(0, 82, 204, 0.15)' : 'rgba(0, 0, 0, 0.04)',
+                background: isActive 
+                  ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(79, 70, 229, 0.2) 100%)' 
+                  : 'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(79, 70, 229, 0.08) 100%)',
+                boxShadow: isActive 
+                  ? '0 4px 8px rgba(99, 102, 241, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.4)' 
+                  : '0 2px 4px rgba(99, 102, 241, 0.15)',
+                transform: 'translateX(2px)',
               },
+              transition: 'all 0.2s ease',
+              justifyContent: 'flex-start',
+              alignItems: 'center',
             },
           }}
         >
           <ListItemButton
             onClick={() => handleItemClick(item)}
             sx={{
-              py: 0.75,
+              py: 1,
+              px: 1.5,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-start',
             }}
           >
             {item.icon && (
               <ListItemIcon
                 sx={{
-                  minWidth: collapsed ? 0 : 40,
-                  color: isActive ? '#0052CC' : 'inherit',
+                  minWidth: collapsed ? 0 : 36,
+                  color: isActive ? '#6366f1' : '#6b7280',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  '& .MuiSvgIcon-root': {
+                    fontSize: '20px',
+                  },
                 }}
               >
                 {item.icon}
@@ -155,8 +181,13 @@ export const BaseSidebar: React.FC<BaseSidebarComponentProps> = ({
                   primary={item.label}
                   primaryTypographyProps={{
                     fontSize: '14px',
-                    fontWeight: isActive ? 600 : 400,
-                    color: isActive ? '#0052CC' : 'inherit',
+                    fontWeight: isActive ? 600 : 500,
+                    color: isActive ? '#6366f1' : '#374151',
+                  }}
+                  sx={{
+                    '& .MuiListItemText-primary': {
+                      lineHeight: 1.5,
+                    },
                   }}
                 />
                 {item.badge && (
@@ -171,12 +202,22 @@ export const BaseSidebar: React.FC<BaseSidebarComponentProps> = ({
                   />
                 )}
                 {item.expandable && (
-                  <IconButton size="small" sx={{ ml: 1 }}>
+                  <IconButton 
+                    size="small" 
+                    sx={{ 
+                      ml: 1,
+                      color: '#9ca3af',
+                      '&:hover': {
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        color: '#6366f1',
+                      },
+                    }}
+                  >
                     {isExpanded ? <ExpandLess fontSize="small" /> : <ExpandMore fontSize="small" />}
                   </IconButton>
                 )}
                 {item.external && (
-                  <OpenInNew fontSize="small" sx={{ ml: 1, fontSize: '16px', color: '#999' }} />
+                  <OpenInNew fontSize="small" sx={{ ml: 1, fontSize: '16px', color: '#9ca3af' }} />
                 )}
                 {item.actionButton && (
                   <Chip
@@ -208,6 +249,19 @@ export const BaseSidebar: React.FC<BaseSidebarComponentProps> = ({
         )}
       </React.Fragment>
     );
+
+    // Wrap with tooltip if collapsed
+    if (collapsed && item.icon) {
+      return (
+        <Tooltip key={item.id} title={item.label} arrow placement="right">
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 0.5 }}>
+            {itemElement}
+          </Box>
+        </Tooltip>
+      );
+    }
+
+    return itemElement;
   };
 
   const renderSection = (section: SidebarSection): React.ReactNode => {
@@ -230,7 +284,7 @@ export const BaseSidebar: React.FC<BaseSidebarComponentProps> = ({
               sx={{
                 fontSize: '12px',
                 fontWeight: 600,
-                color: '#666',
+                color: '#9ca3af',
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px',
               }}
@@ -238,9 +292,23 @@ export const BaseSidebar: React.FC<BaseSidebarComponentProps> = ({
               {section.title}
             </Typography>
             {section.collapsible && (
-              <IconButton size="small" onClick={() => handleSectionToggle(section.id)}>
-                {isExpanded ? <ExpandLess fontSize="small" /> : <ExpandMore fontSize="small" />}
-              </IconButton>
+              <Tooltip title={isExpanded ? "Collapse section" : "Expand section"} arrow placement="right">
+                <IconButton 
+                  size="small" 
+                  onClick={() => handleSectionToggle(section.id)}
+                  sx={{
+                    color: '#9ca3af',
+                    '&:hover': {
+                      backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                      color: '#6366f1',
+                      transform: 'scale(1.1)',
+                    },
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {isExpanded ? <ExpandLess fontSize="small" /> : <ExpandMore fontSize="small" />}
+                </IconButton>
+              </Tooltip>
             )}
           </Box>
         )}
@@ -261,10 +329,12 @@ export const BaseSidebar: React.FC<BaseSidebarComponentProps> = ({
             variant="subtitle2"
             sx={{
               px: 2,
-              py: 1,
-              fontSize: '13px',
+              py: 1.5,
+              fontSize: '11px',
               fontWeight: 600,
-              color: '#333',
+              color: '#9ca3af',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
             }}
           >
             {group.title}
@@ -281,14 +351,17 @@ export const BaseSidebar: React.FC<BaseSidebarComponentProps> = ({
       sx={{
         width: collapsed ? collapsedWidth : width,
         flexShrink: 0,
-        backgroundColor,
-        borderRight: '1px solid #e0e0e0',
+        background: 'rgba(255, 255, 255, 0.6)',
+        backdropFilter: 'blur(12px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+        borderRight: '1px solid rgba(226, 232, 240, 0.5)',
         transition: 'width 0.3s ease',
         overflowX: 'hidden',
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
         minHeight: 0, // Important for flex children to respect overflow
+        boxShadow: '2px 0 8px rgba(0, 0, 0, 0.05)',
       }}
     >
       <Box
@@ -297,7 +370,7 @@ export const BaseSidebar: React.FC<BaseSidebarComponentProps> = ({
           flex: 1,
           overflowY: 'auto',
           overflowX: 'hidden',
-          py: 1,
+          py: 2,
           minHeight: 0, // Important for flex children to respect overflow
           // Hide scrollbar by default, show on hover or when scrolling
           scrollbarWidth: 'thin',

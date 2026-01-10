@@ -83,7 +83,7 @@ const Profile = () => {
                 {displayUser.full_name}
               </Typography>
               <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-                {displayUser.position}
+                {displayUser.username}
               </Typography>
               <Button variant="outlined" size="small">
                 Edit Profile

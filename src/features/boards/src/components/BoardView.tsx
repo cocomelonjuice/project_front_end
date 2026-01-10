@@ -10,7 +10,6 @@ import {
 } from '@mui/material';
 import type { Issue } from '../../../issues/src/store/states';
 import type { BoardColumn } from '../store/states';
-import { mockIssueTypes, mockPriorities, mockStatuses, mockUsers } from '../../../issues/src/store/mockData';
 
 interface BoardViewProps {
   issues: Issue[];
@@ -27,21 +26,6 @@ const BoardView: React.FC<BoardViewProps> = ({ issues, columns, onIssueMove }) =
     const filtered = issues.filter((issue) => column.statusIds.includes(issue.statusId));
     return filtered;
   };
-
-  // Debug: Log issues and columns on render
-  React.useEffect(() => {
-    console.log('🔵 BoardView render:', {
-      totalIssues: issues.length,
-      issues: issues.map((i) => ({ key: i.key, statusId: i.statusId })),
-      totalColumns: columns.length,
-      columns: columns.map((c) => ({ id: c.id, name: c.name, statusIds: c.statusIds })),
-      issuesByColumn: columns.map((c) => ({
-        columnId: c.id,
-        columnName: c.name,
-        issueCount: getIssuesForColumn(c).length,
-      })),
-    });
-  }, [issues, columns]);
 
   const handleDragStart = (e: React.DragEvent, issue: Issue) => {
     setDraggedIssue(issue);
@@ -144,9 +128,10 @@ const BoardView: React.FC<BoardViewProps> = ({ issues, columns, onIssueMove }) =
                 </Box>
               ) : (
                 columnIssues.map((issue) => {
-                  const type = issue.type || mockIssueTypes.find((t) => t.id === issue.typeId);
-                  const priority = issue.priority || mockPriorities.find((p) => p.id === issue.priorityId);
-                  const assignee = issue.assignee || (issue.assigneeId ? mockUsers.find((u) => u.id === issue.assigneeId) : null);
+                  // Data comes from API response, no need for mock fallbacks
+                  const type = issue.type;
+                  const priority = issue.priority;
+                  const assignee = issue.assignee || null;
 
                   return (
                     <Card

@@ -26,7 +26,6 @@ import {
   Person as PersonIcon,
 } from '@mui/icons-material';
 import { EditIssueModal, DeleteIssueDialog, AssignIssueModal, TransitionStatusModal, issuesActions, useSelectorIssues } from '../../features/issues/src';
-import { mockIssueTypes, mockPriorities, mockStatuses, mockUsers } from '../../features/issues/src/store/mockData';
 import type { Issue } from '../../features/issues/src/store/states';
 import {
   CommentList,
@@ -373,11 +372,12 @@ const IssueDetail: React.FC = () => {
     );
   }
 
-  const type = issue.type || mockIssueTypes.find((t) => t.id === issue.typeId);
-  const priority = issue.priority || mockPriorities.find((p) => p.id === issue.priorityId);
-  const status = issue.status || mockStatuses.find((s) => s.id === issue.statusId);
-  const assignee = issue.assignee || (issue.assigneeId ? mockUsers.find((u) => u.id === issue.assigneeId) : null);
-  const reporter = issue.reporter || mockUsers.find((u) => u.id === issue.reporterId);
+  // Data comes from API response, no need for mock fallbacks
+  const type = issue.type;
+  const priority = issue.priority;
+  const status = issue.status;
+  const assignee = issue.assignee || null;
+  const reporter = issue.reporter || null;
 
   return (
     <Box sx={{ p: 3, maxWidth: '1400px', mx: 'auto' }}>
@@ -474,7 +474,7 @@ const IssueDetail: React.FC = () => {
               attachments={attachments}
               onDelete={handleDeleteAttachment}
               onDownload={handleDownloadAttachment}
-              currentUserId="1" // Mock current user ID
+              currentUserId={currentUser?.id || ''}
             />
           </Paper>
 
