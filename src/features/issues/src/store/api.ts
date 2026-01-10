@@ -52,7 +52,7 @@ export const issuesApi = {
     axiosInstance.delete(API_ENDPOINTS.ISSUES.DELETE(id)),
 
   // Assign issue to user
-  assignIssue: (id: string, data: { assigneeId: string }) =>
+  assignIssue: (id: string, data: { assigneeId?: string | null }) =>
     axiosInstance.post(API_ENDPOINTS.ISSUES.ASSIGN(id), data).then((response) => ({
       ...response,
       data: transformIssue(response.data),

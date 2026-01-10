@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Box,
   Typography,
@@ -17,6 +18,7 @@ import {
   MenuItem,
   Button,
   Alert,
+  CircularProgress,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -28,8 +30,16 @@ import {
   SwapHoriz as SwapHorizIcon,
   Label as LabelIcon,
 } from '@mui/icons-material';
-import { mockSystemSettings } from '../store/mockData';
+import { adminActions, useSelectorAdmin } from '../store';
 import type { SystemSetting } from '../store/states';
+import adminApi from '../store/api';
+import EditIssueTypeModal from './EditIssueTypeModal';
+import AddIssueTypeModal from './AddIssueTypeModal';
+import EditPriorityModal from './EditPriorityModal';
+import AddPriorityModal from './AddPriorityModal';
+import EditStatusModal from './EditStatusModal';
+import AddStatusModal from './AddStatusModal';
+import { CreateLabelModal, EditLabelModal } from '../../../labels/src/components';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -46,10 +56,28 @@ const TabPanel: React.FC<TabPanelProps> = ({ children, value, index }) => {
 };
 
 const SystemSettingsManagement: React.FC = () => {
-  const [settings, setSettings] = useState<SystemSetting[]>(mockSystemSettings);
+  const dispatch = useDispatch();
+  const adminState = useSelectorAdmin((state) => state);
+  const { systemSettings, getSystemSettingsLoading } = adminState;
+
   const [tabValue, setTabValue] = useState(0);
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [selectedSetting, setSelectedSetting] = useState<SystemSetting | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [addModalOpen, setAddModalOpen] = useState(false);
+
+  useEffect(() => {
+    dispatch(
+      adminActions.getSystemSettingsRequest({
+        data: {},
+        callback: {
+          onError: (error: any) => {
+            console.error('Failed to load system settings:', error);
+          },
+        },
+      })
+    );
+  }, [dispatch]);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -66,20 +94,69 @@ const SystemSettingsManagement: React.FC = () => {
   };
 
   const handleEdit = () => {
-    // TODO: Open edit modal
-    console.log('Edit setting:', selectedSetting);
+    setEditModalOpen(true);
     handleMenuClose();
   };
 
-  const handleDelete = () => {
-    if (selectedSetting) {
-      setSettings((prev) => prev.filter((s) => s.id !== selectedSetting.id));
+  const handleAdd = () => {
+    setAddModalOpen(true);
+  };
+
+  const handleRefreshSettings = () => {
+    dispatch(
+      adminActions.getSystemSettingsRequest({
+        data: {},
+        callback: {
+          onError: (error: any) => {
+            console.error('Failed to refresh system settings:', error);
+          },
+        },
+      })
+    );
+  };
+
+  const handleDelete = async () => {
+    if (!selectedSetting) return;
+
+    try {
+      // Call appropriate delete API based on setting type
+      switch (selectedSetting.type) {
+        case 'issue_type':
+          await adminApi.deleteIssueType(selectedSetting.id);
+          break;
+        case 'priority':
+          await adminApi.deletePriority(selectedSetting.id);
+          break;
+        case 'status':
+          await adminApi.deleteStatus(selectedSetting.id);
+          break;
+        case 'label':
+          await adminApi.deleteLabel(selectedSetting.id);
+          break;
+      }
+
+      // Refresh system settings
+      dispatch(
+        adminActions.getSystemSettingsRequest({
+          data: {},
+          callback: {
+            onError: (error: any) => {
+              console.error('Failed to refresh system settings:', error);
+            },
+          },
+        })
+      );
+
       handleMenuClose();
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete item';
+      alert(errorMessage); // Simple alert for now
     }
   };
 
+  // Filter settings by type using Redux state data
   const getSettingsByType = (type: SystemSetting['type']) => {
-    return settings.filter((s) => s.type === type);
+    return systemSettings.filter((s) => s.type === type);
   };
 
   const renderTable = (typeSettings: SystemSetting[]) => {
@@ -157,11 +234,19 @@ const SystemSettingsManagement: React.FC = () => {
     );
   };
 
+  if (getSystemSettingsLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h6">System Settings</Typography>
-        <Button variant="contained" startIcon={<AddIcon />}>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={handleAdd}>
           Add Item
         </Button>
       </Box>
@@ -202,6 +287,100 @@ const SystemSettingsManagement: React.FC = () => {
           Delete
         </MenuItem>
       </Menu>
+
+      {/* Edit Modals */}
+      {tabValue === 0 && (
+        <EditIssueTypeModal
+          open={editModalOpen && selectedSetting?.type === 'issue_type'}
+          onClose={() => setEditModalOpen(false)}
+          issueType={selectedSetting?.type === 'issue_type' ? selectedSetting : null}
+          onIssueTypeUpdated={handleRefreshSettings}
+        />
+      )}
+      {tabValue === 1 && (
+        <EditPriorityModal
+          open={editModalOpen && selectedSetting?.type === 'priority'}
+          onClose={() => setEditModalOpen(false)}
+          priority={selectedSetting?.type === 'priority' ? selectedSetting : null}
+          onPriorityUpdated={handleRefreshSettings}
+        />
+      )}
+      {tabValue === 2 && (
+        <EditStatusModal
+          open={editModalOpen && selectedSetting?.type === 'status'}
+          onClose={() => setEditModalOpen(false)}
+          status={selectedSetting?.type === 'status' ? selectedSetting : null}
+          onStatusUpdated={handleRefreshSettings}
+        />
+      )}
+      {tabValue === 3 && (
+        <EditLabelModal
+          open={editModalOpen && selectedSetting?.type === 'label'}
+          onClose={() => setEditModalOpen(false)}
+          label={
+            selectedSetting?.type === 'label'
+              ? {
+                  id: selectedSetting.id,
+                  name: selectedSetting.name,
+                  color: selectedSetting.color,
+                  description: selectedSetting.description,
+                }
+              : null
+          }
+          onLabelUpdated={() => {
+            handleRefreshSettings();
+            setEditModalOpen(false);
+          }}
+          existingLabels={getSettingsByType('label').map((s) => ({
+            id: s.id,
+            name: s.name,
+            color: s.color,
+            description: s.description,
+          }))}
+        />
+      )}
+
+      {/* Add Modals */}
+      {tabValue === 0 && (
+        <AddIssueTypeModal
+          open={addModalOpen}
+          onClose={() => setAddModalOpen(false)}
+          onIssueTypeAdded={handleRefreshSettings}
+          existingNames={getSettingsByType('issue_type').map((s) => s.name.toLowerCase())}
+        />
+      )}
+      {tabValue === 1 && (
+        <AddPriorityModal
+          open={addModalOpen}
+          onClose={() => setAddModalOpen(false)}
+          onPriorityAdded={handleRefreshSettings}
+          existingNames={getSettingsByType('priority').map((s) => s.name.toLowerCase())}
+        />
+      )}
+      {tabValue === 2 && (
+        <AddStatusModal
+          open={addModalOpen}
+          onClose={() => setAddModalOpen(false)}
+          onStatusAdded={handleRefreshSettings}
+          existingNames={getSettingsByType('status').map((s) => s.name.toLowerCase())}
+        />
+      )}
+      {tabValue === 3 && (
+        <CreateLabelModal
+          open={addModalOpen}
+          onClose={() => setAddModalOpen(false)}
+          onLabelCreated={() => {
+            handleRefreshSettings();
+            setAddModalOpen(false);
+          }}
+          existingLabels={getSettingsByType('label').map((s) => ({
+            id: s.id,
+            name: s.name,
+            color: s.color,
+            description: s.description,
+          }))}
+        />
+      )}
     </Box>
   );
 };

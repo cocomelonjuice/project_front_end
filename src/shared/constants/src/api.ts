@@ -19,6 +19,8 @@ export const API_ENDPOINTS = {
   USERS: {
     GET_ALL: '/users',
     GET_BY_ID: (id: string) => `/users/${id}`,
+    UPDATE: (id: string) => `/users/${id}`,
+    DELETE: (id: string) => `/users/${id}`,
   },
   // Projects
   PROJECTS: {

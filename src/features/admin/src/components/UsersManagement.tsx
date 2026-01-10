@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Box,
   Typography,
@@ -16,6 +17,8 @@ import {
   Button,
   Avatar,
   Alert,
+  CircularProgress,
+  Snackbar,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -23,14 +26,42 @@ import {
   Edit as EditIcon,
   Block as BlockIcon,
   CheckCircle as CheckCircleIcon,
+  Delete as DeleteIcon,
 } from '@mui/icons-material';
-import { mockAdminUsers, mockRoles } from '../store/mockData';
+import { adminActions, useSelectorAdmin } from '../store';
 import type { AdminUser } from '../store/states';
+import EditUserModal from './EditUserModal';
+import AddUserModal from './AddUserModal';
+import DeleteUserDialog from './DeleteUserDialog';
 
 const UsersManagement: React.FC = () => {
-  const [users, setUsers] = useState<AdminUser[]>(mockAdminUsers);
+  const dispatch = useDispatch();
+  const adminState = useSelectorAdmin((state) => state);
+  const { users, getUsersLoading, updateUserLoading, deleteUserLoading, errors } = adminState;
+
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
+
+  useEffect(() => {
+    dispatch(
+      adminActions.getUsersRequest({
+        data: {},
+        callback: {
+          onError: (error: any) => {
+            setSnackbar({ open: true, message: 'Failed to load users', severity: 'error' });
+          },
+        },
+      })
+    );
+  }, [dispatch]);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, user: AdminUser) => {
     setMenuAnchor(event.currentTarget);
@@ -44,24 +75,66 @@ const UsersManagement: React.FC = () => {
 
   const handleToggleActive = () => {
     if (selectedUser) {
-      setUsers((prev) =>
-        prev.map((u) => (u.id === selectedUser.id ? { ...u, isActive: !u.isActive } : u))
+      dispatch(
+        adminActions.updateUserRequest({
+          data: {
+            id: selectedUser.id,
+            isActive: !selectedUser.isActive,
+          },
+          callback: {
+            onSuccess: () => {
+              setSnackbar({ open: true, message: 'User updated successfully', severity: 'success' });
+              handleMenuClose();
+            },
+            onError: (error: any) => {
+              setSnackbar({ open: true, message: 'Failed to update user', severity: 'error' });
+            },
+          },
+        })
       );
-      handleMenuClose();
     }
   };
 
   const handleEdit = () => {
-    // TODO: Open edit user modal
-    console.log('Edit user:', selectedUser);
+    setEditModalOpen(true);
     handleMenuClose();
   };
+
+  const handleDelete = () => {
+    setDeleteDialogOpen(true);
+    handleMenuClose();
+  };
+
+  const handleRefreshUsers = () => {
+    dispatch(
+      adminActions.getUsersRequest({
+        data: {},
+        callback: {
+          onError: (error: any) => {
+            setSnackbar({ open: true, message: 'Failed to refresh users', severity: 'error' });
+          },
+        },
+      })
+    );
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
+  if (getUsersLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h6">Users</Typography>
-        <Button variant="contained" startIcon={<AddIcon />}>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setAddModalOpen(true)}>
           Add User
         </Button>
       </Box>
@@ -140,11 +213,14 @@ const UsersManagement: React.FC = () => {
 
       {/* Context Menu */}
       <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleMenuClose}>
-        <MenuItem onClick={handleEdit}>
+        <MenuItem onClick={handleEdit} disabled={updateUserLoading || deleteUserLoading}>
           <EditIcon fontSize="small" sx={{ mr: 1 }} />
           Edit
         </MenuItem>
-        <MenuItem onClick={handleToggleActive}>
+        <MenuItem
+          onClick={handleToggleActive}
+          disabled={updateUserLoading || deleteUserLoading}
+        >
           {selectedUser?.isActive ? (
             <>
               <BlockIcon fontSize="small" sx={{ mr: 1 }} />
@@ -157,7 +233,57 @@ const UsersManagement: React.FC = () => {
             </>
           )}
         </MenuItem>
+        <MenuItem
+          onClick={handleDelete}
+          disabled={updateUserLoading || deleteUserLoading}
+          sx={{ color: 'error.main' }}
+        >
+          <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
+          Delete
+        </MenuItem>
       </Menu>
+
+      {/* Edit User Modal */}
+      <EditUserModal
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        user={selectedUser}
+        onUserUpdated={() => {
+          handleRefreshUsers();
+          setSnackbar({ open: true, message: 'User updated successfully', severity: 'success' });
+        }}
+      />
+
+      {/* Add User Modal */}
+      <AddUserModal
+        open={addModalOpen}
+        onClose={() => setAddModalOpen(false)}
+        onUserAdded={() => {
+          handleRefreshUsers();
+          setSnackbar({ open: true, message: 'User created successfully', severity: 'success' });
+        }}
+        existingEmails={users.map((u) => u.email.toLowerCase())}
+        existingUsernames={users.map((u) => u.username.toLowerCase())}
+      />
+
+      {/* Delete User Dialog */}
+      <DeleteUserDialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        user={selectedUser}
+        onUserDeleted={() => {
+          handleRefreshUsers();
+          setSnackbar({ open: true, message: 'User deleted successfully', severity: 'success' });
+        }}
+      />
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        message={snackbar.message}
+      />
     </Box>
   );
 };

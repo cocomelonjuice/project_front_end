@@ -30,12 +30,21 @@ export interface SystemSetting {
   type: 'issue_type' | 'priority' | 'status' | 'label';
 }
 
+export interface UpdateUserData {
+  username?: string;
+  email?: string;
+  displayName?: string;
+  isActive?: boolean;
+}
+
 // Initial state
 const initialState = {
   users: [] as AdminUser[],
   roles: [] as Role[],
   systemSettings: [] as SystemSetting[],
   getUsersLoading: false,
+  updateUserLoading: false,
+  deleteUserLoading: false,
   getRolesLoading: false,
   getSystemSettingsLoading: false,
   errors: null as Array<{ type: string; msg: string }> | null,

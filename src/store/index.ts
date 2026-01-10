@@ -30,6 +30,7 @@ import { injectStore as attachmentsInjectStore } from '../features/attachments/s
 import { injectStore as labelsInjectStore } from '../features/labels/src/store';
 import { injectStore as workflowsInjectStore } from '../features/workflows/src/store';
 import { injectStore as teamInjectStore } from '../features/team/src/store';
+import { injectStore as adminInjectStore } from '../features/admin/src/store';
 
 // Create saga middleware
 const sagaMiddleware = createSagaMiddleware();
@@ -49,6 +50,7 @@ const featureStores: InjectStore[] = [
   labelsInjectStore,
   workflowsInjectStore,
   teamInjectStore,
+  adminInjectStore,
 ];
 
 // Build combined reducers (similar to portal pattern)

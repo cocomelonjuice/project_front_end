@@ -24,8 +24,8 @@ import {
   Person as PersonIcon,
 } from '@mui/icons-material';
 import type { User } from '../store/states';
-import { mockUsers } from '../store/mockData';
 import { usersActions, useSelectorUsers } from '../../../users/src/store';
+import { useSelectorIssues } from '../store';
 
 interface AssignIssueModalProps {
   open: boolean;
@@ -46,16 +46,20 @@ const AssignIssueModal: React.FC<AssignIssueModalProps> = ({
 }) => {
   const dispatch = useDispatch();
   const usersState = useSelectorUsers((state) => state);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const issuesState = useSelectorIssues((state) => state);
+  const isSubmitting = issuesState.assignIssueLoading;
   const [selectedUserId, setSelectedUserId] = useState<string>(currentAssigneeId || '');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Use users from Redux if available, otherwise use prop or mockUsers
-  const availableUsers = propAvailableUsers || (usersState.users.length > 0 ? usersState.users : mockUsers);
+  // Use users from Redux if available, otherwise use prop (never use mockUsers in production)
+  // Only use mockUsers as absolute last resort if no users are available
+  const availableUsers = usersState.users.length > 0 
+    ? usersState.users 
+    : (propAvailableUsers || []);
 
-  // Fetch users when modal opens
+  // Fetch users when modal opens (always fetch if not already loaded)
   useEffect(() => {
-    if (open && usersState.users.length === 0 && !usersState.getUsersLoading && !propAvailableUsers) {
+    if (open && usersState.users.length === 0 && !usersState.getUsersLoading) {
       dispatch(
         usersActions.getUsersRequest({
           data: {},
@@ -70,13 +74,12 @@ const AssignIssueModal: React.FC<AssignIssueModalProps> = ({
         } as any)
       );
     }
-  }, [open, dispatch, usersState.users.length, usersState.getUsersLoading, propAvailableUsers]);
+  }, [open, dispatch, usersState.users.length, usersState.getUsersLoading]);
 
   useEffect(() => {
     if (open) {
       setSelectedUserId(currentAssigneeId || '');
       setSearchQuery('');
-      setIsSubmitting(false);
     }
   }, [open, currentAssigneeId]);
 
@@ -87,25 +90,17 @@ const AssignIssueModal: React.FC<AssignIssueModalProps> = ({
   );
 
   const handleSubmit = () => {
-    setIsSubmitting(true);
-
-    // Simulate API call delay
-    setTimeout(() => {
-      onIssueAssigned?.(selectedUserId);
-      setIsSubmitting(false);
-      onClose();
-    }, 300);
+    if (!onIssueAssigned) return;
+    // Call the callback which will dispatch the Redux action
+    // The parent component will handle closing the modal on success
+    onIssueAssigned(selectedUserId);
   };
 
   const handleUnassign = () => {
-    setIsSubmitting(true);
-
-    // Simulate API call delay
-    setTimeout(() => {
-      onIssueAssigned?.('');
-      setIsSubmitting(false);
-      onClose();
-    }, 300);
+    if (!onIssueAssigned) return;
+    // Call the callback which will dispatch the Redux action
+    // The parent component will handle closing the modal on success
+    onIssueAssigned('');
   };
 
   const handleClose = () => {

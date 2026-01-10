@@ -309,7 +309,42 @@ const IssueDetail: React.FC = () => {
 
   // Assign and Transition handlers
   const handleIssueAssigned = (assigneeId: string) => {
-    // Issue will be updated in Redux state by the assign issue action
+    if (!issueId) return;
+    
+    // Convert empty string to null for unassign (backend expects null to unassign)
+    const finalAssigneeId = assigneeId.trim() === '' ? null : assigneeId;
+    
+    dispatch(
+      issuesActions.assignIssueRequest({
+        data: {
+          id: issueId,
+          assigneeId: finalAssigneeId,
+        },
+        callback: {
+          onSuccess: (updatedIssue: Issue) => {
+            // Issue is already updated in Redux state by the reducer
+            // Refresh to get full assignee data from backend
+            if (issueId) {
+              dispatch(
+                issuesActions.getIssueByIdRequest({
+                  data: { id: issueId },
+                  callback: {},
+                } as any)
+              );
+            }
+            // Close the modal on success
+            setAssignIssueModalOpen(false);
+          },
+          onError: (error: any) => {
+            console.error('Failed to assign issue:', error);
+            // Don't close modal on error so user can retry
+          },
+          onFinally: () => {
+            // Reset any loading states if needed
+          },
+        },
+      } as any)
+    );
   };
 
   const handleStatusTransitioned = (statusId: string) => {
@@ -704,7 +739,6 @@ const IssueDetail: React.FC = () => {
         onClose={() => setAssignIssueModalOpen(false)}
         issueId={issueId || ''}
         currentAssigneeId={issue?.assigneeId}
-        availableUsers={mockUsers}
         onIssueAssigned={handleIssueAssigned}
       />
       <TransitionStatusModal

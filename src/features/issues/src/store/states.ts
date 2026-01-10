@@ -74,7 +74,7 @@ export interface UpdateIssueData {
 }
 
 export interface AssignIssueData {
-  assigneeId: string;
+  assigneeId?: string | null;
 }
 
 export interface TransitionIssueData {
