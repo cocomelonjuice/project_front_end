@@ -98,8 +98,10 @@ const EditCommentModal: React.FC<EditCommentModalProps> = ({
             value={content}
             onChange={(e) => setContent(e.target.value)}
             disabled={commentsState.updateCommentLoading}
-            placeholder="Write a comment..."
             autoFocus
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
         </Box>
       </DialogContent>

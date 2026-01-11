@@ -9,8 +9,10 @@ import {
   Box,
   Alert,
   CircularProgress,
+  Typography,
 } from '@mui/material';
 import adminApi from '../store/api';
+import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS } from '../../../../shared/constants/src/ui';
 
 interface AddPriorityModalProps {
   open: boolean;
@@ -88,8 +90,34 @@ const AddPriorityModal: React.FC<AddPriorityModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Add Priority</DialogTitle>
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: UI_BORDER_RADIUS.xl,
+          boxShadow: UI_SHADOWS['2xl'],
+        },
+      }}
+    >
+      <DialogTitle
+        sx={{
+          pb: 1,
+        }}
+      >
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+            color: UI_COLORS.text.primary,
+            fontSize: UI_TYPOGRAPHY.fontSize.xl,
+          }}
+        >
+          Add Priority
+        </Typography>
+      </DialogTitle>
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 2 }}>
           {error && (
@@ -105,9 +133,11 @@ const AddPriorityModal: React.FC<AddPriorityModalProps> = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
             disabled={loading}
-            placeholder="e.g., Lowest, Low, Medium, High, Highest"
             autoFocus
             inputProps={{ maxLength: 50 }}
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
 
           <TextField
@@ -120,6 +150,9 @@ const AddPriorityModal: React.FC<AddPriorityModalProps> = ({
             disabled={loading}
             inputProps={{ min: 1 }}
             helperText="Lower numbers appear first"
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
         </Box>
       </DialogContent>

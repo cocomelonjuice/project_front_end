@@ -16,6 +16,7 @@ import {
   Speed as SprintsIcon,
 } from '@mui/icons-material';
 import { APP_CONFIG } from '../shared/constants/src/config';
+import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS, UI_TRANSITIONS } from '../shared/constants/src/ui';
 
 const About = () => {
   const features = [
@@ -68,21 +69,23 @@ const About = () => {
           variant="h3"
           component="h1"
           sx={{
-            fontWeight: 700,
+            fontWeight: UI_TYPOGRAPHY.fontWeight.bold,
             mb: 2,
-            color: 'text.primary',
+            color: UI_COLORS.text.primary,
+            fontSize: { xs: UI_TYPOGRAPHY.fontSize['2xl'], md: UI_TYPOGRAPHY.fontSize['3xl'] },
           }}
         >
           About {APP_CONFIG.NAME}
         </Typography>
         <Typography
           variant="h6"
-          color="text.secondary"
           sx={{
             maxWidth: 700,
             mx: 'auto',
-            lineHeight: 1.6,
-            fontWeight: 400,
+            lineHeight: UI_TYPOGRAPHY.lineHeight.relaxed,
+            fontWeight: UI_TYPOGRAPHY.fontWeight.normal,
+            color: UI_COLORS.text.secondary,
+            fontSize: { xs: UI_TYPOGRAPHY.fontSize.base, md: UI_TYPOGRAPHY.fontSize.lg },
           }}
         >
           A powerful, modern project management platform designed to help teams collaborate,
@@ -96,17 +99,19 @@ const About = () => {
         sx={{
           p: { xs: 3, md: 5 },
           mb: 5,
-          borderRadius: 2,
+          borderRadius: UI_BORDER_RADIUS.xl,
+          boxShadow: UI_SHADOWS.lg,
         }}
       >
         <Typography
           variant="body1"
           paragraph
           sx={{
-            fontSize: '1.125rem',
-            lineHeight: 1.8,
+            fontSize: UI_TYPOGRAPHY.fontSize.lg,
+            lineHeight: UI_TYPOGRAPHY.lineHeight.loose,
             textAlign: 'left',
             mb: 2,
+            color: UI_COLORS.text.primary,
           }}
         >
           {APP_CONFIG.NAME} is a comprehensive project management solution that empowers teams to
@@ -117,9 +122,10 @@ const About = () => {
         <Typography
           variant="body1"
           sx={{
-            fontSize: '1.125rem',
-            lineHeight: 1.8,
+            fontSize: UI_TYPOGRAPHY.fontSize.lg,
+            lineHeight: UI_TYPOGRAPHY.lineHeight.loose,
             textAlign: 'left',
+            color: UI_COLORS.text.primary,
           }}
         >
           Built with modern technology and user experience in mind, {APP_CONFIG.NAME} combines
@@ -134,10 +140,11 @@ const About = () => {
           variant="h4"
           component="h2"
           sx={{
-            fontWeight: 600,
+            fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
             mb: 4,
             textAlign: 'center',
-            color: 'text.primary',
+            color: UI_COLORS.text.primary,
+            fontSize: { xs: UI_TYPOGRAPHY.fontSize.xl, md: UI_TYPOGRAPHY.fontSize['2xl'] },
           }}
         >
           Key Features
@@ -157,11 +164,12 @@ const About = () => {
                 width: '100%',
                 display: 'flex',
                 flexDirection: 'row',
-                transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-                borderRadius: 2,
+                transition: `transform ${UI_TRANSITIONS.normal}, box-shadow ${UI_TRANSITIONS.normal}`,
+                borderRadius: UI_BORDER_RADIUS.xl,
+                boxShadow: UI_SHADOWS.md,
                 '&:hover': {
                   transform: 'translateY(-4px)',
-                  boxShadow: 6,
+                  boxShadow: UI_SHADOWS['2xl'],
                 },
               }}
             >
@@ -192,19 +200,22 @@ const About = () => {
                     variant="h6"
                     component="h3"
                     sx={{
-                      fontWeight: 600,
+                      fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
                       mb: 1,
                       textAlign: 'left',
+                      color: UI_COLORS.text.primary,
+                      fontSize: UI_TYPOGRAPHY.fontSize.xl,
                     }}
                   >
                     {feature.title}
                   </Typography>
                   <Typography
                     variant="body1"
-                    color="text.secondary"
                     sx={{
                       textAlign: 'left',
-                      lineHeight: 1.7,
+                      lineHeight: UI_TYPOGRAPHY.lineHeight.relaxed,
+                      color: UI_COLORS.text.secondary,
+                      fontSize: UI_TYPOGRAPHY.fontSize.base,
                     }}
                   >
                     {feature.description}
@@ -223,7 +234,8 @@ const About = () => {
         elevation={1}
         sx={{
           p: { xs: 3, md: 4 },
-          borderRadius: 2,
+          borderRadius: UI_BORDER_RADIUS.xl,
+          boxShadow: UI_SHADOWS.md,
         }}
       >
         <Box
@@ -238,9 +250,10 @@ const About = () => {
             <Typography
               variant="h5"
               sx={{
-                fontWeight: 600,
+                fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
                 mb: 2.5,
-                color: 'text.primary',
+                color: UI_COLORS.text.primary,
+                fontSize: { xs: UI_TYPOGRAPHY.fontSize.xl, md: UI_TYPOGRAPHY.fontSize['2xl'] },
               }}
             >
               Why Choose {APP_CONFIG.NAME}?
@@ -254,56 +267,88 @@ const About = () => {
             >
               <Typography
                 variant="body1"
-                color="text.secondary"
                 sx={{
                   display: 'flex',
                   alignItems: 'flex-start',
-                  lineHeight: 1.7,
+                  lineHeight: UI_TYPOGRAPHY.lineHeight.relaxed,
+                  color: UI_COLORS.text.secondary,
+                  fontSize: UI_TYPOGRAPHY.fontSize.base,
                 }}
               >
-                <Box component="span" sx={{ mr: 1, color: 'primary.main', fontWeight: 'bold' }}>
+                <Box
+                  component="span"
+                  sx={{
+                    mr: 1,
+                    color: UI_COLORS.primary.main,
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.bold,
+                  }}
+                >
                   •
                 </Box>
                 Streamline your project management workflow with intuitive tools
               </Typography>
               <Typography
                 variant="body1"
-                color="text.secondary"
                 sx={{
                   display: 'flex',
                   alignItems: 'flex-start',
-                  lineHeight: 1.7,
+                  lineHeight: UI_TYPOGRAPHY.lineHeight.relaxed,
+                  color: UI_COLORS.text.secondary,
+                  fontSize: UI_TYPOGRAPHY.fontSize.base,
                 }}
               >
-                <Box component="span" sx={{ mr: 1, color: 'primary.main', fontWeight: 'bold' }}>
+                <Box
+                  component="span"
+                  sx={{
+                    mr: 1,
+                    color: UI_COLORS.primary.main,
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.bold,
+                  }}
+                >
                   •
                 </Box>
                 Improve team collaboration with real-time updates and notifications
               </Typography>
               <Typography
                 variant="body1"
-                color="text.secondary"
                 sx={{
                   display: 'flex',
                   alignItems: 'flex-start',
-                  lineHeight: 1.7,
+                  lineHeight: UI_TYPOGRAPHY.lineHeight.relaxed,
+                  color: UI_COLORS.text.secondary,
+                  fontSize: UI_TYPOGRAPHY.fontSize.base,
                 }}
               >
-                <Box component="span" sx={{ mr: 1, color: 'primary.main', fontWeight: 'bold' }}>
+                <Box
+                  component="span"
+                  sx={{
+                    mr: 1,
+                    color: UI_COLORS.primary.main,
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.bold,
+                  }}
+                >
                   •
                 </Box>
                 Customize workflows to match your team's unique processes
               </Typography>
               <Typography
                 variant="body1"
-                color="text.secondary"
                 sx={{
                   display: 'flex',
                   alignItems: 'flex-start',
-                  lineHeight: 1.7,
+                  lineHeight: UI_TYPOGRAPHY.lineHeight.relaxed,
+                  color: UI_COLORS.text.secondary,
+                  fontSize: UI_TYPOGRAPHY.fontSize.base,
                 }}
               >
-                <Box component="span" sx={{ mr: 1, color: 'primary.main', fontWeight: 'bold' }}>
+                <Box
+                  component="span"
+                  sx={{
+                    mr: 1,
+                    color: UI_COLORS.primary.main,
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.bold,
+                  }}
+                >
                   •
                 </Box>
                 Track progress and make data-driven decisions
@@ -314,20 +359,22 @@ const About = () => {
             <Typography
               variant="h5"
               sx={{
-                fontWeight: 600,
+                fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
                 mb: 2.5,
-                color: 'text.primary',
+                color: UI_COLORS.text.primary,
+                fontSize: { xs: UI_TYPOGRAPHY.fontSize.xl, md: UI_TYPOGRAPHY.fontSize['2xl'] },
               }}
             >
               Get Started
             </Typography>
             <Typography
               variant="body1"
-              color="text.secondary"
               paragraph
               sx={{
-                lineHeight: 1.7,
+                lineHeight: UI_TYPOGRAPHY.lineHeight.relaxed,
                 mb: 2,
+                color: UI_COLORS.text.secondary,
+                fontSize: UI_TYPOGRAPHY.fontSize.base,
               }}
             >
               Ready to transform how your team manages projects? Start by creating your first
@@ -336,9 +383,10 @@ const About = () => {
             </Typography>
             <Typography
               variant="body1"
-              color="text.secondary"
               sx={{
-                lineHeight: 1.7,
+                lineHeight: UI_TYPOGRAPHY.lineHeight.relaxed,
+                color: UI_COLORS.text.secondary,
+                fontSize: UI_TYPOGRAPHY.fontSize.base,
               }}
             >
               For administrative tasks, user management, and system configuration, visit the

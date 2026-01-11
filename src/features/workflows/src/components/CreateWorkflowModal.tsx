@@ -117,6 +117,9 @@ const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
             required
             fullWidth
             autoFocus
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
 
           <TextField
@@ -126,6 +129,9 @@ const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
             multiline
             rows={3}
             fullWidth
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
 
           <Autocomplete
@@ -144,9 +150,11 @@ const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
               <TextField
                 {...params}
                 label="Project"
-                placeholder="Select project (or Global)"
                 variant="outlined"
                 fullWidth
+                InputLabelProps={{
+                  shrink: true,
+                }}
               />
             )}
             disabled={workflowsState.createWorkflowLoading}

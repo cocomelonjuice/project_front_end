@@ -136,9 +136,11 @@ const EditBoardModal: React.FC<EditBoardModalProps> = ({
             value={formData.name}
             onChange={handleChange('name')}
             disabled={boardsState.updateBoardLoading}
-            placeholder="Enter board name"
             helperText="A descriptive name for your board (3-100 characters)"
             inputProps={{ maxLength: 100 }}
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
 
           <FormControl fullWidth required>

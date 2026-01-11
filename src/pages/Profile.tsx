@@ -8,6 +8,7 @@ import {
   Button,
   Alert,
   CircularProgress,
+  Container,
 } from '@mui/material';
 import {
   Email as EmailIcon,
@@ -16,6 +17,7 @@ import {
   LocationOn as LocationIcon,
 } from '@mui/icons-material';
 import { useSelectorAuth } from '../features/auth/src/store';
+import { UI_COLORS, UI_TYPOGRAPHY, UI_SPACING, UI_BORDER_RADIUS, UI_SHADOWS, UI_BUTTON_STYLES } from '../shared/constants/src/ui';
 
 const Profile = () => {
   const authState = useSelectorAuth((state) => state);
@@ -24,18 +26,35 @@ const Profile = () => {
   // Show loading state
   if (authState.getProfileLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-        <CircularProgress />
-      </Box>
+      <Container maxWidth="lg">
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '400px',
+          }}
+        >
+          <CircularProgress sx={{ color: UI_COLORS.primary.main }} />
+        </Box>
+      </Container>
     );
   }
 
   // Show error if no user
   if (!user) {
     return (
-      <Box sx={{ maxWidth: 1200, mx: 'auto', mt: 3 }}>
-        <Alert severity="error">Please log in to view your profile.</Alert>
-      </Box>
+      <Container maxWidth="lg" sx={{ mt: 3 }}>
+        <Alert
+          severity="error"
+          sx={{
+            borderRadius: UI_BORDER_RADIUS.md,
+            boxShadow: UI_SHADOWS.sm,
+          }}
+        >
+          Please log in to view your profile.
+        </Alert>
+      </Container>
     );
   }
 
@@ -59,73 +78,158 @@ const Profile = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
-      <Typography variant="h4" sx={{ mb: 3, fontWeight: 600 }}>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Typography
+        variant="h4"
+        sx={{
+          mb: 4,
+          fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+          color: UI_COLORS.text.primary,
+          fontSize: { xs: UI_TYPOGRAPHY.fontSize['2xl'], md: UI_TYPOGRAPHY.fontSize['3xl'] },
+        }}
+      >
         Profile
       </Typography>
 
-      <Paper elevation={2} sx={{ p: 4 }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <Paper
+        elevation={2}
+        sx={{
+          p: { xs: 3, md: 4 },
+          borderRadius: UI_BORDER_RADIUS.xl,
+          boxShadow: UI_SHADOWS.lg,
+        }}
+      >
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {/* Header Section */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 3,
+              flexDirection: { xs: 'column', sm: 'row' },
+            }}
+          >
             <Avatar
               sx={{
-                width: 120,
-                height: 120,
-                fontSize: '3rem',
-                bgcolor: 'primary.main',
+                width: { xs: 100, sm: 120 },
+                height: { xs: 100, sm: 120 },
+                fontSize: { xs: '2.5rem', sm: '3rem' },
+                bgcolor: UI_COLORS.primary.main,
+                boxShadow: UI_SHADOWS.md,
               }}
             >
               {displayUser.avatar}
             </Avatar>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="h4" sx={{ mb: 1, fontWeight: 600 }}>
+            <Box sx={{ flex: 1, textAlign: { xs: 'center', sm: 'left' } }}>
+              <Typography
+                variant="h4"
+                sx={{
+                  mb: 1,
+                  fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                  color: UI_COLORS.text.primary,
+                  fontSize: { xs: UI_TYPOGRAPHY.fontSize.xl, md: UI_TYPOGRAPHY.fontSize['2xl'] },
+                }}
+              >
                 {displayUser.full_name}
               </Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-                {displayUser.username}
+              <Typography
+                variant="body1"
+                sx={{
+                  mb: 2,
+                  color: UI_COLORS.text.secondary,
+                  fontSize: UI_TYPOGRAPHY.fontSize.base,
+                }}
+              >
+                @{displayUser.username}
               </Typography>
-              <Button variant="outlined" size="small">
+              <Button
+                variant="outlined"
+                size="small"
+                sx={{
+                  ...UI_BUTTON_STYLES.secondary,
+                  borderRadius: UI_BORDER_RADIUS.md,
+                  px: 2.5,
+                  py: 1,
+                  fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                  fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                  textTransform: 'none',
+                }}
+              >
                 Edit Profile
               </Button>
             </Box>
           </Box>
 
-          <Divider />
+          <Divider sx={{ borderColor: UI_COLORS.border.light }} />
 
           {/* Details Section */}
           <Box>
-            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+            <Typography
+              variant="h6"
+              sx={{
+                mb: 3,
+                fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                color: UI_COLORS.text.primary,
+                fontSize: UI_TYPOGRAPHY.fontSize.xl,
+              }}
+            >
               Personal Information
             </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <EmailIcon color="action" />
-                <Typography variant="body1">
-                  <strong>Email:</strong> {displayUser.email}
+                <EmailIcon sx={{ color: UI_COLORS.text.secondary }} />
+                <Typography
+                  variant="body1"
+                  sx={{
+                    fontSize: UI_TYPOGRAPHY.fontSize.base,
+                    color: UI_COLORS.text.primary,
+                  }}
+                >
+                  <Box component="span" sx={{ fontWeight: UI_TYPOGRAPHY.fontWeight.medium }}>
+                    Email:
+                  </Box>{' '}
+                  {displayUser.email}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Briefcase color="action" />
-                <Typography variant="body1">
-                  <strong>Username:</strong> {displayUser.username}
+                <Briefcase sx={{ color: UI_COLORS.text.secondary }} />
+                <Typography
+                  variant="body1"
+                  sx={{
+                    fontSize: UI_TYPOGRAPHY.fontSize.base,
+                    color: UI_COLORS.text.primary,
+                  }}
+                >
+                  <Box component="span" sx={{ fontWeight: UI_TYPOGRAPHY.fontWeight.medium }}>
+                    Username:
+                  </Box>{' '}
+                  {displayUser.username}
                 </Typography>
               </Box>
             </Box>
           </Box>
 
-          <Divider />
-
+          <Divider sx={{ borderColor: UI_COLORS.border.light }} />
 
           {/* Additional Info */}
           <Box>
-            <Typography variant="body2" color="text.secondary">
-              Member since: {new Date(displayUser.joinDate).toLocaleDateString()}
+            <Typography
+              variant="body2"
+              sx={{
+                color: UI_COLORS.text.secondary,
+                fontSize: UI_TYPOGRAPHY.fontSize.sm,
+              }}
+            >
+              Member since: {new Date(displayUser.joinDate).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
             </Typography>
           </Box>
         </Box>
       </Paper>
-    </Box>
+    </Container>
   );
 };
 

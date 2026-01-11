@@ -29,6 +29,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  Container,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -67,6 +68,7 @@ import {
 } from '../../features/activity/src';
 import type { EntityTypeFilter } from '../../features/activity/src/components/ActivityFilter';
 import { useSelectorAuth } from '../../features/auth/src/store';
+import { UI_COLORS, UI_TYPOGRAPHY, UI_SPACING, UI_BORDER_RADIUS, UI_SHADOWS, UI_BUTTON_STYLES, UI_INPUT_STYLES } from '../../shared/constants/src/ui';
 
 const ProjectDetail: React.FC = () => {
   const { id: projectId } = useParams<{ id: string }>();
@@ -626,44 +628,80 @@ const ProjectDetail: React.FC = () => {
 
   if (!project) {
     return (
-      <Box sx={{ p: 3 }}>
-        <Typography>Loading project...</Typography>
-      </Box>
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+          <CircularProgress sx={{ color: UI_COLORS.primary.main }} />
+        </Box>
+      </Container>
     );
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          mb: 4,
+          flexWrap: 'wrap',
+          gap: 2,
+        }}
+      >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <IconButton onClick={() => navigate('/')} size="small">
+          <IconButton
+            onClick={() => navigate('/')}
+            size="small"
+            sx={{
+              color: UI_COLORS.text.secondary,
+              '&:hover': {
+                backgroundColor: UI_COLORS.background.hover,
+                color: UI_COLORS.text.primary,
+              },
+            }}
+          >
             <ArrowBackIcon />
           </IconButton>
           <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
               <Box
                 sx={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 1,
-                  bgcolor: 'primary.main',
-                  color: 'white',
+                  width: 40,
+                  height: 40,
+                  borderRadius: UI_BORDER_RADIUS.md,
+                  bgcolor: UI_COLORS.primary.main,
+                  color: UI_COLORS.primary.contrast,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '0.875rem',
-                  fontWeight: 'bold',
+                  fontSize: UI_TYPOGRAPHY.fontSize.base,
+                  fontWeight: UI_TYPOGRAPHY.fontWeight.bold,
+                  boxShadow: UI_SHADOWS.sm,
                 }}
               >
                 {project.key.charAt(0)}
               </Box>
-              <Typography variant="h4" component="h1">
+              <Typography
+                variant="h4"
+                component="h1"
+                sx={{
+                  fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                  color: UI_COLORS.text.primary,
+                  fontSize: { xs: UI_TYPOGRAPHY.fontSize.xl, md: UI_TYPOGRAPHY.fontSize['2xl'] },
+                }}
+              >
                 {project.name}
               </Typography>
             </Box>
-            <Typography variant="body2" color="text.secondary">
-              {project.description}
+            <Typography
+              variant="body2"
+              sx={{
+                color: UI_COLORS.text.secondary,
+                fontSize: UI_TYPOGRAPHY.fontSize.sm,
+              }}
+            >
+              {project.description || 'No description'}
             </Typography>
           </Box>
         </Box>
@@ -671,8 +709,31 @@ const ProjectDetail: React.FC = () => {
 
 
       {/* Tabs */}
-      <Paper sx={{ mb: 3 }}>
-        <Tabs value={tabValue} onChange={handleTabChange}>
+      <Paper
+        sx={{
+          mb: 3,
+          borderRadius: UI_BORDER_RADIUS.lg,
+          boxShadow: UI_SHADOWS.md,
+        }}
+      >
+        <Tabs
+          value={tabValue}
+          onChange={handleTabChange}
+          sx={{
+            '& .MuiTab-root': {
+              textTransform: 'none',
+              fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+              fontSize: UI_TYPOGRAPHY.fontSize.base,
+              minHeight: 48,
+              '&.Mui-selected': {
+                color: UI_COLORS.primary.main,
+              },
+            },
+            '& .MuiTabs-indicator': {
+              backgroundColor: UI_COLORS.primary.main,
+            },
+          }}
+        >
           <Tab label="Boards" />
           <Tab label="Issues" />
           <Tab label="Team" />
@@ -694,10 +755,26 @@ const ProjectDetail: React.FC = () => {
           ) : (
             <>
               {/* Sprints Section */}
-              <Paper sx={{ p: 3, mb: 3 }}>
+              <Paper
+                sx={{
+                  p: 3,
+                  mb: 3,
+                  borderRadius: UI_BORDER_RADIUS.xl,
+                  boxShadow: UI_SHADOWS.md,
+                }}
+              >
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Typography variant="h6">Sprints</Typography>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                        color: UI_COLORS.text.primary,
+                        fontSize: UI_TYPOGRAPHY.fontSize.xl,
+                      }}
+                    >
+                      Sprints
+                    </Typography>
                     {boardsState.boards.length > 1 ? (
                       <FormControl size="small" sx={{ minWidth: 200 }}>
                         <InputLabel>Select Board</InputLabel>
@@ -761,6 +838,13 @@ const ProjectDetail: React.FC = () => {
                         onClick={() => setCreateSprintModalOpen(true)}
                         size="small"
                         disabled={boardsState.getBoardsLoading}
+                        sx={{
+                          ...UI_BUTTON_STYLES.primary,
+                          borderRadius: UI_BORDER_RADIUS.md,
+                          textTransform: 'none',
+                          fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                          fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                        }}
                       >
                         Create Sprint
                       </Button>
@@ -771,6 +855,13 @@ const ProjectDetail: React.FC = () => {
                         startIcon={<AddIcon />}
                         onClick={() => setCreateBoardModalOpen(true)}
                         size="small"
+                        sx={{
+                          ...UI_BUTTON_STYLES.primary,
+                          borderRadius: UI_BORDER_RADIUS.md,
+                          textTransform: 'none',
+                          fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                          fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                        }}
                       >
                         Create Board
                       </Button>
@@ -906,23 +997,96 @@ const ProjectDetail: React.FC = () => {
               startIcon={<AddIcon />}
               onClick={handleCreateIssue}
               size="small"
+              sx={{
+                ...UI_BUTTON_STYLES.primary,
+                borderRadius: UI_BORDER_RADIUS.md,
+                textTransform: 'none',
+                fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+              }}
             >
               Create Issue
             </Button>
           </Box>
 
           {/* Always show table, don't wait for Redux loading */}
-          <TableContainer component={Paper}>
+          <TableContainer
+            component={Paper}
+            sx={{
+              borderRadius: UI_BORDER_RADIUS.lg,
+              boxShadow: UI_SHADOWS.md,
+              overflow: 'hidden',
+            }}
+          >
               <Table>
                 <TableHead>
-                  <TableRow>
-                    <TableCell>Key</TableCell>
-                    <TableCell>Summary</TableCell>
-                    <TableCell>Type</TableCell>
-                    <TableCell>Priority</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>Assignee</TableCell>
-                    <TableCell width={50}></TableCell>
+                  <TableRow
+                    sx={{
+                      backgroundColor: UI_COLORS.background.subtle,
+                    }}
+                  >
+                    <TableCell
+                      sx={{
+                        fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                        color: UI_COLORS.text.primary,
+                        fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                      }}
+                    >
+                      Key
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                        color: UI_COLORS.text.primary,
+                        fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                      }}
+                    >
+                      Summary
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                        color: UI_COLORS.text.primary,
+                        fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                      }}
+                    >
+                      Type
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                        color: UI_COLORS.text.primary,
+                        fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                      }}
+                    >
+                      Priority
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                        color: UI_COLORS.text.primary,
+                        fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                      }}
+                    >
+                      Status
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                        color: UI_COLORS.text.primary,
+                        fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                      }}
+                    >
+                      Assignee
+                    </TableCell>
+                    <TableCell
+                      width={50}
+                      sx={{
+                        fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                        color: UI_COLORS.text.primary,
+                        fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                      }}
+                    ></TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -941,14 +1105,26 @@ const ProjectDetail: React.FC = () => {
                       const status = issue.status || referenceDataState.statuses.find((s) => s.id === issue.statusId);
 
                       return (
-                        <TableRow key={issue.id} hover>
+                        <TableRow
+                          key={issue.id}
+                          hover
+                          sx={{
+                            '&:hover': {
+                              backgroundColor: UI_COLORS.background.hover,
+                            },
+                            transition: 'background-color 0.2s ease-in-out',
+                          }}
+                        >
                           <TableCell>
                             <Typography
                               variant="body2"
                               sx={{
-                                color: 'primary.main',
-                                textDecoration: 'underline',
+                                color: UI_COLORS.primary.main,
+                                fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
                                 cursor: 'pointer',
+                                '&:hover': {
+                                  textDecoration: 'underline',
+                                },
                               }}
                               onClick={() => navigate(`/projects/${projectId}/issues/${issue.id}`)}
                             >
@@ -1032,9 +1208,24 @@ const ProjectDetail: React.FC = () => {
 
       {tabValue === 2 && (
         <Box>
-          <Paper sx={{ p: 3 }}>
+          <Paper
+            sx={{
+              p: 3,
+              borderRadius: UI_BORDER_RADIUS.xl,
+              boxShadow: UI_SHADOWS.md,
+            }}
+          >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="h6">Team Members</Typography>
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                  color: UI_COLORS.text.primary,
+                  fontSize: UI_TYPOGRAPHY.fontSize.xl,
+                }}
+              >
+                Team Members
+              </Typography>
               <Button
                 variant="contained"
                 startIcon={<AddIcon />}
@@ -1043,6 +1234,13 @@ const ProjectDetail: React.FC = () => {
                   setAssignRoleModalOpen(true);
                 }}
                 size="small"
+                sx={{
+                  ...UI_BUTTON_STYLES.primary,
+                  borderRadius: UI_BORDER_RADIUS.md,
+                  textTransform: 'none',
+                  fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                  fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                }}
               >
                 Add Member
               </Button>
@@ -1058,8 +1256,22 @@ const ProjectDetail: React.FC = () => {
 
       {tabValue === 3 && (
         <Box>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
+          <Paper
+            sx={{
+              p: 3,
+              borderRadius: UI_BORDER_RADIUS.xl,
+              boxShadow: UI_SHADOWS.md,
+            }}
+          >
+            <Typography
+              variant="h6"
+              gutterBottom
+              sx={{
+                fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                color: UI_COLORS.text.primary,
+                fontSize: UI_TYPOGRAPHY.fontSize.xl,
+              }}
+            >
               Activity
             </Typography>
             <ActivityFilter
@@ -1201,10 +1413,10 @@ const ProjectDetail: React.FC = () => {
           >
             {teamState.removeRoleLoading ? 'Removing...' : 'Remove'}
           </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
-  );
-};
+          </DialogActions>
+        </Dialog>
+      </Container>
+    );
+  };
 
 export default ProjectDetail;

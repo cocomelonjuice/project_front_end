@@ -14,8 +14,10 @@ import {
   Box,
   Alert,
   CircularProgress,
+  Typography,
 } from '@mui/material';
 import { projectsActions, useSelectorProjects } from '../store';
+import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS, UI_TRANSITIONS, UI_INPUT_STYLES, UI_BUTTON_STYLES } from '../../../../shared/constants/src/ui';
 
 interface CreateProjectModalProps {
   open: boolean;
@@ -135,12 +137,51 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Create Project</DialogTitle>
-      <DialogContent>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 2 }}>
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: UI_BORDER_RADIUS.xl,
+          boxShadow: UI_SHADOWS['2xl'],
+        },
+      }}
+     
+    >
+      <DialogTitle
+        sx={{
+          pb: 1,
+          // borderBottom: `1px solid ${UI_COLORS.border.light}`,
+        }}
+      >
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+            color: UI_COLORS.text.primary,
+            fontSize: UI_TYPOGRAPHY.fontSize.xl,
+          }}
+        >
+          Create New Project
+        </Typography>
+      </DialogTitle>
+      <DialogContent sx={{ pt: 4 }}>
+        <Box sx={{mt:3,  display: 'flex', flexDirection: 'column', gap: 3 }}>
           {error && (
-            <Alert severity="error" onClose={() => setError(null)}>
+            <Alert
+              severity="error"
+              onClose={() => setError(null)}
+              sx={{
+                borderRadius: UI_BORDER_RADIUS.md,
+                backgroundColor: UI_COLORS.error.bg,
+                color: UI_COLORS.error.dark,
+                '& .MuiAlert-icon': {
+                  color: UI_COLORS.error.main,
+                },
+              }}
+            >
               {error}
             </Alert>
           )}
@@ -152,8 +193,20 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             value={formData.name}
             onChange={handleChange('name')}
             disabled={projectsState.createProjectLoading}
-            placeholder="Enter project name"
             helperText="A descriptive name for your project"
+            sx={UI_INPUT_STYLES.default}
+            InputLabelProps={{
+              shrink: true,
+              sx: {
+                fontSize: UI_TYPOGRAPHY.fontSize.sm,
+              },
+            }}
+            FormHelperTextProps={{
+              sx: {
+                fontSize: UI_TYPOGRAPHY.fontSize.xs,
+                color: UI_COLORS.text.secondary,
+              },
+            }}
           />
 
           <TextField
@@ -163,12 +216,46 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             value={formData.key}
             onChange={handleKeyChange}
             disabled={projectsState.createProjectLoading}
-            placeholder="PROJ"
             helperText="Unique key (uppercase letters and numbers, max 20 characters)"
             inputProps={{ maxLength: 20 }}
+            sx={UI_INPUT_STYLES.default}
+            InputLabelProps={{
+              shrink: true,
+              sx: {
+                fontSize: UI_TYPOGRAPHY.fontSize.sm,
+              },
+            }}
+            FormHelperTextProps={{
+              sx: {
+                fontSize: UI_TYPOGRAPHY.fontSize.xs,
+                color: UI_COLORS.text.secondary,
+              },
+            }}
           />
 
-          <FormControl fullWidth required>
+          <FormControl
+            fullWidth
+            required
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: UI_BORDER_RADIUS.md,
+                '&:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: UI_COLORS.primary.light,
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: UI_COLORS.primary.main,
+                  borderWidth: '2px',
+                },
+              },
+              '& .MuiInputLabel-root': {
+                fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                color: UI_COLORS.text.secondary,
+                '&.Mui-focused': {
+                  color: UI_COLORS.primary.main,
+                },
+              },
+            }}
+          >
             <InputLabel>Project Type</InputLabel>
             <Select
               value={formData.type}
@@ -188,24 +275,62 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             label="Description"
             fullWidth
             multiline
-            rows={4}
+            rows={3}
             value={formData.description}
             onChange={handleChange('description')}
             disabled={projectsState.createProjectLoading}
-            placeholder="Enter project description (optional)"
-            helperText="Describe the purpose and goals of this project"
+            helperText="Describe the purpose and goals of this project (optional)"
+            sx={UI_INPUT_STYLES.default}
+            InputLabelProps={{
+              shrink: true,
+              sx: {
+                fontSize: UI_TYPOGRAPHY.fontSize.sm,
+              },
+            }}
+            FormHelperTextProps={{
+              sx: {
+                fontSize: UI_TYPOGRAPHY.fontSize.xs,
+                color: UI_COLORS.text.secondary,
+              },
+            }}
           />
         </Box>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} disabled={projectsState.createProjectLoading}>
+      <DialogActions
+        sx={{
+          px: 3,
+          py: 2.5,
+          borderTop: `1px solid ${UI_COLORS.border.light}`,
+          gap: 1.5,
+        }}
+      >
+        <Button
+          onClick={handleClose}
+          disabled={projectsState.createProjectLoading}
+          sx={{
+            textTransform: 'none',
+            fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+            color: UI_COLORS.text.secondary,
+            '&:hover': {
+              backgroundColor: UI_COLORS.background.hover,
+            },
+          }}
+        >
           Cancel
         </Button>
         <Button
           onClick={handleSubmit}
           variant="contained"
           disabled={projectsState.createProjectLoading || !formData.name.trim() || !formData.key.trim()}
-          startIcon={projectsState.createProjectLoading ? <CircularProgress size={16} /> : null}
+          startIcon={projectsState.createProjectLoading ? <CircularProgress size={16} sx={{ color: UI_COLORS.primary.contrast }} /> : null}
+          sx={{
+            textTransform: 'none',
+            fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+            borderRadius: UI_BORDER_RADIUS.md,
+            px: 3,
+            transition: UI_TRANSITIONS.normal,
+            ...UI_BUTTON_STYLES.primary,
+          }}
         >
           {projectsState.createProjectLoading ? 'Creating...' : 'Create Project'}
         </Button>

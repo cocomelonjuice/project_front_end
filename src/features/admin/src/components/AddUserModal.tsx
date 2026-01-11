@@ -10,7 +10,9 @@ import {
   Box,
   Alert,
   CircularProgress,
+  Typography,
 } from '@mui/material';
+import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS } from '../../../../shared/constants/src/ui';
 import { adminActions, useSelectorAdmin } from '../store';
 import authApi from '../../../auth/src/store/api';
 
@@ -163,8 +165,34 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Add New User</DialogTitle>
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: UI_BORDER_RADIUS.xl,
+          boxShadow: UI_SHADOWS['2xl'],
+        },
+      }}
+    >
+      <DialogTitle
+        sx={{
+          pb: 1,
+        }}
+      >
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+            color: UI_COLORS.text.primary,
+            fontSize: UI_TYPOGRAPHY.fontSize.xl,
+          }}
+        >
+          Add New User
+        </Typography>
+      </DialogTitle>
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 2 }}>
           {error && (
@@ -180,9 +208,11 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
             value={formData.username}
             onChange={handleChange('username')}
             disabled={loading}
-            placeholder="Enter username"
             helperText="Must be at least 3 characters"
             inputProps={{ maxLength: 50 }}
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
 
           <TextField
@@ -192,8 +222,10 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
             value={formData.displayName}
             onChange={handleChange('displayName')}
             disabled={loading}
-            placeholder="Enter display name"
             inputProps={{ maxLength: 100 }}
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
 
           <TextField
@@ -204,7 +236,9 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
             value={formData.email}
             onChange={handleChange('email')}
             disabled={loading}
-            placeholder="user@example.com"
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
 
           <TextField
@@ -215,8 +249,10 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
             value={formData.password}
             onChange={handleChange('password')}
             disabled={loading}
-            placeholder="Enter password"
             helperText="Must be at least 6 characters"
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
 
           <TextField
@@ -227,7 +263,9 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
             value={formData.confirmPassword}
             onChange={handleChange('confirmPassword')}
             disabled={loading}
-            placeholder="Confirm password"
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
         </Box>
       </DialogContent>

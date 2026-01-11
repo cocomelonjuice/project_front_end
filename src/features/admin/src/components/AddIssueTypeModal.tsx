@@ -100,9 +100,11 @@ const AddIssueTypeModal: React.FC<AddIssueTypeModalProps> = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
             disabled={loading}
-            placeholder="e.g., Bug, Task, Story"
             autoFocus
             inputProps={{ maxLength: 50 }}
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
 
           <TextField
@@ -113,7 +115,9 @@ const AddIssueTypeModal: React.FC<AddIssueTypeModalProps> = ({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             disabled={loading}
-            placeholder="Describe this issue type..."
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
         </Box>
       </DialogContent>

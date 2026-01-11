@@ -131,6 +131,9 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
             value={user.username}
             disabled
             helperText="Username cannot be changed"
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
 
           <TextField
@@ -140,7 +143,9 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
             value={formData.displayName}
             onChange={handleChange('displayName')}
             disabled={adminState.updateUserLoading}
-            placeholder="Enter display name"
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
 
           <TextField
@@ -151,7 +156,9 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
             value={formData.email}
             onChange={handleChange('email')}
             disabled={adminState.updateUserLoading}
-            placeholder="user@example.com"
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
 
           <FormControlLabel

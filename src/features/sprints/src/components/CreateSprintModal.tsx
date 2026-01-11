@@ -10,9 +10,11 @@ import {
   Box,
   Alert,
   CircularProgress,
+  Typography,
 } from '@mui/material';
 import { sprintsActions, useSelectorSprints } from '../store';
 import type { CreateSprintData } from '../store/states';
+import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS, UI_INPUT_STYLES } from '../../../../shared/constants/src/ui';
 
 interface CreateSprintModalProps {
   open: boolean;
@@ -118,16 +120,53 @@ const CreateSprintModal: React.FC<CreateSprintModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Create Sprint</DialogTitle>
-      <DialogContent>
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: UI_BORDER_RADIUS.xl,
+          boxShadow: UI_SHADOWS['2xl'],
+        },
+      }}
+    >
+      <DialogTitle
+        sx={{
+          pb: 1,
+        }}
+      >
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+            color: UI_COLORS.text.primary,
+            fontSize: UI_TYPOGRAPHY.fontSize.xl,
+          }}
+        >
+          Create Sprint
+        </Typography>
+      </DialogTitle>
+      <DialogContent sx={{ pt: 4 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt:3 }}>
+          {error && (
+            <Alert
+              severity="error"
+              onClose={() => setError(null)}
+              sx={{
+                borderRadius: UI_BORDER_RADIUS.md,
+                backgroundColor: UI_COLORS.error.bg,
+                color: UI_COLORS.error.dark,
+                '& .MuiAlert-icon': {
+                  color: UI_COLORS.error.main,
+                },
+              }}
+            >
+              {error}
+            </Alert>
+          )}
 
-        <Box sx={{ pt: 1 }}>
           <TextField
             label="Sprint Name"
             fullWidth
@@ -135,11 +174,22 @@ const CreateSprintModal: React.FC<CreateSprintModalProps> = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
             disabled={isSubmitting}
-            placeholder="e.g., Sprint 1 - Authentication"
             autoFocus
-            sx={{ mb: 2 }}
             inputProps={{ maxLength: 100 }}
             helperText={`${name.length}/100 characters`}
+            sx={UI_INPUT_STYLES.default}
+            InputLabelProps={{
+              shrink: true,
+              sx: {
+                fontSize: UI_TYPOGRAPHY.fontSize.sm,
+              },
+            }}
+            FormHelperTextProps={{
+              sx: {
+                fontSize: UI_TYPOGRAPHY.fontSize.xs,
+                color: UI_COLORS.text.secondary,
+              },
+            }}
           />
 
           <TextField
@@ -150,8 +200,19 @@ const CreateSprintModal: React.FC<CreateSprintModalProps> = ({
             value={goal}
             onChange={(e) => setGoal(e.target.value)}
             disabled={isSubmitting}
-            placeholder="What is the goal of this sprint?"
-            sx={{ mb: 2 }}
+            sx={UI_INPUT_STYLES.default}
+            InputLabelProps={{
+              shrink: true,
+              sx: {
+                fontSize: UI_TYPOGRAPHY.fontSize.sm,
+              },
+            }}
+            FormHelperTextProps={{
+              sx: {
+                fontSize: UI_TYPOGRAPHY.fontSize.xs,
+                color: UI_COLORS.text.secondary,
+              },
+            }}
           />
 
           <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>

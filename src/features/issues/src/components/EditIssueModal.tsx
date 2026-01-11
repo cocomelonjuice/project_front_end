@@ -195,6 +195,9 @@ const EditIssueModal: React.FC<EditIssueModalProps> = ({ open, onClose, issue, o
             value={formData.summary}
             onChange={handleChange('summary')}
             disabled={isSubmitting}
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
 
           <TextField
@@ -205,6 +208,9 @@ const EditIssueModal: React.FC<EditIssueModalProps> = ({ open, onClose, issue, o
             value={formData.description}
             onChange={handleChange('description')}
             disabled={isSubmitting}
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
 
           <Box sx={{ display: 'flex', gap: 2 }}>

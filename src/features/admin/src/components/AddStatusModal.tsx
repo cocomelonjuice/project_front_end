@@ -13,7 +13,9 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Typography,
 } from '@mui/material';
+import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS, UI_INPUT_STYLES } from '../../../../shared/constants/src/ui';
 import adminApi from '../store/api';
 
 interface AddStatusModalProps {
@@ -101,12 +103,49 @@ const AddStatusModal: React.FC<AddStatusModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Add Status</DialogTitle>
-      <DialogContent>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 2 }}>
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: UI_BORDER_RADIUS.xl,
+          boxShadow: UI_SHADOWS['2xl'],
+        },
+      }}
+    >
+      <DialogTitle
+        sx={{
+          pb: 1,
+        }}
+      >
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+            color: UI_COLORS.text.primary,
+            fontSize: UI_TYPOGRAPHY.fontSize.xl,
+          }}
+        >
+          Add Status
+        </Typography>
+      </DialogTitle>
+      <DialogContent sx={{ pt: 4 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {error && (
-            <Alert severity="error" onClose={() => setError(null)}>
+            <Alert
+              severity="error"
+              onClose={() => setError(null)}
+              sx={{
+                borderRadius: UI_BORDER_RADIUS.md,
+                backgroundColor: UI_COLORS.error.bg,
+                color: UI_COLORS.error.dark,
+                '& .MuiAlert-icon': {
+                  color: UI_COLORS.error.main,
+                },
+              }}
+            >
               {error}
             </Alert>
           )}
@@ -118,9 +157,15 @@ const AddStatusModal: React.FC<AddStatusModalProps> = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
             disabled={loading}
-            placeholder="e.g., To Do, In Progress, Done"
             autoFocus
             inputProps={{ maxLength: 50 }}
+            sx={UI_INPUT_STYLES.default}
+            InputLabelProps={{
+              shrink: true,
+              sx: {
+                fontSize: UI_TYPOGRAPHY.fontSize.sm,
+              },
+            }}
           />
 
           <FormControl fullWidth required>
@@ -163,9 +208,11 @@ const AddStatusModal: React.FC<AddStatusModalProps> = ({
                   }
                 }}
                 disabled={loading}
-                placeholder="#808080"
                 size="small"
                 sx={{ flex: 1 }}
+                InputLabelProps={{
+                  shrink: true,
+                }}
               />
             </Box>
           </Box>

@@ -128,11 +128,13 @@ const EditLabelModal: React.FC<EditLabelModalProps> = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
             disabled={labelsState.updateLabelLoading}
-            placeholder="e.g., bug, feature, urgent"
             autoFocus
             sx={{ mb: 2 }}
             inputProps={{ maxLength: 50 }}
             helperText={`${name.length}/50 characters`}
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
 
           <Box sx={{ mb: 2 }}>
@@ -162,11 +164,13 @@ const EditLabelModal: React.FC<EditLabelModalProps> = ({
                   }
                 }}
                 disabled={labelsState.updateLabelLoading}
-                placeholder="#FF5733"
                 size="small"
                 sx={{ flex: 1 }}
                 error={color ? !isValidHexColor(color) : false}
                 helperText={color && !isValidHexColor(color) ? 'Invalid hex color' : ''}
+                InputLabelProps={{
+                  shrink: true,
+                }}
               />
             </Box>
           </Box>
@@ -179,7 +183,9 @@ const EditLabelModal: React.FC<EditLabelModalProps> = ({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             disabled={labelsState.updateLabelLoading}
-            placeholder="Describe what this label is used for..."
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
         </Box>
       </DialogContent>

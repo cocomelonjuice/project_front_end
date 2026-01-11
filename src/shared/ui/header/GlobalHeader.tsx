@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   AppBar,
   Toolbar,
   IconButton,
   InputBase,
-  Button,
   Avatar,
   Badge,
   Menu,
@@ -17,12 +16,12 @@ import {
 import {
   Menu as MenuIcon,
   Search as SearchIcon,
-  Add as AddIcon,
   Notifications as NotificationsIcon,
   HelpOutline as HelpIcon,
   Settings as SettingsIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../auth/src';
+import { SearchModal } from '../../../features/search/src';
 import type { ReactNode } from 'react';
 
 export interface GlobalHeaderProps {
@@ -160,23 +159,52 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
 }) => {
   const { auth } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
+  const closingRef = useRef(false);
+
+  useEffect(() => {
+    if (!searchModalOpen) {
+      // Reset closing flag after modal is closed
+      setTimeout(() => {
+        closingRef.current = false;
+      }, 100);
+    }
+  }, [searchModalOpen]);
 
   // Get user name from auth if not provided
   const displayUserName = userName || auth.user?.displayName || auth.user?.username || 'User';
   const displayUserInitials = displayUserName
     .split(' ')
-    .map((n) => n[0])
+    .map((n: string) => n[0])
     .join('')
     .toUpperCase()
     .slice(0, 2);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (onSearch && searchQuery.trim()) {
-      onSearch(searchQuery.trim());
+  const handleSearchFocus = () => {
+    if (closingRef.current) {
+      return;
     }
+    setSearchModalOpen(true);
   };
+
+  // Keyboard shortcut: Cmd/Ctrl+K
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if Escape was just pressed (to prevent reopening)
+      if (e.key === 'Escape') {
+        return;
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        e.stopPropagation();
+        setSearchModalOpen((prev) => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown, true); // Use capture phase
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, []);
 
   const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setUserMenuAnchor(event.currentTarget);
@@ -286,7 +314,19 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
           <Tooltip title="Search projects, issues, and more" arrow placement="bottom">
             <Box
               component="form"
-              onSubmit={handleSearch}
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (closingRef.current) {
+                  return;
+                }
+                setSearchModalOpen(true);
+              }}
+              onClick={() => {
+                if (closingRef.current) {
+                  return;
+                }
+                setSearchModalOpen(true);
+              }}
               sx={{
                 display: { xs: 'none', sm: 'flex' },
                 alignItems: 'center',
@@ -314,17 +354,20 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
             >
               <SearchIcon sx={{ color: '#6366f1', fontSize: '18px', mr: 1 }} />
               <InputBase
-                placeholder={searchPlaceholder}
+                placeholder="Search (Ctrl + K)"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                readOnly
+                onFocus={handleSearchFocus}
                 sx={{
                   flex: 1,
                   fontSize: '13px',
                   color: '#111827',
                   fontWeight: 500,
-                  width: '200px',
+                  width: '320px',
+                  cursor: 'text',
                   '& .MuiInputBase-input': {
                     padding: 0,
+                    cursor: 'text',
                     '&::placeholder': {
                       color: '#9ca3af',
                       opacity: 1,
@@ -335,46 +378,6 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
               />
             </Box>
           </Tooltip>
-
-          {/* Create Button - CTA Style */}
-          {onCreateClick && (
-            <Tooltip title="Create new project, issue, or sprint" arrow placement="bottom">
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={onCreateClick}
-                sx={{
-                  color: '#6366f1',
-                  backgroundColor: '#ffffff',
-                  borderColor: '#ffffff',
-                  borderRadius: '8px',
-                  textTransform: 'none',
-                  fontSize: '14px',
-                  fontWeight: 700,
-                  paddingX: 2.5,
-                  paddingY: 0.875,
-                  minWidth: 'auto',
-                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.5)',
-                  textShadow: 'none',
-                  '&:hover': {
-                    backgroundColor: '#f8fafc',
-                    color: '#6366f1',
-                    borderColor: '#ffffff',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.6)',
-                  },
-                  '&:active': {
-                    transform: 'translateY(0px)',
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.1)',
-                  },
-                  display: { xs: 'none', sm: 'flex' },
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                {createButtonText}
-              </Button>
-            </Tooltip>
-          )}
 
           {/* Trial Info */}
           {trialInfo && (
@@ -557,6 +560,18 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
           </Menu>
         </Box>
       </Toolbar>
+
+      {/* Search Modal */}
+      <SearchModal 
+        open={searchModalOpen} 
+        onClose={() => {
+          closingRef.current = true;
+          // Use setTimeout to prevent immediate reopening from event bubbling
+          setTimeout(() => {
+            setSearchModalOpen(false);
+          }, 10);
+        }} 
+      />
     </AppBar>
   );
 };

@@ -14,7 +14,9 @@ import {
   Box,
   Alert,
   CircularProgress,
+  Typography,
 } from '@mui/material';
+import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS, UI_INPUT_STYLES, UI_BUTTON_STYLES, UI_TRANSITIONS } from '../../../../shared/constants/src/ui';
 import { mockUsers } from '../store/mockData';
 import { usersActions, useSelectorUsers } from '../../../users/src/store';
 import { referenceDataActions, useSelectorReferenceData } from '../../../reference-data/src/store';
@@ -197,16 +199,47 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, proj
       onClose={handleClose} 
       maxWidth="md" 
       fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: UI_BORDER_RADIUS.xl,
+          boxShadow: UI_SHADOWS['2xl'],
+        },
+      }}
     >
-      <DialogTitle>Create Issue</DialogTitle>
-      <DialogContent>
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
-
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
+      <DialogTitle
+        sx={{
+          pb: 1,
+        }}
+      >
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+            color: UI_COLORS.text.primary,
+            fontSize: UI_TYPOGRAPHY.fontSize.xl,
+          }}
+        >
+          Create Issue
+        </Typography>
+      </DialogTitle>
+      <DialogContent sx={{ pt: 4 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt:3 }}>
+          {error && (
+            <Alert
+              severity="error"
+              onClose={() => setError(null)}
+              sx={{
+                borderRadius: UI_BORDER_RADIUS.md,
+                backgroundColor: UI_COLORS.error.bg,
+                color: UI_COLORS.error.dark,
+                '& .MuiAlert-icon': {
+                  color: UI_COLORS.error.main,
+                },
+              }}
+            >
+              {error}
+            </Alert>
+          )}
           <TextField
             label="Summary"
             required
@@ -214,7 +247,20 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, proj
             value={formData.summary}
             onChange={handleChange('summary')}
             disabled={issuesState.createIssueLoading}
-            placeholder="Enter issue summary"
+            helperText="Brief description of the issue"
+            sx={UI_INPUT_STYLES.default}
+            InputLabelProps={{
+              shrink: true,
+              sx: {
+                fontSize: UI_TYPOGRAPHY.fontSize.sm,
+              },
+            }}
+            FormHelperTextProps={{
+              sx: {
+                fontSize: UI_TYPOGRAPHY.fontSize.xs,
+                color: UI_COLORS.text.secondary,
+              },
+            }}
           />
 
           <TextField
@@ -225,7 +271,20 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, proj
             value={formData.description}
             onChange={handleChange('description')}
             disabled={issuesState.createIssueLoading}
-            placeholder="Enter issue description (optional)"
+            helperText="Detailed description of the issue (optional)"
+            sx={UI_INPUT_STYLES.default}
+            InputLabelProps={{
+              shrink: true,
+              sx: {
+                fontSize: UI_TYPOGRAPHY.fontSize.sm,
+              },
+            }}
+            FormHelperTextProps={{
+              sx: {
+                fontSize: UI_TYPOGRAPHY.fontSize.xs,
+                color: UI_COLORS.text.secondary,
+              },
+            }}
           />
 
           <Box sx={{ display: 'flex', gap: 2 }}>

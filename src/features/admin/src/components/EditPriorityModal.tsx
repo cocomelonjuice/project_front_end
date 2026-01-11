@@ -105,8 +105,10 @@ const EditPriorityModal: React.FC<EditPriorityModalProps> = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
             disabled={loading}
-            placeholder="e.g., Lowest, Low, Medium, High, Highest"
             inputProps={{ maxLength: 50 }}
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
 
           <TextField
@@ -119,6 +121,9 @@ const EditPriorityModal: React.FC<EditPriorityModalProps> = ({
             disabled={loading}
             inputProps={{ min: 1 }}
             helperText="Lower numbers appear first"
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
         </Box>
       </DialogContent>

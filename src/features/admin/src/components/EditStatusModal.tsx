@@ -118,8 +118,10 @@ const EditStatusModal: React.FC<EditStatusModalProps> = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
             disabled={loading}
-            placeholder="e.g., To Do, In Progress, Done"
             inputProps={{ maxLength: 50 }}
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
 
           <FormControl fullWidth required>
@@ -162,9 +164,11 @@ const EditStatusModal: React.FC<EditStatusModalProps> = ({
                   }
                 }}
                 disabled={loading}
-                placeholder="#808080"
                 size="small"
                 sx={{ flex: 1 }}
+                InputLabelProps={{
+                  shrink: true,
+                }}
               />
             </Box>
           </Box>

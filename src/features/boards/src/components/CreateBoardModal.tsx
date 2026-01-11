@@ -14,8 +14,10 @@ import {
   Box,
   Alert,
   CircularProgress,
+  Typography,
 } from '@mui/material';
 import { boardsActions, useSelectorBoards } from '../store';
+import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS, UI_INPUT_STYLES } from '../../../../shared/constants/src/ui';
 
 interface CreateBoardModalProps {
   open: boolean;
@@ -112,12 +114,49 @@ const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Create Board</DialogTitle>
-      <DialogContent>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 2 }}>
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: UI_BORDER_RADIUS.xl,
+          boxShadow: UI_SHADOWS['2xl'],
+        },
+      }}
+    >
+      <DialogTitle
+        sx={{
+          pb: 1,
+        }}
+      >
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+            color: UI_COLORS.text.primary,
+            fontSize: UI_TYPOGRAPHY.fontSize.xl,
+          }}
+        >
+          Create Board
+        </Typography>
+      </DialogTitle>
+      <DialogContent sx={{ pt: 4 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {error && (
-            <Alert severity="error" onClose={() => setError(null)}>
+            <Alert
+              severity="error"
+              onClose={() => setError(null)}
+              sx={{
+                borderRadius: UI_BORDER_RADIUS.md,
+                backgroundColor: UI_COLORS.error.bg,
+                color: UI_COLORS.error.dark,
+                '& .MuiAlert-icon': {
+                  color: UI_COLORS.error.main,
+                },
+              }}
+            >
               {error}
             </Alert>
           )}
@@ -129,9 +168,21 @@ const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
             value={formData.name}
             onChange={handleChange('name')}
             disabled={boardsState.createBoardLoading}
-            placeholder="Enter board name"
             helperText="A descriptive name for your board (3-100 characters)"
             inputProps={{ maxLength: 100 }}
+            sx={UI_INPUT_STYLES.default}
+            InputLabelProps={{
+              shrink: true,
+              sx: {
+                fontSize: UI_TYPOGRAPHY.fontSize.sm,
+              },
+            }}
+            FormHelperTextProps={{
+              sx: {
+                fontSize: UI_TYPOGRAPHY.fontSize.xs,
+                color: UI_COLORS.text.secondary,
+              },
+            }}
           />
 
           <FormControl fullWidth required>

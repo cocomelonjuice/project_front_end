@@ -35,6 +35,7 @@ import {
 } from '../../features/workflows/src';
 import type { Workflow } from '../../features/workflows/src/store/states';
 import { useSelectorProjects } from '../../features/projects/src/store';
+import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS, UI_BUTTON_STYLES } from '../../shared/constants/src/ui';
 
 const WorkflowsList: React.FC = () => {
   const navigate = useNavigate();
@@ -129,15 +130,38 @@ const WorkflowsList: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p: 3, maxWidth: '1400px', mx: 'auto' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" component="h1">
+    <Box sx={{ p: 4, maxWidth: '1400px', mx: 'auto' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Typography
+          variant="h4"
+          component="h1"
+          sx={{
+            fontWeight: UI_TYPOGRAPHY.fontWeight.bold,
+            color: UI_COLORS.text.primary,
+            fontSize: UI_TYPOGRAPHY.fontSize['2xl'],
+          }}
+        >
           Workflows
         </Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => setCreateModalOpen(true)}
+          sx={{
+            ...UI_BUTTON_STYLES.primary,
+            borderRadius: UI_BORDER_RADIUS.md,
+            textTransform: 'none',
+            fontSize: UI_TYPOGRAPHY.fontSize.sm,
+            fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+            px: 2.5,
+            py: 1,
+            boxShadow: UI_SHADOWS.md,
+            '&:hover': {
+              transform: 'translateY(-2px)',
+              boxShadow: UI_SHADOWS.lg,
+            },
+            transition: 'all 0.2s ease-in-out',
+          }}
         >
           Create Workflow
         </Button>
@@ -145,33 +169,134 @@ const WorkflowsList: React.FC = () => {
 
       {workflowsState.getWorkflowsLoading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-          <CircularProgress />
+          <CircularProgress sx={{ color: UI_COLORS.primary.main }} />
         </Box>
       ) : workflows.length === 0 ? (
-        <Alert severity="info">No workflows found. Create your first workflow to get started.</Alert>
+        <Alert
+          severity="info"
+          sx={{
+            borderRadius: UI_BORDER_RADIUS.md,
+            boxShadow: UI_SHADOWS.sm,
+            backgroundColor: UI_COLORS.info.bg,
+            border: `1px solid ${UI_COLORS.info.light}`,
+          }}
+        >
+          No workflows found. Create your first workflow to get started.
+        </Alert>
       ) : (
-        <TableContainer component={Paper}>
+        <TableContainer
+          component={Paper}
+          sx={{
+            borderRadius: UI_BORDER_RADIUS.xl,
+            boxShadow: UI_SHADOWS.lg,
+            border: `1px solid ${UI_COLORS.border.light}`,
+            overflow: 'hidden',
+          }}
+        >
           <Table>
             <TableHead>
-              <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Description</TableCell>
-                <TableCell>Project</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Transitions</TableCell>
-                <TableCell align="right">Actions</TableCell>
+              <TableRow sx={{ backgroundColor: UI_COLORS.background.subtle }}>
+                <TableCell
+                  sx={{
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                    color: UI_COLORS.text.primary,
+                    fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  Name
+                </TableCell>
+                <TableCell
+                  sx={{
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                    color: UI_COLORS.text.primary,
+                    fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  Description
+                </TableCell>
+                <TableCell
+                  sx={{
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                    color: UI_COLORS.text.primary,
+                    fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  Project
+                </TableCell>
+                <TableCell
+                  sx={{
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                    color: UI_COLORS.text.primary,
+                    fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  Status
+                </TableCell>
+                <TableCell
+                  sx={{
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                    color: UI_COLORS.text.primary,
+                    fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  Transitions
+                </TableCell>
+                <TableCell
+                  align="right"
+                  sx={{
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                    color: UI_COLORS.text.primary,
+                    fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  Actions
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {workflows.map((workflow) => (
-                <TableRow key={workflow.id} hover>
+                <TableRow
+                  key={workflow.id}
+                  hover
+                  sx={{
+                    '&:hover': {
+                      backgroundColor: UI_COLORS.background.hover,
+                    },
+                    transition: 'background-color 0.2s ease-in-out',
+                  }}
+                >
                   <TableCell>
-                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                        color: UI_COLORS.text.primary,
+                        fontSize: UI_TYPOGRAPHY.fontSize.base,
+                      }}
+                    >
                       {workflow.name}
                     </Typography>
                   </TableCell>
                   <TableCell>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: UI_COLORS.text.secondary,
+                        fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                      }}
+                    >
                       {workflow.description || '-'}
                     </Typography>
                   </TableCell>
@@ -181,6 +306,11 @@ const WorkflowsList: React.FC = () => {
                       size="small"
                       color={workflow.projectId ? 'primary' : 'default'}
                       variant={workflow.projectId ? 'filled' : 'outlined'}
+                      sx={{
+                        fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                        fontSize: UI_TYPOGRAPHY.fontSize.xs,
+                        boxShadow: UI_SHADOWS.sm,
+                      }}
                     />
                   </TableCell>
                   <TableCell>
@@ -188,10 +318,22 @@ const WorkflowsList: React.FC = () => {
                       label={workflow.isActive ? 'Active' : 'Inactive'}
                       size="small"
                       color={workflow.isActive ? 'success' : 'default'}
+                      sx={{
+                        fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                        fontSize: UI_TYPOGRAPHY.fontSize.xs,
+                        boxShadow: UI_SHADOWS.sm,
+                      }}
                     />
                   </TableCell>
                   <TableCell>
-                    <Typography variant="body2">
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: UI_COLORS.text.primary,
+                        fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                        fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                      }}
+                    >
                       {workflow.transitions?.length || 0} transition(s)
                     </Typography>
                   </TableCell>
@@ -199,6 +341,14 @@ const WorkflowsList: React.FC = () => {
                     <IconButton
                       size="small"
                       onClick={(e) => handleMenuOpen(e, workflow)}
+                      sx={{
+                        color: UI_COLORS.text.secondary,
+                        '&:hover': {
+                          backgroundColor: UI_COLORS.background.hover,
+                          color: UI_COLORS.text.primary,
+                        },
+                        transition: 'all 0.2s ease-in-out',
+                      }}
                     >
                       <MoreVertIcon />
                     </IconButton>
@@ -215,16 +365,50 @@ const WorkflowsList: React.FC = () => {
         anchorEl={menuAnchor}
         open={Boolean(menuAnchor)}
         onClose={handleMenuClose}
+        PaperProps={{
+          sx: {
+            borderRadius: UI_BORDER_RADIUS.md,
+            boxShadow: UI_SHADOWS.lg,
+            border: `1px solid ${UI_COLORS.border.light}`,
+            mt: 1,
+            minWidth: 150,
+          },
+        }}
       >
-        <MenuItem onClick={() => selectedWorkflow && handleView(selectedWorkflow)}>
+        <MenuItem
+          onClick={() => selectedWorkflow && handleView(selectedWorkflow)}
+          sx={{
+            fontSize: UI_TYPOGRAPHY.fontSize.sm,
+            '&:hover': {
+              backgroundColor: UI_COLORS.background.hover,
+            },
+          }}
+        >
           <VisibilityIcon fontSize="small" sx={{ mr: 1 }} />
           View Details
         </MenuItem>
-        <MenuItem onClick={handleEdit}>
+        <MenuItem
+          onClick={handleEdit}
+          sx={{
+            fontSize: UI_TYPOGRAPHY.fontSize.sm,
+            '&:hover': {
+              backgroundColor: UI_COLORS.background.hover,
+            },
+          }}
+        >
           <EditIcon fontSize="small" sx={{ mr: 1 }} />
           Edit
         </MenuItem>
-        <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
+        <MenuItem
+          onClick={handleDelete}
+          sx={{
+            fontSize: UI_TYPOGRAPHY.fontSize.sm,
+            color: UI_COLORS.error.main,
+            '&:hover': {
+              backgroundColor: UI_COLORS.error.bg,
+            },
+          }}
+        >
           <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
           Delete
         </MenuItem>

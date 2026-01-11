@@ -132,11 +132,13 @@ const EditSprintModal: React.FC<EditSprintModalProps> = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
             disabled={isSubmitting}
-            placeholder="e.g., Sprint 1 - Authentication"
             autoFocus
             sx={{ mb: 2 }}
             inputProps={{ maxLength: 100 }}
             helperText={`${name.length}/100 characters`}
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
 
           <TextField
@@ -147,8 +149,10 @@ const EditSprintModal: React.FC<EditSprintModalProps> = ({
             value={goal}
             onChange={(e) => setGoal(e.target.value)}
             disabled={isSubmitting}
-            placeholder="What is the goal of this sprint?"
             sx={{ mb: 2 }}
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
 
           <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>

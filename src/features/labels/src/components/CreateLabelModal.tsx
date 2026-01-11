@@ -15,6 +15,7 @@ import {
 import { labelsActions, useSelectorLabels } from '../store';
 import type { Label } from '../store/states';
 import { getRandomColor, isValidHexColor } from '../store/mockData';
+import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS } from '../../../../shared/constants/src/ui';
 
 interface CreateLabelModalProps {
   open: boolean;
@@ -107,8 +108,34 @@ const CreateLabelModal: React.FC<CreateLabelModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Create Label</DialogTitle>
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: UI_BORDER_RADIUS.xl,
+          boxShadow: UI_SHADOWS['2xl'],
+        },
+      }}
+    >
+      <DialogTitle
+        sx={{
+          pb: 1,
+        }}
+      >
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+            color: UI_COLORS.text.primary,
+            fontSize: UI_TYPOGRAPHY.fontSize.xl,
+          }}
+        >
+          Create Label
+        </Typography>
+      </DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -124,11 +151,13 @@ const CreateLabelModal: React.FC<CreateLabelModalProps> = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
             disabled={labelsState.createLabelLoading}
-            placeholder="e.g., bug, feature, urgent"
             autoFocus
             sx={{ mb: 2 }}
             inputProps={{ maxLength: 50 }}
             helperText={`${name.length}/50 characters`}
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
 
           <Box sx={{ mb: 2 }}>
@@ -158,11 +187,13 @@ const CreateLabelModal: React.FC<CreateLabelModalProps> = ({
                   }
                 }}
                 disabled={labelsState.createLabelLoading}
-                placeholder="#FF5733"
                 size="small"
                 sx={{ flex: 1 }}
                 error={color ? !isValidHexColor(color) : false}
                 helperText={color && !isValidHexColor(color) ? 'Invalid hex color' : ''}
+                InputLabelProps={{
+                  shrink: true,
+                }}
               />
             </Box>
           </Box>
@@ -175,7 +206,9 @@ const CreateLabelModal: React.FC<CreateLabelModalProps> = ({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             disabled={labelsState.createLabelLoading}
-            placeholder="Describe what this label is used for..."
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
         </Box>
       </DialogContent>

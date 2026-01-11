@@ -8,8 +8,6 @@ import {
   Chip,
   Avatar,
   Button,
-  Divider,
-  Grid,
   Card,
   CardContent,
   IconButton,
@@ -55,6 +53,7 @@ import {
   useSelectorLabels,
 } from '../../features/labels/src';
 import type { Label } from '../../features/labels/src/store/states';
+import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS, UI_BUTTON_STYLES } from '../../shared/constants/src/ui';
 
 const IssueDetail: React.FC = () => {
   const { projectId, issueId } = useParams<{ projectId: string; issueId: string }>();
@@ -353,8 +352,10 @@ const IssueDetail: React.FC = () => {
   // Show loading state while fetching issue
   if (issuesState.getIssueByIdLoading) {
     return (
-      <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-        <CircularProgress />
+      <Box sx={{ py: 4, width: '100%' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+          <CircularProgress sx={{ color: UI_COLORS.primary.main }} />
+        </Box>
       </Box>
     );
   }
@@ -362,9 +363,27 @@ const IssueDetail: React.FC = () => {
   // Show error if issue not found
   if (!issue) {
     return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="error">Issue not found</Alert>
-        <Button onClick={handleBack} sx={{ mt: 2 }}>
+      <Box sx={{ py: 4, width: '100%' }}>
+        <Alert
+          severity="error"
+          sx={{
+            borderRadius: UI_BORDER_RADIUS.md,
+            boxShadow: UI_SHADOWS.sm,
+            mb: 2,
+          }}
+        >
+          Issue not found
+        </Alert>
+        <Button
+          onClick={handleBack}
+          sx={{
+            ...UI_BUTTON_STYLES.secondary,
+            borderRadius: UI_BORDER_RADIUS.md,
+            textTransform: 'none',
+            fontSize: UI_TYPOGRAPHY.fontSize.base,
+            fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+          }}
+        >
           <ArrowBackIcon sx={{ mr: 1 }} />
           Back to Project
         </Button>
@@ -380,75 +399,307 @@ const IssueDetail: React.FC = () => {
   const reporter = issue.reporter || null;
 
   return (
-    <Box sx={{ p: 3, maxWidth: '1400px', mx: 'auto' }}>
+    <Box sx={{ py: 4, width: '100%' }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, minWidth: 0 }}>
-          <IconButton onClick={handleBack} size="small">
-            <ArrowBackIcon />
-          </IconButton>
-          <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography variant="h4" component="h1" sx={{ wordBreak: 'break-word' }}>
-              {issue.key}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-word' }}>
-              {issue.summary}
-            </Typography>
+      <Paper
+        sx={{
+          p: 4,
+          mb: 4,
+          borderRadius: UI_BORDER_RADIUS.xl,
+          boxShadow: UI_SHADOWS.lg,
+          background: `linear-gradient(135deg, ${UI_COLORS.background.paper} 0%, ${UI_COLORS.background.subtle} 100%)`,
+          border: `1px solid ${UI_COLORS.border.light}`,
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            gap: 3,
+            flexWrap: 'wrap',
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2.5, flex: 1, minWidth: 0 }}>
+            <IconButton
+              onClick={handleBack}
+              size="medium"
+              sx={{
+                color: UI_COLORS.text.secondary,
+                mt: 0.5,
+                border: `1px solid ${UI_COLORS.border.light}`,
+                '&:hover': {
+                  backgroundColor: UI_COLORS.primary.main,
+                  color: UI_COLORS.primary.contrast,
+                  borderColor: UI_COLORS.primary.main,
+                  transform: 'translateY(-2px)',
+                  boxShadow: UI_SHADOWS.md,
+                },
+                transition: 'all 0.2s ease-in-out',
+              }}
+            >
+              <ArrowBackIcon />
+            </IconButton>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1.5 }}>
+                <Typography
+                  variant="h4"
+                  component="h1"
+                  sx={{
+                    wordBreak: 'break-word',
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.bold,
+                    color: UI_COLORS.text.primary,
+                    fontSize: { xs: UI_TYPOGRAPHY.fontSize.xl, md: UI_TYPOGRAPHY.fontSize['2xl'] },
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {issue.key}
+                </Typography>
+                {status && (
+                  <Chip
+                    label={status.name}
+                    size="small"
+                    sx={{
+                      bgcolor: status.color || UI_COLORS.primary.main,
+                      color: 'white',
+                      fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                      fontSize: UI_TYPOGRAPHY.fontSize.xs,
+                      height: 24,
+                      boxShadow: UI_SHADOWS.sm,
+                    }}
+                  />
+                )}
+              </Box>
+              <Typography
+                variant="body1"
+                sx={{
+                  wordBreak: 'break-word',
+                  color: UI_COLORS.text.secondary,
+                  fontSize: UI_TYPOGRAPHY.fontSize.lg,
+                  lineHeight: 1.6,
+                  fontWeight: UI_TYPOGRAPHY.fontWeight.normal,
+                }}
+              >
+                {issue.summary}
+              </Typography>
+            </Box>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Button
+              variant="outlined"
+              startIcon={<EditIcon />}
+              onClick={handleEdit}
+              sx={{
+                ...UI_BUTTON_STYLES.secondary,
+                borderRadius: UI_BORDER_RADIUS.md,
+                textTransform: 'none',
+                fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                px: 2.5,
+                py: 1,
+                borderWidth: 2,
+                '&:hover': {
+                  borderWidth: 2,
+                  transform: 'translateY(-2px)',
+                  boxShadow: UI_SHADOWS.md,
+                },
+                transition: 'all 0.2s ease-in-out',
+              }}
+            >
+              Edit
+            </Button>
+            <IconButton
+              onClick={handleMenuOpen}
+              size="medium"
+              sx={{
+                color: UI_COLORS.text.secondary,
+                border: `1px solid ${UI_COLORS.border.light}`,
+                '&:hover': {
+                  backgroundColor: UI_COLORS.error.main,
+                  color: 'white',
+                  borderColor: UI_COLORS.error.main,
+                  transform: 'translateY(-2px)',
+                  boxShadow: UI_SHADOWS.md,
+                },
+                transition: 'all 0.2s ease-in-out',
+              }}
+            >
+              <MoreVertIcon />
+            </IconButton>
+            <Menu
+              anchorEl={menuAnchor}
+              open={Boolean(menuAnchor)}
+              onClose={handleMenuClose}
+              PaperProps={{
+                sx: {
+                  borderRadius: UI_BORDER_RADIUS.md,
+                  boxShadow: UI_SHADOWS.lg,
+                  mt: 1,
+                  minWidth: 150,
+                  border: `1px solid ${UI_COLORS.border.light}`,
+                },
+              }}
+            >
+              <MenuItem
+                onClick={handleDelete}
+                sx={{
+                  fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                  color: UI_COLORS.error.main,
+                  '&:hover': {
+                    backgroundColor: UI_COLORS.error.bg,
+                  },
+                }}
+              >
+                <DeleteIcon sx={{ mr: 1, fontSize: 18 }} />
+                Delete
+              </MenuItem>
+            </Menu>
           </Box>
         </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <IconButton onClick={handleMenuOpen} size="small">
-            <MoreVertIcon />
-          </IconButton>
-          <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleMenuClose}>
-            <MenuItem onClick={handleEdit}>
-              <EditIcon sx={{ mr: 1, fontSize: 18 }} />
-              Edit
-            </MenuItem>
-            <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
-              <DeleteIcon sx={{ mr: 1, fontSize: 18 }} />
-              Delete
-            </MenuItem>
-          </Menu>
-        </Box>
-      </Box>
+      </Paper>
 
-      <Grid container spacing={3}>
+      <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', md: 'row' }, width: '100%' }}>
         {/* Main Content */}
-        <Grid item xs={12} md={8} sx={{ minWidth: 0 }}>
-          <Paper sx={{ p: 3, mb: 3, overflow: 'hidden' }}>
-            <Typography variant="h6" gutterBottom>
-              Description
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
+        <Box sx={{ flex: { xs: '1 1 100%', md: '1 1 66.67%', lg: '1 1 80%' }, minWidth: 0 }}>
+          <Paper
+            sx={{
+              p: 4.5,
+              mb: 3,
+              overflow: 'hidden',
+              borderRadius: UI_BORDER_RADIUS.xl,
+              boxShadow: UI_SHADOWS.lg,
+              backgroundColor: UI_COLORS.background.paper,
+              border: `1px solid ${UI_COLORS.border.light}`,
+              transition: 'box-shadow 0.3s ease-in-out',
+              '&:hover': {
+                boxShadow: UI_SHADOWS.xl,
+              },
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.5,
+                mb: 3,
+                pb: 2,
+                borderBottom: `2px solid ${UI_COLORS.border.light}`,
+              }}
+            >
+              <Box
+                sx={{
+                  width: 4,
+                  height: 24,
+                  borderRadius: UI_BORDER_RADIUS.full,
+                  bgcolor: UI_COLORS.primary.main,
+                }}
+              />
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                  color: UI_COLORS.text.primary,
+                  fontSize: UI_TYPOGRAPHY.fontSize.xl,
+                }}
+              >
+                Description
+              </Typography>
+            </Box>
             <Typography 
               variant="body1" 
-              color="text.secondary" 
               sx={{ 
                 whiteSpace: 'pre-wrap',
                 wordBreak: 'break-word',
                 overflowWrap: 'break-word',
+                color: UI_COLORS.text.primary,
+                fontSize: UI_TYPOGRAPHY.fontSize.base,
+                lineHeight: UI_TYPOGRAPHY.lineHeight.relaxed,
+                minHeight: 60,
               }}
             >
-              {issue.description || 'No description provided.'}
+              {issue.description || (
+                <Box
+                  component="span"
+                  sx={{
+                    color: UI_COLORS.text.secondary,
+                    fontStyle: 'italic',
+                  }}
+                >
+                  No description provided.
+                </Box>
+              )}
             </Typography>
           </Paper>
 
           {/* Labels Section */}
-          <Paper sx={{ p: 3, mb: 3, overflow: 'hidden' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="h6">
-                Labels ({issueLabels.length})
-              </Typography>
+          <Paper
+            sx={{
+              p: 4.5,
+              mb: 3,
+              overflow: 'hidden',
+              borderRadius: UI_BORDER_RADIUS.xl,
+              boxShadow: UI_SHADOWS.lg,
+              backgroundColor: UI_COLORS.background.paper,
+              border: `1px solid ${UI_COLORS.border.light}`,
+              transition: 'box-shadow 0.3s ease-in-out',
+              '&:hover': {
+                boxShadow: UI_SHADOWS.xl,
+              },
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 3,
+                pb: 2,
+                borderBottom: `2px solid ${UI_COLORS.border.light}`,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Box
+                  sx={{
+                    width: 4,
+                    height: 24,
+                    borderRadius: UI_BORDER_RADIUS.full,
+                    bgcolor: UI_COLORS.secondary.main,
+                  }}
+                />
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                    color: UI_COLORS.text.primary,
+                    fontSize: UI_TYPOGRAPHY.fontSize.xl,
+                  }}
+                >
+                  Labels ({issueLabels.length})
+                </Typography>
+              </Box>
               <Button
                 variant="contained"
                 size="small"
                 onClick={() => setAssignLabelsModalOpen(true)}
+                sx={{
+                  ...UI_BUTTON_STYLES.primary,
+                  borderRadius: UI_BORDER_RADIUS.md,
+                  textTransform: 'none',
+                  fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                  fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                  px: 2.5,
+                  py: 1,
+                  boxShadow: UI_SHADOWS.md,
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: UI_SHADOWS.lg,
+                  },
+                  transition: 'all 0.2s ease-in-out',
+                }}
               >
                 {issueLabels.length > 0 ? 'Edit Labels' : 'Add Labels'}
               </Button>
             </Box>
-            <Divider sx={{ mb: 2 }} />
             <LabelsList
               labels={issueLabels}
               emptyMessage="No labels assigned"
@@ -456,20 +707,74 @@ const IssueDetail: React.FC = () => {
           </Paper>
 
           {/* Attachments Section */}
-          <Paper sx={{ p: 3, mb: 3, overflow: 'hidden' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="h6">
-                Attachments ({attachments.length})
-              </Typography>
+          <Paper
+            sx={{
+              p: 4.5,
+              mb: 3,
+              overflow: 'hidden',
+              borderRadius: UI_BORDER_RADIUS.xl,
+              boxShadow: UI_SHADOWS.lg,
+              backgroundColor: UI_COLORS.background.paper,
+              border: `1px solid ${UI_COLORS.border.light}`,
+              transition: 'box-shadow 0.3s ease-in-out',
+              '&:hover': {
+                boxShadow: UI_SHADOWS.xl,
+              },
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 3,
+                pb: 2,
+                borderBottom: `2px solid ${UI_COLORS.border.light}`,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Box
+                  sx={{
+                    width: 4,
+                    height: 24,
+                    borderRadius: UI_BORDER_RADIUS.full,
+                    bgcolor: UI_COLORS.info.main,
+                  }}
+                />
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                    color: UI_COLORS.text.primary,
+                    fontSize: UI_TYPOGRAPHY.fontSize.xl,
+                  }}
+                >
+                  Attachments ({attachments.length})
+                </Typography>
+              </Box>
               <Button
                 variant="contained"
                 size="small"
                 onClick={() => setUploadAttachmentModalOpen(true)}
+                sx={{
+                  ...UI_BUTTON_STYLES.primary,
+                  borderRadius: UI_BORDER_RADIUS.md,
+                  textTransform: 'none',
+                  fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                  fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                  px: 2.5,
+                  py: 1,
+                  boxShadow: UI_SHADOWS.md,
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: UI_SHADOWS.lg,
+                  },
+                  transition: 'all 0.2s ease-in-out',
+                }}
               >
                 Upload File
               </Button>
             </Box>
-            <Divider sx={{ mb: 2 }} />
             <AttachmentList
               attachments={attachments}
               onDelete={handleDeleteAttachment}
@@ -479,20 +784,73 @@ const IssueDetail: React.FC = () => {
           </Paper>
 
           {/* Comments Section */}
-          <Paper sx={{ p: 3, overflow: 'hidden' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="h6">
-                Comments ({comments.length})
-              </Typography>
+          <Paper
+            sx={{
+              p: 4.5,
+              overflow: 'hidden',
+              borderRadius: UI_BORDER_RADIUS.xl,
+              boxShadow: UI_SHADOWS.lg,
+              backgroundColor: UI_COLORS.background.paper,
+              border: `1px solid ${UI_COLORS.border.light}`,
+              transition: 'box-shadow 0.3s ease-in-out',
+              '&:hover': {
+                boxShadow: UI_SHADOWS.xl,
+              },
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 3,
+                pb: 2,
+                borderBottom: `2px solid ${UI_COLORS.border.light}`,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Box
+                  sx={{
+                    width: 4,
+                    height: 24,
+                    borderRadius: UI_BORDER_RADIUS.full,
+                    bgcolor: UI_COLORS.success.main,
+                  }}
+                />
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                    color: UI_COLORS.text.primary,
+                    fontSize: UI_TYPOGRAPHY.fontSize.xl,
+                  }}
+                >
+                  Comments ({comments.length})
+                </Typography>
+              </Box>
               <Button
                 variant="contained"
                 size="small"
                 onClick={() => setCreateCommentModalOpen(true)}
+                sx={{
+                  ...UI_BUTTON_STYLES.primary,
+                  borderRadius: UI_BORDER_RADIUS.md,
+                  textTransform: 'none',
+                  fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                  fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                  px: 2.5,
+                  py: 1,
+                  boxShadow: UI_SHADOWS.md,
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: UI_SHADOWS.lg,
+                  },
+                  transition: 'all 0.2s ease-in-out',
+                }}
               >
                 Add Comment
               </Button>
             </Box>
-            <Divider sx={{ mb: 2 }} />
             <CommentList
               comments={comments}
               onEdit={handleEditComment}
@@ -500,90 +858,279 @@ const IssueDetail: React.FC = () => {
               currentUserId={currentUser?.id}
             />
           </Paper>
-        </Grid>
+        </Box>
 
         {/* Sidebar */}
-        <Grid item xs={12} md={4} sx={{ minWidth: 0 }}>
-          <Card sx={{ mb: 2, overflow: 'hidden' }}>
-            <CardContent>
-              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                Type
-              </Typography>
+        <Box sx={{ flex: { xs: '1 1 100%', md: '1 1 33.33%', lg: '1 1 20%' }, minWidth: 0 }}>
+          <Card
+            sx={{
+              mb: 3,
+              overflow: 'hidden',
+              borderRadius: UI_BORDER_RADIUS.xl,
+              boxShadow: UI_SHADOWS.lg,
+              backgroundColor: UI_COLORS.background.paper,
+              border: `1px solid ${UI_COLORS.border.light}`,
+              transition: 'all 0.3s ease-in-out',
+              '&:hover': {
+                boxShadow: UI_SHADOWS.xl,
+                transform: 'translateY(-2px)',
+              },
+            }}
+          >
+            <CardContent sx={{ p: 3.5 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  mb: 2,
+                  pb: 1.5,
+                  borderBottom: `1px solid ${UI_COLORS.border.light}`,
+                }}
+              >
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    color: UI_COLORS.text.secondary,
+                    fontSize: UI_TYPOGRAPHY.fontSize.xs,
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  Type
+                </Typography>
+              </Box>
               <Chip
                 label={type?.name || 'Unknown'}
-                size="small"
+                size="medium"
                 sx={{
-                  bgcolor: type?.color || '#ccc',
+                  bgcolor: type?.color || UI_COLORS.text.secondary,
                   color: 'white',
-                  mb: 2,
+                  mb: 3,
+                  fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                  fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                  height: 32,
+                  boxShadow: UI_SHADOWS.sm,
                 }}
               />
 
-              <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ mt: 2 }}>
-                Priority
-              </Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  mb: 2,
+                  pb: 1.5,
+                  borderBottom: `1px solid ${UI_COLORS.border.light}`,
+                }}
+              >
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    color: UI_COLORS.text.secondary,
+                    fontSize: UI_TYPOGRAPHY.fontSize.xs,
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  Priority
+                </Typography>
+              </Box>
               <Chip
                 label={priority?.name || 'Unknown'}
-                size="small"
+                size="medium"
                 sx={{
-                  bgcolor: priority?.color || '#ccc',
+                  bgcolor: priority?.color || UI_COLORS.text.secondary,
                   color: 'white',
-                  mb: 2,
+                  mb: 3,
+                  fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                  fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                  height: 32,
+                  boxShadow: UI_SHADOWS.sm,
                 }}
               />
 
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ mt: 2, mb: 0 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mb: 2,
+                  pb: 1.5,
+                  borderBottom: `1px solid ${UI_COLORS.border.light}`,
+                }}
+              >
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    color: UI_COLORS.text.secondary,
+                    fontSize: UI_TYPOGRAPHY.fontSize.xs,
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
                   Status
                 </Typography>
                 <Button
                   size="small"
                   variant="outlined"
                   onClick={() => setTransitionStatusModalOpen(true)}
-                  sx={{ mt: 2 }}
+                  sx={{
+                    ...UI_BUTTON_STYLES.secondary,
+                    borderRadius: UI_BORDER_RADIUS.md,
+                    textTransform: 'none',
+                    fontSize: UI_TYPOGRAPHY.fontSize.xs,
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                    px: 1.5,
+                    py: 0.5,
+                    borderWidth: 1.5,
+                    '&:hover': {
+                      transform: 'translateY(-1px)',
+                      boxShadow: UI_SHADOWS.sm,
+                    },
+                    transition: 'all 0.2s ease-in-out',
+                  }}
                 >
                   Change
                 </Button>
               </Box>
               <Chip
                 label={status?.name || 'Unknown'}
-                size="small"
+                size="medium"
                 sx={{
-                  bgcolor: status?.color || '#ccc',
+                  bgcolor: status?.color || UI_COLORS.text.secondary,
                   color: 'white',
-                  mb: 2,
+                  mb: 3,
+                  fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                  fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                  height: 32,
+                  boxShadow: UI_SHADOWS.sm,
                 }}
               />
             </CardContent>
           </Card>
 
-          <Card sx={{ mb: 2, overflow: 'hidden' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+          <Card
+            sx={{
+              mb: 3,
+              overflow: 'hidden',
+              borderRadius: UI_BORDER_RADIUS.xl,
+              boxShadow: UI_SHADOWS.lg,
+              backgroundColor: UI_COLORS.background.paper,
+              border: `1px solid ${UI_COLORS.border.light}`,
+              transition: 'all 0.3s ease-in-out',
+              '&:hover': {
+                boxShadow: UI_SHADOWS.xl,
+                transform: 'translateY(-2px)',
+              },
+            }}
+          >
+            <CardContent sx={{ p: 3.5 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mb: 2,
+                  pb: 1.5,
+                  borderBottom: `1px solid ${UI_COLORS.border.light}`,
+                }}
+              >
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    color: UI_COLORS.text.secondary,
+                    fontSize: UI_TYPOGRAPHY.fontSize.xs,
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
                   Assignee
                 </Typography>
                 <Button
                   size="small"
                   variant="outlined"
                   onClick={() => setAssignIssueModalOpen(true)}
+                  sx={{
+                    ...UI_BUTTON_STYLES.secondary,
+                    borderRadius: UI_BORDER_RADIUS.md,
+                    textTransform: 'none',
+                    fontSize: UI_TYPOGRAPHY.fontSize.xs,
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                    px: 1.5,
+                    py: 0.5,
+                    borderWidth: 1.5,
+                    '&:hover': {
+                      transform: 'translateY(-1px)',
+                      boxShadow: UI_SHADOWS.sm,
+                    },
+                    transition: 'all 0.2s ease-in-out',
+                  }}
                 >
                   {assignee ? 'Change' : 'Assign'}
                 </Button>
               </Box>
               {assignee ? (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-                  <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2,
+                    p: 2,
+                    borderRadius: UI_BORDER_RADIUS.md,
+                    backgroundColor: UI_COLORS.background.subtle,
+                    border: `1px solid ${UI_COLORS.border.light}`,
+                  }}
+                >
+                  <Avatar
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      bgcolor: UI_COLORS.primary.main,
+                      fontSize: UI_TYPOGRAPHY.fontSize.base,
+                      fontWeight: UI_TYPOGRAPHY.fontWeight.bold,
+                      boxShadow: UI_SHADOWS.sm,
+                    }}
+                  >
                     {assignee.displayName.charAt(0)}
                   </Avatar>
-                  <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      wordBreak: 'break-word',
+                      color: UI_COLORS.text.primary,
+                      fontSize: UI_TYPOGRAPHY.fontSize.base,
+                      fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                    }}
+                  >
                     {assignee.displayName}
                   </Typography>
                 </Box>
               ) : (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-                  <PersonIcon fontSize="small" color="disabled" />
-                  <Typography variant="body2" color="text.secondary">
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2,
+                    p: 2,
+                    borderRadius: UI_BORDER_RADIUS.md,
+                    backgroundColor: UI_COLORS.background.subtle,
+                    border: `1px dashed ${UI_COLORS.border.medium}`,
+                  }}
+                >
+                  <PersonIcon sx={{ fontSize: 24, color: UI_COLORS.text.disabled }} />
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: UI_COLORS.text.secondary,
+                      fontSize: UI_TYPOGRAPHY.fontSize.base,
+                      fontStyle: 'italic',
+                    }}
+                  >
                     Unassigned
                   </Typography>
                 </Box>
@@ -591,46 +1138,201 @@ const IssueDetail: React.FC = () => {
             </CardContent>
           </Card>
 
-          <Card sx={{ overflow: 'hidden' }}>
-            <CardContent>
-              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                Reporter
-              </Typography>
+          <Card
+            sx={{
+              mb: 3,
+              overflow: 'hidden',
+              borderRadius: UI_BORDER_RADIUS.xl,
+              boxShadow: UI_SHADOWS.lg,
+              backgroundColor: UI_COLORS.background.paper,
+              border: `1px solid ${UI_COLORS.border.light}`,
+              transition: 'all 0.3s ease-in-out',
+              '&:hover': {
+                boxShadow: UI_SHADOWS.xl,
+                transform: 'translateY(-2px)',
+              },
+            }}
+          >
+            <CardContent sx={{ p: 3.5 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  mb: 2,
+                  pb: 1.5,
+                  borderBottom: `1px solid ${UI_COLORS.border.light}`,
+                }}
+              >
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    color: UI_COLORS.text.secondary,
+                    fontSize: UI_TYPOGRAPHY.fontSize.xs,
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  Reporter
+                </Typography>
+              </Box>
               {reporter ? (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-                  <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2,
+                    p: 2,
+                    borderRadius: UI_BORDER_RADIUS.md,
+                    backgroundColor: UI_COLORS.background.subtle,
+                    border: `1px solid ${UI_COLORS.border.light}`,
+                  }}
+                >
+                  <Avatar
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      bgcolor: UI_COLORS.secondary.main,
+                      fontSize: UI_TYPOGRAPHY.fontSize.base,
+                      fontWeight: UI_TYPOGRAPHY.fontWeight.bold,
+                      boxShadow: UI_SHADOWS.sm,
+                    }}
+                  >
                     {reporter.displayName.charAt(0)}
                   </Avatar>
-                  <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      wordBreak: 'break-word',
+                      color: UI_COLORS.text.primary,
+                      fontSize: UI_TYPOGRAPHY.fontSize.base,
+                      fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                    }}
+                  >
                     {reporter.displayName}
                   </Typography>
                 </Box>
               ) : (
-                <Typography variant="body2" color="text.secondary">
-                  Unknown
-                </Typography>
+                <Box
+                  sx={{
+                    p: 2,
+                    borderRadius: UI_BORDER_RADIUS.md,
+                    backgroundColor: UI_COLORS.background.subtle,
+                    border: `1px dashed ${UI_COLORS.border.medium}`,
+                  }}
+                >
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: UI_COLORS.text.secondary,
+                      fontSize: UI_TYPOGRAPHY.fontSize.base,
+                      fontStyle: 'italic',
+                    }}
+                  >
+                    Unknown
+                  </Typography>
+                </Box>
               )}
             </CardContent>
           </Card>
 
-          <Card sx={{ mt: 2, overflow: 'hidden' }}>
-            <CardContent>
-              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                Created
-              </Typography>
-              <Typography variant="body2">
-                {new Date(issue.createdAt).toLocaleDateString()}
-              </Typography>
-              <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ mt: 2 }}>
-                Updated
-              </Typography>
-              <Typography variant="body2">
-                {new Date(issue.updatedAt).toLocaleDateString()}
-              </Typography>
+          <Card
+            sx={{
+              overflow: 'hidden',
+              borderRadius: UI_BORDER_RADIUS.xl,
+              boxShadow: UI_SHADOWS.lg,
+              backgroundColor: UI_COLORS.background.paper,
+              border: `1px solid ${UI_COLORS.border.light}`,
+              transition: 'all 0.3s ease-in-out',
+              '&:hover': {
+                boxShadow: UI_SHADOWS.xl,
+                transform: 'translateY(-2px)',
+              },
+            }}
+          >
+            <CardContent sx={{ p: 3.5 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  mb: 2,
+                  pb: 1.5,
+                  borderBottom: `1px solid ${UI_COLORS.border.light}`,
+                }}
+              >
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    color: UI_COLORS.text.secondary,
+                    fontSize: UI_TYPOGRAPHY.fontSize.xs,
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  Timeline
+                </Typography>
+              </Box>
+              <Box sx={{ mb: 2.5 }}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    color: UI_COLORS.text.secondary,
+                    fontSize: UI_TYPOGRAPHY.fontSize.xs,
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                    mb: 1,
+                  }}
+                >
+                  Created
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: UI_COLORS.text.primary,
+                    fontSize: UI_TYPOGRAPHY.fontSize.base,
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                  }}
+                >
+                  {new Date(issue.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    color: UI_COLORS.text.secondary,
+                    fontSize: UI_TYPOGRAPHY.fontSize.xs,
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                    mb: 1,
+                  }}
+                >
+                  Updated
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: UI_COLORS.text.primary,
+                    fontSize: UI_TYPOGRAPHY.fontSize.base,
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                  }}
+                >
+                  {new Date(issue.updatedAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </Typography>
+              </Box>
             </CardContent>
           </Card>
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
 
       {/* Modals */}
       {issue && (

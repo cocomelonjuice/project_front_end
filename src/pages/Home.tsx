@@ -19,6 +19,7 @@ import {
   Menu,
   MenuItem,
   CircularProgress,
+  Container,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -29,6 +30,7 @@ import {
 } from '@mui/icons-material';
 import { CreateProjectModal, EditProjectModal, DeleteProjectDialog } from '../features/projects/src/components';
 import { projectsActions, useSelectorProjects } from '../features/projects/src/store';
+import { UI_COLORS, UI_TYPOGRAPHY, UI_SPACING, UI_BORDER_RADIUS, UI_SHADOWS, UI_BUTTON_STYLES, UI_INPUT_STYLES } from '../shared/constants/src/ui';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -155,18 +157,43 @@ const Home = () => {
   });
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" component="h1">
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 4,
+        }}
+      >
+        <Typography
+          variant="h4"
+          component="h1"
+          sx={{
+            fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+            color: UI_COLORS.text.primary,
+            fontSize: { xs: UI_TYPOGRAPHY.fontSize['2xl'], md: UI_TYPOGRAPHY.fontSize['3xl'] },
+          }}
+        >
           Projects
         </Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => setCreateModalOpen(true)}
+          sx={{
+            ...UI_BUTTON_STYLES.primary,
+            borderRadius: UI_BORDER_RADIUS.md,
+            px: 3,
+            py: 1.5,
+            fontSize: UI_TYPOGRAPHY.fontSize.base,
+            fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+            textTransform: 'none',
+            boxShadow: UI_SHADOWS.md,
+          }}
         >
-          Create project
+          Create Project
         </Button>
       </Box>
 
@@ -177,10 +204,11 @@ const Home = () => {
           placeholder="Search projects..."
           value={searchQuery}
           onChange={handleSearch}
+          sx={UI_INPUT_STYLES.default}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon />
+                <SearchIcon sx={{ color: UI_COLORS.text.secondary }} />
               </InputAdornment>
             ),
           }}
@@ -188,14 +216,56 @@ const Home = () => {
       </Box>
 
       {/* Projects Table */}
-      <TableContainer component={Paper} elevation={1}>
+      <TableContainer
+        component={Paper}
+        sx={{
+          borderRadius: UI_BORDER_RADIUS.lg,
+          boxShadow: UI_SHADOWS.md,
+          overflow: 'hidden',
+        }}
+      >
         <Table>
           <TableHead>
-            <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Key</TableCell>
-              <TableCell>Type</TableCell>
-              <TableCell width={50}></TableCell>
+            <TableRow
+              sx={{
+                backgroundColor: UI_COLORS.background.subtle,
+              }}
+            >
+              <TableCell
+                sx={{
+                  fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                  color: UI_COLORS.text.primary,
+                  fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                }}
+              >
+                Name
+              </TableCell>
+              <TableCell
+                sx={{
+                  fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                  color: UI_COLORS.text.primary,
+                  fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                }}
+              >
+                Key
+              </TableCell>
+              <TableCell
+                sx={{
+                  fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                  color: UI_COLORS.text.primary,
+                  fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                }}
+              >
+                Type
+              </TableCell>
+              <TableCell
+                width={50}
+                sx={{
+                  fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                  color: UI_COLORS.text.primary,
+                  fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                }}
+              ></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -215,32 +285,50 @@ const Home = () => {
               </TableRow>
             ) : (
               filteredProjects.map((project) => (
-                <TableRow key={project.id} hover>
+                <TableRow
+                  key={project.id}
+                  hover
+                  sx={{
+                    '&:hover': {
+                      backgroundColor: UI_COLORS.background.hover,
+                    },
+                    transition: 'background-color 0.2s ease-in-out',
+                  }}
+                >
                   <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                       <IconButton
                         size="small"
                         onClick={() => handleStarToggle(project.id)}
-                        sx={{ p: 0.5 }}
+                        sx={{
+                          p: 0.5,
+                          color: starredProjects.has(project.id)
+                            ? UI_COLORS.warning.main
+                            : UI_COLORS.text.secondary,
+                          '&:hover': {
+                            backgroundColor: UI_COLORS.background.hover,
+                          },
+                        }}
                       >
                         {starredProjects.has(project.id) ? (
-                          <StarIcon fontSize="small" color="warning" />
+                          <StarIcon fontSize="small" />
                         ) : (
                           <StarBorderIcon fontSize="small" />
                         )}
                       </IconButton>
                       <Box
                         sx={{
-                          width: 32,
-                          height: 32,
-                          borderRadius: 1,
-                          bgcolor: 'primary.main',
-                          color: 'white',
+                          width: 36,
+                          height: 36,
+                          borderRadius: UI_BORDER_RADIUS.md,
+                          bgcolor: UI_COLORS.primary.main,
+                          color: UI_COLORS.primary.contrast,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          fontSize: '0.875rem',
-                          fontWeight: 'bold',
+                          fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                          fontWeight: UI_TYPOGRAPHY.fontWeight.bold,
+                          boxShadow: UI_SHADOWS.sm,
                         }}
                       >
                         {project.key.charAt(0)}
@@ -248,9 +336,12 @@ const Home = () => {
                       <Typography
                         variant="body2"
                         sx={{
-                          color: 'primary.main',
-                          textDecoration: 'underline',
+                          color: UI_COLORS.primary.main,
+                          fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
                           cursor: 'pointer',
+                          '&:hover': {
+                            textDecoration: 'underline',
+                          },
                         }}
                         onClick={() => navigate(`/projects/${project.id}`)}
                       >
@@ -259,21 +350,85 @@ const Home = () => {
                     </Box>
                   </TableCell>
                   <TableCell>
-                    <Chip label={project.key} size="small" variant="outlined" />
+                    <Chip
+                      label={project.key}
+                      size="small"
+                      variant="outlined"
+                      sx={{
+                        borderColor: UI_COLORS.border.medium,
+                        color: UI_COLORS.text.primary,
+                        fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                        fontSize: UI_TYPOGRAPHY.fontSize.xs,
+                      }}
+                    />
                   </TableCell>
-                  <TableCell>{project.type}</TableCell>
+                  <TableCell
+                    sx={{
+                      color: UI_COLORS.text.secondary,
+                      fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                    }}
+                  >
+                    {project.type}
+                  </TableCell>
                   <TableCell>
-                    <IconButton size="small" onClick={(e) => handleMenuOpen(e, project.id)}>
+                    <IconButton
+                      size="small"
+                      onClick={(e) => handleMenuOpen(e, project.id)}
+                      sx={{
+                        color: UI_COLORS.text.secondary,
+                        '&:hover': {
+                          backgroundColor: UI_COLORS.background.hover,
+                          color: UI_COLORS.text.primary,
+                        },
+                      }}
+                    >
                       <MoreVertIcon fontSize="small" />
                     </IconButton>
                     <Menu
                       anchorEl={anchorEl}
                       open={Boolean(anchorEl) && selectedProject === project.id}
                       onClose={handleMenuClose}
+                      PaperProps={{
+                        sx: {
+                          borderRadius: UI_BORDER_RADIUS.md,
+                          boxShadow: UI_SHADOWS.lg,
+                          mt: 1,
+                          minWidth: 150,
+                        },
+                      }}
                     >
-                      <MenuItem onClick={handleView}>View</MenuItem>
-                      <MenuItem onClick={handleEdit}>Edit</MenuItem>
-                      <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
+                      <MenuItem
+                        onClick={handleView}
+                        sx={{
+                          fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                          '&:hover': {
+                            backgroundColor: UI_COLORS.background.hover,
+                          },
+                        }}
+                      >
+                        View
+                      </MenuItem>
+                      <MenuItem
+                        onClick={handleEdit}
+                        sx={{
+                          fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                          '&:hover': {
+                            backgroundColor: UI_COLORS.background.hover,
+                          },
+                        }}
+                      >
+                        Edit
+                      </MenuItem>
+                      <MenuItem
+                        onClick={handleDelete}
+                        sx={{
+                          fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                          color: UI_COLORS.error.main,
+                          '&:hover': {
+                            backgroundColor: UI_COLORS.error.bg,
+                          },
+                        }}
+                      >
                         Delete
                       </MenuItem>
                     </Menu>
@@ -287,8 +442,14 @@ const Home = () => {
 
       {/* Pagination placeholder */}
       {!searchQuery && filteredProjects.length > 0 && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-          <Typography variant="body2" color="text.secondary">
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+          <Typography
+            variant="body2"
+            sx={{
+              color: UI_COLORS.text.secondary,
+              fontSize: UI_TYPOGRAPHY.fontSize.sm,
+            }}
+          >
             Showing {filteredProjects.length} of {projectsState.projects.length} projects
           </Typography>
         </Box>
@@ -324,7 +485,7 @@ const Home = () => {
         project={projectToDelete}
         onProjectDeleted={handleProjectDeleted}
       />
-    </Box>
+    </Container>
   );
 };
 

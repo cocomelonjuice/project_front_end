@@ -144,12 +144,14 @@ const AddTransitionModal: React.FC<AddTransitionModalProps> = ({
               <TextField
                 {...params}
                 label="From Status"
-                placeholder="Select starting status"
                 variant="outlined"
                 fullWidth
                 error={!!errors.fromStatus}
                 helperText={errors.fromStatus}
                 required
+                InputLabelProps={{
+                  shrink: true,
+                }}
               />
             )}
             disabled={workflowsState.addTransitionLoading}
@@ -174,12 +176,14 @@ const AddTransitionModal: React.FC<AddTransitionModalProps> = ({
               <TextField
                 {...params}
                 label="To Status"
-                placeholder="Select target status"
                 variant="outlined"
                 fullWidth
                 error={!!errors.toStatus}
                 helperText={errors.toStatus}
                 required
+                InputLabelProps={{
+                  shrink: true,
+                }}
               />
             )}
             disabled={workflowsState.addTransitionLoading}

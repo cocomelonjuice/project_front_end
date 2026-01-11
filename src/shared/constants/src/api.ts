@@ -129,6 +129,15 @@ export const API_ENDPOINTS = {
     ASSIGN_TO_USER_IN_PROJECT: (projectId: string, roleId: string, userId: string) => `/roles/projects/${projectId}/roles/${roleId}/users/${userId}`,
     REMOVE_FROM_USER_IN_PROJECT: (projectId: string, roleId: string, userId: string) => `/roles/projects/${projectId}/roles/${roleId}/users/${userId}`,
   },
+  // Search
+  SEARCH: {
+    SEARCH: (query: string, type?: string, limit?: number) => {
+      const params = new URLSearchParams({ q: query });
+      if (type) params.append('type', type);
+      if (limit) params.append('limit', limit.toString());
+      return `/search?${params.toString()}`;
+    },
+  },
   // Add more endpoints as needed
 } as const;
 
