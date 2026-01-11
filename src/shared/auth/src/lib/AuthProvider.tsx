@@ -22,44 +22,53 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Initialize auth data on mount
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userStr = localStorage.getItem('user');
     const isPublicRoute = location.pathname === '/login' || location.pathname === '/register';
 
-    // Don't fetch profile on public routes (login/register)
+    // Don't fetch profile on public routes (login/register) - return early
+    // This prevents any API calls or state updates on login/register pages
     if (isPublicRoute) {
       return;
     }
 
-    // If token exists, try to load user profile
-    if (token) {
-      // If user data exists in localStorage, restore it
-      if (userStr) {
-        try {
-          const user = JSON.parse(userStr);
-          // Restore auth state from localStorage
-          dispatch(authActions.loginSuccess({ data: { user, accessToken: token } } as any));
-        } catch (e) {
-          console.error('Failed to parse user from localStorage:', e);
-        }
-      }
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
 
-      // Always try to fetch fresh user data from API
-      dispatch(
-        authActions.getProfileRequest({
-          data: {},
-          callback: {
-            onSuccess: () => {
-              // User profile loaded successfully
-            },
-            onError: () => {
-              // If profile fetch fails, clear auth state
-              dispatch(authActions.logout());
-            },
-          },
-        } as any)
-      );
+    // Only proceed if we have a token AND we're not on a public route
+    // Double-check public route to be safe
+    if (!token || isPublicRoute) {
+      return;
     }
+
+    // If user data exists in localStorage, restore it
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        // Restore auth state from localStorage
+        dispatch(authActions.loginSuccess({ data: { user, accessToken: token } } as any));
+      } catch (e) {
+        console.error('Failed to parse user from localStorage:', e);
+        // If parsing fails, clear invalid data
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        return;
+      }
+    }
+
+    // Always try to fetch fresh user data from API
+    dispatch(
+      authActions.getProfileRequest({
+        data: {},
+        callback: {
+          onSuccess: () => {
+            // User profile loaded successfully
+          },
+          onError: () => {
+            // If profile fetch fails, clear auth state
+            dispatch(authActions.logout());
+          },
+        },
+      } as any)
+    );
 
     // TODO: add role and permission, routing
     // // Fetch role and permissions

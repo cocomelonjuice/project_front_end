@@ -39,9 +39,21 @@ axiosInstance.interceptors.response.use(
   (error: AxiosError) => {
     // Handle common errors
     if (error.response?.status === 401) {
-      // Unauthorized - redirect to login
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+      // Unauthorized - only redirect if not already on login/register page
+      // This prevents page reload when login fails with wrong credentials
+      const currentPath = window.location.pathname;
+      const isPublicRoute = currentPath === '/login' || currentPath === '/register';
+      
+      if (!isPublicRoute) {
+        // Only redirect if we're not already on a public route
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      } else {
+        // On public routes, just clear tokens but don't redirect (prevents reload)
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
     }
     return Promise.reject(error);
   }

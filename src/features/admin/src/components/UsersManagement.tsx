@@ -30,6 +30,7 @@ import {
 } from '@mui/icons-material';
 import { adminActions, useSelectorAdmin } from '../store';
 import type { AdminUser } from '../store/states';
+import { useAuth } from '../../../../shared/auth/src';
 import EditUserModal from './EditUserModal';
 import AddUserModal from './AddUserModal';
 import DeleteUserDialog from './DeleteUserDialog';
@@ -38,6 +39,10 @@ const UsersManagement: React.FC = () => {
   const dispatch = useDispatch();
   const adminState = useSelectorAdmin((state) => state);
   const { users, getUsersLoading, updateUserLoading, deleteUserLoading, errors } = adminState;
+  const { checkRole } = useAuth();
+  
+  // Check if user has admin role
+  const isAdmin = checkRole('admin');
 
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
@@ -134,9 +139,11 @@ const UsersManagement: React.FC = () => {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h6">Users</Typography>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setAddModalOpen(true)}>
-          Add User
-        </Button>
+        {isAdmin && (
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setAddModalOpen(true)}>
+            Add User
+          </Button>
+        )}
       </Box>
 
       {users.length === 0 ? (
@@ -200,9 +207,11 @@ const UsersManagement: React.FC = () => {
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
-                    <IconButton size="small" onClick={(e) => handleMenuOpen(e, user)}>
-                      <MoreVertIcon />
-                    </IconButton>
+                    {isAdmin && (
+                      <IconButton size="small" onClick={(e) => handleMenuOpen(e, user)}>
+                        <MoreVertIcon />
+                      </IconButton>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

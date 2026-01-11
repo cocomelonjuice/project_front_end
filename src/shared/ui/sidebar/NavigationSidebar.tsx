@@ -8,6 +8,7 @@ import {
 import { BaseSidebar } from './BaseSidebar';
 import type { SidebarGroup, SidebarNavItem } from './types';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../auth/src';
 
 export interface NavigationSidebarProps {
   /**
@@ -42,6 +43,10 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { checkRole } = useAuth();
+  
+  // Check if user has admin role
+  const isAdmin = checkRole('admin');
 
   // Primary navigation items - main features
   const primaryNavItems: SidebarNavItem[] = [
@@ -63,13 +68,18 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
 
   // Secondary navigation items - admin and info
   const secondaryNavItems: SidebarNavItem[] = [
-    {
-      id: 'admin',
-      label: 'Admin',
-      icon: <AdminIcon />,
-      path: '/admin',
-      active: location.pathname.startsWith('/admin'),
-    },
+    // Only show Admin menu item if user has admin role
+    ...(isAdmin
+      ? [
+          {
+            id: 'admin',
+            label: 'Admin',
+            icon: <AdminIcon />,
+            path: '/admin',
+            active: location.pathname.startsWith('/admin'),
+          },
+        ]
+      : []),
     {
       id: 'about',
       label: 'About',

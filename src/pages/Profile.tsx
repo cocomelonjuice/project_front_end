@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -18,10 +18,27 @@ import {
 } from '@mui/icons-material';
 import { useSelectorAuth } from '../features/auth/src/store';
 import { UI_COLORS, UI_TYPOGRAPHY, UI_SPACING, UI_BORDER_RADIUS, UI_SHADOWS, UI_BUTTON_STYLES } from '../shared/constants/src/ui';
+import EditProfileModal from './EditProfileModal';
+import type { AdminUser } from '../features/admin/src/store/states';
 
 const Profile = () => {
   const authState = useSelectorAuth((state) => state);
   const user = authState.user;
+  const [editModalOpen, setEditModalOpen] = useState(false);
+
+  // Convert auth user to AdminUser format for the modal
+  const adminUser: AdminUser | null = user
+    ? {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        displayName: user.displayName,
+        isActive: true,
+        roles: [],
+        createdAt: user.createdAt || new Date().toISOString(),
+        updatedAt: user.updatedAt || new Date().toISOString(),
+      }
+    : null;
 
   // Show loading state
   if (authState.getProfileLoading) {
@@ -145,6 +162,7 @@ const Profile = () => {
               <Button
                 variant="outlined"
                 size="small"
+                onClick={() => setEditModalOpen(true)}
                 sx={{
                   ...UI_BUTTON_STYLES.secondary,
                   borderRadius: UI_BORDER_RADIUS.md,
@@ -229,6 +247,16 @@ const Profile = () => {
           </Box>
         </Box>
       </Paper>
+
+      {/* Edit Profile Modal */}
+      <EditProfileModal
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        user={adminUser}
+        onProfileUpdated={() => {
+          // Profile will be refreshed automatically via getProfile action
+        }}
+      />
     </Container>
   );
 };

@@ -26,16 +26,15 @@ const Login: React.FC = () => {
 
   // Always reset loading states when entering login page
   useEffect(() => {
+    // Clear any auth errors and loading states when on login page
     dispatch(authActions.resetLoadingStates());
+    dispatch(authActions.clearErrors());
+    setError(null);
   }, [dispatch]);
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token && authState.isAuthenticated) {
-      navigate('/');
-    }
-  }, [authState.isAuthenticated, navigate]);
+  // Redirect if already authenticated (only check once on mount, not on every state change)
+  // Removed this useEffect - it's not needed and could cause issues
+  // The AuthProvider handles redirects for authenticated users
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +55,12 @@ const Login: React.FC = () => {
           onError: (err: any) => {
             const errorMsg = err?.response?.data?.message || err?.message || 'Login failed';
             setError(errorMsg);
+            // Clear any stale tokens from localStorage on login failure
+            // This prevents AuthProvider from trying to use invalid tokens
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            // Don't call resetLoadingStates here - loginFailure reducer already handles it
+            // This prevents multiple state updates that could cause re-renders
           },
         },
       } as any)
@@ -156,7 +161,7 @@ const Login: React.FC = () => {
               onChange={(e) => setIdentifier(e.target.value)}
               required
               autoFocus
-              disabled={authState.loginLoading || authState.getProfileLoading}
+              disabled={authState.loginLoading}
               sx={{
                 mb: 2.5,
                 ...UI_INPUT_STYLES.default,
@@ -170,7 +175,7 @@ const Login: React.FC = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              disabled={authState.loginLoading || authState.getProfileLoading}
+              disabled={authState.loginLoading}
               sx={{
                 mb: 3,
                 ...UI_INPUT_STYLES.default,
@@ -181,7 +186,7 @@ const Login: React.FC = () => {
               type="submit"
               fullWidth
               variant="contained"
-              disabled={authState.loginLoading || authState.getProfileLoading}
+              disabled={authState.loginLoading}
               sx={{
                 py: 1.5,
                 mb: 3,
@@ -193,7 +198,7 @@ const Login: React.FC = () => {
                 ...UI_BUTTON_STYLES.primary,
               }}
             >
-              {authState.loginLoading || authState.getProfileLoading ? (
+              {authState.loginLoading ? (
                 <CircularProgress size={24} sx={{ color: UI_COLORS.primary.contrast }} />
               ) : (
                 'Sign In'

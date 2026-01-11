@@ -19,13 +19,27 @@ const { actions, reducer } = createSlice({
       state.user = payload.data.user;
       state.token = payload.data.accessToken;
       state.isAuthenticated = true;
+      
+      // Extract roles and permissions from user
+      const roles = payload.data.user?.roles?.map((role: any) => role.name) || [];
+      const permissions = payload.data.user?.roles?.flatMap((role: any) => role.permissions || []) || [];
+      const uniquePermissions = [...new Set(permissions)];
+      
+      state.roles = roles;
+      state.permissions = uniquePermissions;
+      
       // Store token and user in localStorage
       localStorage.setItem('token', payload.data.accessToken);
       localStorage.setItem('user', JSON.stringify(payload.data.user));
     },
     loginFailure(state, { type, payload }: any) {
       state.loginLoading = false;
+      state.getProfileLoading = false; // Clear profile loading on login failure
       state.isAuthenticated = false;
+      state.user = null; // Clear user on login failure
+      state.token = null; // Clear token on login failure
+      state.roles = [];
+      state.permissions = [];
       state.errors = state.errors ? [...state.errors, { type, msg: payload }] : [{ type, msg: payload }];
     },
     // #endregion - login
@@ -40,6 +54,15 @@ const { actions, reducer } = createSlice({
       state.user = payload.data.user;
       state.token = payload.data.accessToken;
       state.isAuthenticated = true;
+      
+      // Extract roles and permissions from user
+      const roles = payload.data.user?.roles?.map((role: any) => role.name) || [];
+      const permissions = payload.data.user?.roles?.flatMap((role: any) => role.permissions || []) || [];
+      const uniquePermissions = [...new Set(permissions)];
+      
+      state.roles = roles;
+      state.permissions = uniquePermissions;
+      
       // Store token and user in localStorage
       localStorage.setItem('token', payload.data.accessToken);
       localStorage.setItem('user', JSON.stringify(payload.data.user));
@@ -60,6 +83,14 @@ const { actions, reducer } = createSlice({
       state.getProfileLoading = false;
       state.user = payload.data;
       state.isAuthenticated = true;
+      
+      // Extract roles and permissions from user
+      const roles = payload.data?.roles?.map((role: any) => role.name) || [];
+      const permissions = payload.data?.roles?.flatMap((role: any) => role.permissions || []) || [];
+      const uniquePermissions = [...new Set(permissions)];
+      
+      state.roles = roles;
+      state.permissions = uniquePermissions;
     },
     getProfileFailure(state, { type, payload }: any) {
       state.getProfileLoading = false;
@@ -73,6 +104,8 @@ const { actions, reducer } = createSlice({
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
+      state.roles = [];
+      state.permissions = [];
       state.errors = null;
       state.loginLoading = false;
       state.registerLoading = false;

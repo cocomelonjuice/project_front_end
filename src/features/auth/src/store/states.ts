@@ -2,12 +2,20 @@
  * Auth Feature State
  */
 
+export interface Role {
+  id: string;
+  name: string;
+  description?: string;
+  permissions?: string[];
+}
+
 export interface User {
   id: string;
   username: string;
   email: string;
   displayName: string;
   isActive: boolean;
+  roles?: Role[];
   createdAt?: string;
   updatedAt?: string;
 }
@@ -34,6 +42,8 @@ const initialState = {
   user: null as User | null,
   token: null as string | null,
   isAuthenticated: false,
+  roles: [] as string[], // Array of role names (e.g., ['admin', 'user'])
+  permissions: [] as string[], // Array of all permissions from all roles
   loginLoading: false,
   registerLoading: false,
   getProfileLoading: false,
