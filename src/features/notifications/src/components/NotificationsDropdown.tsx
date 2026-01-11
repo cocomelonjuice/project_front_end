@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import {
   IconButton,
   Badge,
@@ -11,6 +13,7 @@ import {
   Avatar,
   ListItemIcon,
   ListItemText,
+  CircularProgress,
 } from '@mui/material';
 import {
   Notifications as NotificationsIcon,
@@ -22,26 +25,25 @@ import {
   NotificationsNone as NotificationsNoneIcon,
   CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material';
-import type { Notification } from '../store/states';
+import { notificationsActions, useSelectorNotifications } from '../store';
 import { getNotificationIcon, getNotificationColor } from '../store/mockData';
+import type { Notification } from '../store/states';
 
 interface NotificationsDropdownProps {
-  notifications: Notification[];
-  unreadCount: number;
   onNotificationClick?: (notification: Notification) => void;
-  onMarkAsRead?: (notificationId: string) => void;
-  onMarkAllAsRead?: () => void;
 }
 
 const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
-  notifications,
-  unreadCount,
   onNotificationClick,
-  onMarkAsRead,
-  onMarkAllAsRead,
 }) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const notificationsState = useSelectorNotifications((state) => state);
+  const { notifications, unreadCount, getNotificationsLoading, markAsReadLoading, markAllAsReadLoading } = notificationsState;
+  
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -51,12 +53,74 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
     setAnchorEl(null);
   };
 
+  // Load notifications on mount and set up polling
+  useEffect(() => {
+    // Load notifications immediately
+    dispatch(
+      notificationsActions.getNotificationsRequest({
+        data: {},
+        callback: {
+          onSuccess: () => {},
+          onError: () => {},
+        },
+      } as any)
+    );
+
+    // Set up polling every 30 seconds
+    pollingIntervalRef.current = setInterval(() => {
+      dispatch(
+        notificationsActions.getNotificationsRequest({
+          data: {},
+          callback: {
+            onSuccess: () => {},
+            onError: () => {},
+          },
+        } as any)
+      );
+    }, 30000); // 30 seconds
+
+    // Cleanup on unmount
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+    };
+  }, [dispatch]);
+
   const handleNotificationClick = (notification: Notification) => {
-    if (!notification.isRead && onMarkAsRead) {
-      onMarkAsRead(notification.id);
+    // Mark as read if not already read
+    if (!notification.isRead) {
+      dispatch(
+        notificationsActions.markAsReadRequest({
+          data: { id: notification.id },
+          callback: {
+            onSuccess: () => {},
+            onError: () => {},
+          },
+        } as any)
+      );
     }
+    
+    // Navigate to issue if available
+    if (notification.issueId && notification.issue?.projectId) {
+      navigate(`/projects/${notification.issue.projectId}/issues/${notification.issueId}`);
+    }
+    
+    // Call custom handler if provided
     onNotificationClick?.(notification);
     handleClose();
+  };
+
+  const handleMarkAllAsRead = () => {
+    dispatch(
+      notificationsActions.markAllAsReadRequest({
+        data: {},
+        callback: {
+          onSuccess: () => {},
+          onError: () => {},
+        },
+      } as any)
+    );
   };
 
   const getNotificationIconComponent = (type: string) => {
@@ -78,18 +142,49 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
   };
 
   const formatTimestamp = (timestamp: string): string => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
+    try {
+      // Parse the UTC timestamp from API (e.g., "2026-01-11T09:30:30.822Z")
+      // Ensure we're parsing it as UTC explicitly
+      const date = new Date(timestamp);
+      
+      // Validate the date was parsed correctly
+      if (isNaN(date.getTime())) {
+        console.error('Invalid timestamp:', timestamp);
+        return 'Invalid date';
+      }
+      
+      // Get current time in UTC
+      const now = new Date();
+      
+      // Calculate difference in milliseconds
+      // getTime() returns milliseconds since epoch (UTC), so this is timezone-independent
+      const diffMs = now.getTime() - date.getTime();
+      
+      // Handle negative differences (future dates) - shouldn't happen but just in case
+      if (diffMs < 0) {
+        return 'Just now';
+      }
+      
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMs / 3600000);
+      const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      // Return relative time
+      if (diffMins < 1) return 'Just now';
+      if (diffMins < 60) return `${diffMins}m ago`;
+      if (diffHours < 24) return `${diffHours}h ago`;
+      if (diffDays < 7) return `${diffDays}d ago`;
+      
+      // For dates older than 7 days, show in user's local timezone
+      return date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric',
+        year: diffDays >= 365 ? 'numeric' : undefined,
+      });
+    } catch (error) {
+      console.error('Error formatting timestamp:', error, timestamp);
+      return 'Invalid date';
+    }
   };
 
   return (
@@ -116,22 +211,25 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
         <Box sx={{ p: 2, pb: 1 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
             <Typography variant="h6">Notifications</Typography>
-            {unreadCount > 0 && onMarkAllAsRead && (
+            {unreadCount > 0 && (
               <Button
                 size="small"
                 startIcon={<CheckCircleIcon />}
-                onClick={() => {
-                  onMarkAllAsRead();
-                }}
+                onClick={handleMarkAllAsRead}
+                disabled={markAllAsReadLoading}
               >
-                Mark all read
+                {markAllAsReadLoading ? 'Marking...' : 'Mark all read'}
               </Button>
             )}
           </Box>
         </Box>
         <Divider />
         <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
-          {notifications.length === 0 ? (
+          {getNotificationsLoading && notifications.length === 0 ? (
+            <Box sx={{ p: 3, textAlign: 'center' }}>
+              <CircularProgress size={24} />
+            </Box>
+          ) : notifications.length === 0 ? (
             <Box sx={{ p: 3, textAlign: 'center' }}>
               <NotificationsNoneIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
               <Typography variant="body2" color="text.secondary">

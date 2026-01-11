@@ -8,7 +8,6 @@ import { NavigationSidebar } from '../shared/ui/sidebar';
 import { Logout as LogoutIcon, Person as PersonIcon } from '@mui/icons-material';
 import { APP_CONFIG } from '../shared/constants/src/config';
 import { NotificationsDropdown } from '../features/notifications/src';
-import type { Notification } from '../features/notifications/src/store/states';
 import { authActions } from '../features/auth/src/store';
 interface LayoutProps {
   children: ReactNode;
@@ -21,10 +20,6 @@ const Layout = ({ children }: LayoutProps) => {
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const mainContentRef = useRef<HTMLDivElement>(null);
-  
-  // Notifications state - using empty array since notifications API is skipped
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   const handleSidebarToggle = () => {
     setSidebarCollapsed(!sidebarCollapsed);
@@ -47,25 +42,6 @@ const Layout = ({ children }: LayoutProps) => {
     navigate('/');
   };
 
-  const handleNotificationClick = (notification: Notification) => {
-    if (notification.issueId) {
-      // Navigate to the issue detail page
-      const projectId = notification.issue?.projectId;
-      if (projectId) {
-        navigate(`/projects/${projectId}/issues/${notification.issueId}`);
-      }
-    }
-  };
-
-  const handleMarkAsRead = (notificationId: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === notificationId ? { ...n, isRead: true } : n))
-    );
-  };
-
-  const handleMarkAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-  };
 
   const handleHelp = () => {
     // Help functionality - could open help documentation or support page
@@ -154,15 +130,7 @@ const Layout = ({ children }: LayoutProps) => {
         //     // Trial/plan logic
         //   },
         // }}
-        notificationComponent={
-          <NotificationsDropdown
-            notifications={notifications}
-            unreadCount={unreadCount}
-            onNotificationClick={handleNotificationClick}
-            onMarkAsRead={handleMarkAsRead}
-            onMarkAllAsRead={handleMarkAllAsRead}
-          />
-        }
+        notificationComponent={<NotificationsDropdown />}
         onHelpClick={handleHelp}
         onSettingsClick={handleSettings}
         userMenuItems={userMenuItems}
