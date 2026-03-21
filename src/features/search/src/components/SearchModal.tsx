@@ -144,10 +144,15 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
         navigate(`/projects/${result.data.id}`);
         break;
       case 'issue':
-        navigate(`/issues/${result.data.id}`);
+        // Fix: Use correct route with projectId
+        if (result.data.project?.id) {
+          navigate(`/projects/${result.data.project.id}/issues/${result.data.id}`);
+        } else {
+          console.error('Issue has no project ID, cannot navigate');
+        }
         break;
       case 'user':
-        navigate(`/admin`); // Users are managed in admin
+        navigate(`/users/${result.data.id}`);
         break;
     }
     onClose();

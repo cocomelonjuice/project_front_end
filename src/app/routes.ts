@@ -33,6 +33,7 @@ import ProjectDetail from '../pages/projects/ProjectDetail';
 import WorkflowsList from '../pages/workflows/WorkflowsList';
 import WorkflowDetail from '../pages/workflows/WorkflowDetail';
 import AdminDashboard from '../pages/admin/AdminDashboard';
+import UserDetail from '../pages/users/UserDetail';
 
 export const privateRoutes: RoutesType = [
   ...routeDefinitions.flatMap((route: RouteDefinition): RouteType[] => {
@@ -82,6 +83,11 @@ export const privateRoutes: RoutesType = [
     name: 'AdminDashboard',
     path: '/admin',
     element: AdminDashboard,
+  },
+  {
+    name: 'UserDetail',
+    path: '/users/:id',
+    element: UserDetail,
   },
   {
     path: '*',
