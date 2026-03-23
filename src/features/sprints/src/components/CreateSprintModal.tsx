@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -29,6 +30,7 @@ const CreateSprintModal: React.FC<CreateSprintModalProps> = ({
   boardId,
   onSprintCreated,
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const sprintsState = useSelectorSprints((state) => state);
   const [error, setError] = useState<string | null>(null);
@@ -61,12 +63,12 @@ const CreateSprintModal: React.FC<CreateSprintModalProps> = ({
   const handleSubmit = () => {
     // Validation
     if (!name.trim()) {
-      setError('Sprint name is required');
+      setError(t('sprintModal.nameRequired'));
       return;
     }
 
     if (name.length < 3 || name.length > 100) {
-      setError('Sprint name must be between 3 and 100 characters');
+      setError(t('sprintModal.nameLength'));
       return;
     }
 
@@ -74,7 +76,7 @@ const CreateSprintModal: React.FC<CreateSprintModalProps> = ({
       const start = new Date(startDate);
       const end = new Date(endDate);
       if (end <= start) {
-        setError('End date must be after start date');
+        setError(t('sprintModal.endAfterStart'));
         return;
       }
     }
@@ -121,6 +123,7 @@ const CreateSprintModal: React.FC<CreateSprintModalProps> = ({
 
   return (
     <Dialog
+      key={i18n.language}
       open={open}
       onClose={handleClose}
       maxWidth="sm"
@@ -145,7 +148,7 @@ const CreateSprintModal: React.FC<CreateSprintModalProps> = ({
             fontSize: UI_TYPOGRAPHY.fontSize.xl,
           }}
         >
-          Create Sprint
+          {t('sprintModal.title')}
         </Typography>
       </DialogTitle>
       <DialogContent sx={{ pt: 4 }}>
@@ -193,7 +196,7 @@ const CreateSprintModal: React.FC<CreateSprintModalProps> = ({
           />
 
           <TextField
-            label="Goal (Optional)"
+            label={t('sprintModal.goalLabel')}
             fullWidth
             multiline
             rows={3}
@@ -217,7 +220,7 @@ const CreateSprintModal: React.FC<CreateSprintModalProps> = ({
 
           <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
             <TextField
-              label="Start Date"
+              label={t('sprintModal.startDate')}
               type="date"
               fullWidth
               value={startDate}
@@ -228,7 +231,7 @@ const CreateSprintModal: React.FC<CreateSprintModalProps> = ({
               }}
             />
             <TextField
-              label="End Date"
+              label={t('sprintModal.endDate')}
               type="date"
               fullWidth
               value={endDate}
@@ -243,7 +246,7 @@ const CreateSprintModal: React.FC<CreateSprintModalProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={isSubmitting}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -251,7 +254,7 @@ const CreateSprintModal: React.FC<CreateSprintModalProps> = ({
           disabled={isSubmitting || !name.trim()}
           startIcon={isSubmitting ? <CircularProgress size={16} /> : null}
         >
-          {isSubmitting ? 'Creating...' : 'Create Sprint'}
+          {isSubmitting ? t('sprintModal.creating') : t('sprintModal.create')}
         </Button>
       </DialogActions>
     </Dialog>

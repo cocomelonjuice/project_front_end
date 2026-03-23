@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -30,6 +31,7 @@ const DeleteIssueDialog: React.FC<DeleteIssueDialogProps> = ({
   issue,
   onIssueDeleted,
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +55,7 @@ const DeleteIssueDialog: React.FC<DeleteIssueDialogProps> = ({
           },
           onError: (error: any) => {
             console.error('Failed to delete issue:', error);
-            setError(error?.response?.data?.message || 'Failed to delete issue. Please try again.');
+            setError(error?.response?.data?.message || t('issueDeleteDialog.deleteFailed'));
             setIsDeleting(false);
           },
         },
@@ -72,6 +74,7 @@ const DeleteIssueDialog: React.FC<DeleteIssueDialogProps> = ({
 
   return (
     <Dialog
+      key={i18n.language}
       open={open}
       onClose={handleClose}
       maxWidth="sm"
@@ -104,7 +107,7 @@ const DeleteIssueDialog: React.FC<DeleteIssueDialogProps> = ({
               fontSize: UI_TYPOGRAPHY.fontSize.xl,
             }}
           >
-            Delete Issue
+            {t('issueDeleteDialog.title')}
           </Typography>
         </Box>
       </DialogTitle>
@@ -143,8 +146,7 @@ const DeleteIssueDialog: React.FC<DeleteIssueDialogProps> = ({
             lineHeight: UI_TYPOGRAPHY.lineHeight.relaxed,
           }}
         >
-          This action cannot be undone. All comments, attachments, and history associated with this
-          issue will be permanently deleted.
+          {t('issueDeleteDialog.warning')}
         </DialogContentText>
       </DialogContent>
       <DialogActions
@@ -193,7 +195,7 @@ const DeleteIssueDialog: React.FC<DeleteIssueDialogProps> = ({
             },
           }}
         >
-          {isDeleting ? 'Deleting...' : 'Delete Issue'}
+          {isDeleting ? t('issueDeleteDialog.deleting') : t('issueDeleteDialog.deleteIssue')}
         </Button>
       </DialogActions>
     </Dialog>

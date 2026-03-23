@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -30,6 +31,7 @@ const DeleteProjectDialog: React.FC<DeleteProjectDialogProps> = ({
   project,
   onProjectDeleted,
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const projectsState = useSelectorProjects((state) => state);
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +41,6 @@ const DeleteProjectDialog: React.FC<DeleteProjectDialogProps> = ({
 
     setError(null);
 
-    // Dispatch Redux action to delete project
     dispatch(
       projectsActions.deleteProjectRequest({
         data: { id: project.id },
@@ -51,7 +52,8 @@ const DeleteProjectDialog: React.FC<DeleteProjectDialogProps> = ({
             onClose();
           },
           onError: (error: any) => {
-            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete project';
+            const errorMessage =
+              error?.response?.data?.message || error?.message || t('projects.deleteFailed');
             setError(errorMessage);
           },
         },
@@ -70,6 +72,7 @@ const DeleteProjectDialog: React.FC<DeleteProjectDialogProps> = ({
 
   return (
     <Dialog
+      key={i18n.language}
       open={open}
       onClose={handleClose}
       maxWidth="sm"
@@ -84,7 +87,6 @@ const DeleteProjectDialog: React.FC<DeleteProjectDialogProps> = ({
       <DialogTitle
         sx={{
           pb: 2,
-          // borderBottom: `1px solid ${UI_COLORS.border.light}`,
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -102,7 +104,7 @@ const DeleteProjectDialog: React.FC<DeleteProjectDialogProps> = ({
               fontSize: UI_TYPOGRAPHY.fontSize.xl,
             }}
           >
-            Delete Project
+            {t('projects.deleteTitle')}
           </Typography>
         </Box>
       </DialogTitle>
@@ -132,7 +134,7 @@ const DeleteProjectDialog: React.FC<DeleteProjectDialogProps> = ({
             mb: 2,
           }}
         >
-          Are you sure you want to delete project <strong style={{ color: UI_COLORS.text.primary }}>{project.name}</strong> ({project.key})?
+          {t('projects.deleteConfirm', { name: project.name, key: project.key })}
         </DialogContentText>
         <DialogContentText
           sx={{
@@ -141,8 +143,7 @@ const DeleteProjectDialog: React.FC<DeleteProjectDialogProps> = ({
             lineHeight: UI_TYPOGRAPHY.lineHeight.relaxed,
           }}
         >
-          This action cannot be undone. All issues, boards, sprints, and other data associated with
-          this project will be permanently deleted.
+          {t('projects.deleteWarning')}
         </DialogContentText>
       </DialogContent>
       <DialogActions
@@ -165,7 +166,7 @@ const DeleteProjectDialog: React.FC<DeleteProjectDialogProps> = ({
             },
           }}
         >
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleDelete}
@@ -191,7 +192,7 @@ const DeleteProjectDialog: React.FC<DeleteProjectDialogProps> = ({
             },
           }}
         >
-          {projectsState.deleteProjectLoading ? 'Deleting...' : 'Delete Project'}
+          {projectsState.deleteProjectLoading ? t('projects.deleting') : t('projects.deleteProject')}
         </Button>
       </DialogActions>
     </Dialog>

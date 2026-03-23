@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Container,
@@ -13,11 +14,13 @@ import {
   Link as MuiLink,
 } from '@mui/material';
 import { authActions, useSelectorAuth } from '../features/auth/src/store';
-import { UI_COLORS, UI_TYPOGRAPHY, UI_SPACING, UI_BORDER_RADIUS, UI_SHADOWS, UI_TRANSITIONS, UI_INPUT_STYLES, UI_BUTTON_STYLES } from '../shared/constants/src/ui';
+import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS, UI_TRANSITIONS, UI_INPUT_STYLES, UI_BUTTON_STYLES } from '../shared/constants/src/ui';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { t, i18n } = useTranslation();
   const authState = useSelectorAuth((state) => state);
 
   const [identifier, setIdentifier] = useState('');
@@ -41,7 +44,7 @@ const Login: React.FC = () => {
     setError(null);
 
     if (!identifier.trim() || !password.trim()) {
-      setError('Please fill in all fields');
+      setError(t('auth.fillAllFields'));
       return;
     }
 
@@ -53,7 +56,7 @@ const Login: React.FC = () => {
             navigate('/');
           },
           onError: (err: any) => {
-            const errorMsg = err?.response?.data?.message || err?.message || 'Login failed';
+            const errorMsg = err?.response?.data?.message || err?.message || t('auth.loginFailed');
             setError(errorMsg);
             // Clear any stale tokens from localStorage on login failure
             // This prevents AuthProvider from trying to use invalid tokens
@@ -70,6 +73,7 @@ const Login: React.FC = () => {
   return (
     <Box
       sx={{
+        position: 'relative',
         minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
@@ -78,6 +82,9 @@ const Login: React.FC = () => {
         py: 4,
       }}
     >
+      <Box sx={{ position: 'absolute', top: 16, right: 16, zIndex: 1 }}>
+        <LanguageSwitcher variant="light" />
+      </Box>
       <Container maxWidth="sm">
         <Paper
           elevation={0}
@@ -102,7 +109,7 @@ const Login: React.FC = () => {
                 fontSize: { xs: UI_TYPOGRAPHY.fontSize['2xl'], sm: UI_TYPOGRAPHY.fontSize['3xl'] },
               }}
             >
-              Welcome Back
+              {t('auth.loginTitle')}
             </Typography>
             <Typography
               variant="body1"
@@ -112,7 +119,7 @@ const Login: React.FC = () => {
                 lineHeight: UI_TYPOGRAPHY.lineHeight.relaxed,
               }}
             >
-              Sign in to your account to continue
+              {t('auth.loginSubtitle')}
             </Typography>
           </Box>
 
@@ -152,10 +159,10 @@ const Login: React.FC = () => {
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit}>
+          <form key={i18n.language} onSubmit={handleSubmit}>
             <TextField
               fullWidth
-              label="Username or Email"
+              label={t('auth.usernameOrEmail')}
               type="text"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
@@ -170,7 +177,7 @@ const Login: React.FC = () => {
 
             <TextField
               fullWidth
-              label="Password"
+              label={t('auth.password')}
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -201,7 +208,7 @@ const Login: React.FC = () => {
               {authState.loginLoading ? (
                 <CircularProgress size={24} sx={{ color: UI_COLORS.primary.contrast }} />
               ) : (
-                'Sign In'
+                t('auth.signIn')
               )}
             </Button>
 
@@ -214,7 +221,7 @@ const Login: React.FC = () => {
                   fontSize: UI_TYPOGRAPHY.fontSize.sm,
                 }}
               >
-                Don't have an account?{' '}
+                {t('auth.noAccount')}{' '}
                 <MuiLink
                   component={Link}
                   to="/register"
@@ -227,7 +234,7 @@ const Login: React.FC = () => {
                     },
                   }}
                 >
-                  Create an account
+                  {t('auth.createAccountLink')}
                 </MuiLink>
               </Typography>
             </Box>

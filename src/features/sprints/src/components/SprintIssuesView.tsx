@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Typography,
@@ -13,9 +14,7 @@ import {
   Avatar,
   IconButton,
 } from '@mui/material';
-import {
-  ArrowBack as ArrowBackIcon,
-} from '@mui/icons-material';
+import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import type { Sprint } from '../store/states';
 import type { Issue } from '../../../issues/src/store/states';
 import { mockIssueTypes, mockPriorities, mockStatuses, mockUsers } from '../../../issues/src/store/mockData';
@@ -26,11 +25,9 @@ interface SprintIssuesViewProps {
   onBack: () => void;
 }
 
-const SprintIssuesView: React.FC<SprintIssuesViewProps> = ({
-  sprint,
-  issues,
-  onBack,
-}) => {
+const SprintIssuesView: React.FC<SprintIssuesViewProps> = ({ sprint, issues, onBack }) => {
+  const { t } = useTranslation();
+
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
@@ -38,9 +35,7 @@ const SprintIssuesView: React.FC<SprintIssuesViewProps> = ({
           <ArrowBackIcon />
         </IconButton>
         <Box>
-          <Typography variant="h5">
-            {sprint.name}
-          </Typography>
+          <Typography variant="h5">{sprint.name}</Typography>
           {sprint.goal && (
             <Typography variant="body2" color="text.secondary">
               {sprint.goal}
@@ -54,12 +49,12 @@ const SprintIssuesView: React.FC<SprintIssuesViewProps> = ({
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Key</TableCell>
-                <TableCell>Summary</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Priority</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Assignee</TableCell>
+                <TableCell>{t('projectDetail.colKey')}</TableCell>
+                <TableCell>{t('projectDetail.colSummary')}</TableCell>
+                <TableCell>{t('projectDetail.colType')}</TableCell>
+                <TableCell>{t('projectDetail.colPriority')}</TableCell>
+                <TableCell>{t('projectDetail.colStatus')}</TableCell>
+                <TableCell>{t('projectDetail.colAssignee')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -67,16 +62,17 @@ const SprintIssuesView: React.FC<SprintIssuesViewProps> = ({
                 <TableRow>
                   <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
                     <Typography variant="body2" color="text.secondary">
-                      No issues in this sprint
+                      {t('projectDetail.sprintIssuesEmpty')}
                     </Typography>
                   </TableCell>
                 </TableRow>
               ) : (
                 issues.map((issue) => {
-                  const type = issue.type || mockIssueTypes.find((t) => t.id === issue.typeId);
+                  const type = issue.type || mockIssueTypes.find((ty) => ty.id === issue.typeId);
                   const priority = issue.priority || mockPriorities.find((p) => p.id === issue.priorityId);
                   const status = issue.status || mockStatuses.find((s) => s.id === issue.statusId);
-                  const assignee = issue.assignee || (issue.assigneeId ? mockUsers.find((u) => u.id === issue.assigneeId) : null);
+                  const assignee =
+                    issue.assignee || (issue.assigneeId ? mockUsers.find((u) => u.id === issue.assigneeId) : null);
 
                   return (
                     <TableRow key={issue.id} hover>
@@ -128,7 +124,7 @@ const SprintIssuesView: React.FC<SprintIssuesViewProps> = ({
                           </Box>
                         ) : (
                           <Typography variant="body2" color="text.secondary">
-                            Unassigned
+                            {t('projectDetail.unassigned')}
                           </Typography>
                         )}
                       </TableCell>

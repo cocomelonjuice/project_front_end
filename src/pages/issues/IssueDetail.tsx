@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Typography,
@@ -56,9 +57,15 @@ import type { Label } from '../../features/labels/src/store/states';
 import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS, UI_BUTTON_STYLES } from '../../shared/constants/src/ui';
 
 const IssueDetail: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const { projectId, issueId } = useParams<{ projectId: string; issueId: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  const dateLocale = useMemo(
+    () => (i18n.language?.startsWith('vi') ? 'vi-VN' : 'en-US'),
+    [i18n.language]
+  );
 
   // Redux state
   const authState = useSelectorAuth((state) => state);
@@ -372,7 +379,7 @@ const IssueDetail: React.FC = () => {
             mb: 2,
           }}
         >
-          Issue not found
+          {t('issueDetailPage.notFound')}
         </Alert>
         <Button
           onClick={handleBack}
@@ -385,7 +392,7 @@ const IssueDetail: React.FC = () => {
           }}
         >
           <ArrowBackIcon sx={{ mr: 1 }} />
-          Back to Project
+          {t('issueDetailPage.backToProject')}
         </Button>
       </Box>
     );
@@ -506,7 +513,7 @@ const IssueDetail: React.FC = () => {
                 transition: 'all 0.2s ease-in-out',
               }}
             >
-              Edit
+              {t('issueDetailPage.edit')}
             </Button>
             <IconButton
               onClick={handleMenuOpen}
@@ -551,7 +558,7 @@ const IssueDetail: React.FC = () => {
                 }}
               >
                 <DeleteIcon sx={{ mr: 1, fontSize: 18 }} />
-                Delete
+                {t('issueDetailPage.delete')}
               </MenuItem>
             </Menu>
           </Box>
@@ -602,7 +609,7 @@ const IssueDetail: React.FC = () => {
                   fontSize: UI_TYPOGRAPHY.fontSize.xl,
                 }}
               >
-                Description
+                {t('issueDetailPage.description')}
               </Typography>
             </Box>
             <Typography 
@@ -625,7 +632,7 @@ const IssueDetail: React.FC = () => {
                     fontStyle: 'italic',
                   }}
                 >
-                  No description provided.
+                  {t('issueDetailPage.noDescription')}
                 </Box>
               )}
             </Typography>
@@ -674,7 +681,7 @@ const IssueDetail: React.FC = () => {
                     fontSize: UI_TYPOGRAPHY.fontSize.xl,
                   }}
                 >
-                  Labels ({issueLabels.length})
+                  {t('issueDetailPage.labelsHeading', { count: issueLabels.length })}
                 </Typography>
               </Box>
               <Button
@@ -697,12 +704,12 @@ const IssueDetail: React.FC = () => {
                   transition: 'all 0.2s ease-in-out',
                 }}
               >
-                {issueLabels.length > 0 ? 'Edit Labels' : 'Add Labels'}
+                {issueLabels.length > 0 ? t('issueDetailPage.editLabels') : t('issueDetailPage.addLabels')}
               </Button>
             </Box>
             <LabelsList
               labels={issueLabels}
-              emptyMessage="No labels assigned"
+              emptyMessage={t('issueDetailPage.labelsEmpty')}
             />
           </Paper>
 
@@ -749,7 +756,7 @@ const IssueDetail: React.FC = () => {
                     fontSize: UI_TYPOGRAPHY.fontSize.xl,
                   }}
                 >
-                  Attachments ({attachments.length})
+                  {t('issueDetailPage.attachmentsHeading', { count: attachments.length })}
                 </Typography>
               </Box>
               <Button
@@ -772,7 +779,7 @@ const IssueDetail: React.FC = () => {
                   transition: 'all 0.2s ease-in-out',
                 }}
               >
-                Upload File
+                {t('issueDetailPage.uploadFile')}
               </Button>
             </Box>
             <AttachmentList
@@ -825,7 +832,7 @@ const IssueDetail: React.FC = () => {
                     fontSize: UI_TYPOGRAPHY.fontSize.xl,
                   }}
                 >
-                  Comments ({comments.length})
+                  {t('issueDetailPage.commentsHeading', { count: comments.length })}
                 </Typography>
               </Box>
               <Button
@@ -848,7 +855,7 @@ const IssueDetail: React.FC = () => {
                   transition: 'all 0.2s ease-in-out',
                 }}
               >
-                Add Comment
+                {t('issueDetailPage.addComment')}
               </Button>
             </Box>
             <CommentList
@@ -898,11 +905,11 @@ const IssueDetail: React.FC = () => {
                     letterSpacing: '0.5px',
                   }}
                 >
-                  Type
+                  {t('issueDetailPage.fieldType')}
                 </Typography>
               </Box>
               <Chip
-                label={type?.name || 'Unknown'}
+                label={type?.name || t('issueDetailPage.unknown')}
                 size="medium"
                 sx={{
                   bgcolor: type?.color || UI_COLORS.text.secondary,
@@ -935,11 +942,11 @@ const IssueDetail: React.FC = () => {
                     letterSpacing: '0.5px',
                   }}
                 >
-                  Priority
+                  {t('issueDetailPage.fieldPriority')}
                 </Typography>
               </Box>
               <Chip
-                label={priority?.name || 'Unknown'}
+                label={priority?.name || t('issueDetailPage.unknown')}
                 size="medium"
                 sx={{
                   bgcolor: priority?.color || UI_COLORS.text.secondary,
@@ -972,7 +979,7 @@ const IssueDetail: React.FC = () => {
                     letterSpacing: '0.5px',
                   }}
                 >
-                  Status
+                  {t('issueDetailPage.fieldStatus')}
                 </Typography>
                 <Button
                   size="small"
@@ -994,11 +1001,11 @@ const IssueDetail: React.FC = () => {
                     transition: 'all 0.2s ease-in-out',
                   }}
                 >
-                  Change
+                  {t('issueDetailPage.change')}
                 </Button>
               </Box>
               <Chip
-                label={status?.name || 'Unknown'}
+                label={status?.name || t('issueDetailPage.unknown')}
                 size="medium"
                 sx={{
                   bgcolor: status?.color || UI_COLORS.text.secondary,
@@ -1049,7 +1056,7 @@ const IssueDetail: React.FC = () => {
                     letterSpacing: '0.5px',
                   }}
                 >
-                  Assignee
+                  {t('issueDetailPage.fieldAssignee')}
                 </Typography>
                 <Button
                   size="small"
@@ -1071,7 +1078,7 @@ const IssueDetail: React.FC = () => {
                     transition: 'all 0.2s ease-in-out',
                   }}
                 >
-                  {assignee ? 'Change' : 'Assign'}
+                  {assignee ? t('issueDetailPage.change') : t('issueDetailPage.assign')}
                 </Button>
               </Box>
               {assignee ? (
@@ -1131,7 +1138,7 @@ const IssueDetail: React.FC = () => {
                       fontStyle: 'italic',
                     }}
                   >
-                    Unassigned
+                    {t('issueDetailPage.unassigned')}
                   </Typography>
                 </Box>
               )}
@@ -1174,7 +1181,7 @@ const IssueDetail: React.FC = () => {
                     letterSpacing: '0.5px',
                   }}
                 >
-                  Reporter
+                  {t('issueDetailPage.fieldReporter')}
                 </Typography>
               </Box>
               {reporter ? (
@@ -1230,7 +1237,7 @@ const IssueDetail: React.FC = () => {
                       fontStyle: 'italic',
                     }}
                   >
-                    Unknown
+                    {t('issueDetailPage.unknown')}
                   </Typography>
                 </Box>
               )}
@@ -1272,7 +1279,7 @@ const IssueDetail: React.FC = () => {
                     letterSpacing: '0.5px',
                   }}
                 >
-                  Timeline
+                  {t('issueDetailPage.timeline')}
                 </Typography>
               </Box>
               <Box sx={{ mb: 2.5 }}>
@@ -1285,7 +1292,7 @@ const IssueDetail: React.FC = () => {
                     mb: 1,
                   }}
                 >
-                  Created
+                  {t('issueDetailPage.created')}
                 </Typography>
                 <Typography
                   variant="body2"
@@ -1295,7 +1302,7 @@ const IssueDetail: React.FC = () => {
                     fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
                   }}
                 >
-                  {new Date(issue.createdAt).toLocaleDateString('en-US', {
+                  {new Date(issue.createdAt).toLocaleDateString(dateLocale, {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric',
@@ -1312,7 +1319,7 @@ const IssueDetail: React.FC = () => {
                     mb: 1,
                   }}
                 >
-                  Updated
+                  {t('issueDetailPage.updated')}
                 </Typography>
                 <Typography
                   variant="body2"
@@ -1322,7 +1329,7 @@ const IssueDetail: React.FC = () => {
                     fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
                   }}
                 >
-                  {new Date(issue.updatedAt).toLocaleDateString('en-US', {
+                  {new Date(issue.updatedAt).toLocaleDateString(dateLocale, {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric',

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -28,12 +29,7 @@ interface EditProjectModalProps {
   existingKeys?: string[]; // For validation - check if key already exists
 }
 
-const projectTypes = [
-  { value: 'software', label: 'Software' },
-  { value: 'business', label: 'Business' },
-  { value: 'marketing', label: 'Marketing' },
-  { value: 'operations', label: 'Operations' },
-];
+const PROJECT_TYPE_VALUES = ['software', 'business', 'marketing', 'operations'] as const;
 
 const EditProjectModal: React.FC<EditProjectModalProps> = ({
   open,
@@ -42,6 +38,7 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
   onProjectUpdated,
   existingKeys = [],
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const projectsState = useSelectorProjects((state) => state);
   const [error, setError] = useState<string | null>(null);
@@ -74,7 +71,6 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
   };
 
   const handleKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    // Auto-uppercase and limit to 20 characters
     const value = event.target.value.toUpperCase().slice(0, 20);
     setFormData((prev) => ({
       ...prev,
@@ -85,38 +81,33 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
   const handleSubmit = () => {
     if (!project) return;
 
-    // Validation
     if (!formData.name.trim()) {
-      setError('Project name is required');
+      setError(t('projects.nameRequired'));
       return;
     }
 
     if (!formData.key.trim()) {
-      setError('Project key is required');
+      setError(t('projects.keyRequired'));
       return;
     }
 
-    // Check if key already exists (excluding current project's key)
     const otherKeys = existingKeys.filter((key) => key !== project.key.toUpperCase());
     if (otherKeys.includes(formData.key.toUpperCase())) {
-      setError('Project key already exists. Please choose a different key.');
+      setError(t('projects.keyExists'));
       return;
     }
 
-    // Validate key format (alphanumeric, max 20 chars)
     if (!/^[A-Z0-9]+$/.test(formData.key)) {
-      setError('Project key must contain only uppercase letters and numbers');
+      setError(t('projects.keyInvalid'));
       return;
     }
 
     setError(null);
 
-    // Dispatch Redux action to update project
-    // Note: Don't include 'id' in the data - it's passed separately as the first parameter
     dispatch(
       projectsActions.updateProjectRequest({
         data: {
-          id: project.id, // This is used to identify which project to update
+          id: project.id,
           key: formData.key.toUpperCase(),
           name: formData.name.trim(),
           type: formData.type,
@@ -130,7 +121,8 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
             onClose();
           },
           onError: (error: any) => {
-            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update project';
+            const errorMessage =
+              error?.response?.data?.message || error?.message || t('projects.updateFailed');
             setError(errorMessage);
           },
         },
@@ -150,6 +142,7 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
 
   return (
     <Dialog
+      key={i18n.language}
       open={open}
       onClose={handleClose}
       maxWidth="sm"
@@ -164,7 +157,6 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
       <DialogTitle
         sx={{
           pb: 1,
-          // borderBottom: `1px solid ${UI_COLORS.border.light}`,
         }}
       >
         <Typography
@@ -175,11 +167,11 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
             fontSize: UI_TYPOGRAPHY.fontSize.xl,
           }}
         >
-          Edit Project
+          {t('projects.editTitle')}
         </Typography>
       </DialogTitle>
       <DialogContent sx={{ pt: 4 }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt:3 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 3 }}>
           {error && (
             <Alert
               severity="error"
@@ -198,13 +190,13 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
           )}
 
           <TextField
-            label="Project Name"
+            label={t('projects.nameLabel')}
             required
             fullWidth
             value={formData.name}
             onChange={handleChange('name')}
             disabled={projectsState.updateProjectLoading}
-            helperText="A descriptive name for your project"
+            helperText={t('projects.helperName')}
             sx={UI_INPUT_STYLES.default}
             InputLabelProps={{
               shrink: true,
@@ -221,13 +213,13 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
           />
 
           <TextField
-            label="Project Key"
+            label={t('projects.keyLabel')}
             required
             fullWidth
             value={formData.key}
             onChange={handleKeyChange}
             disabled={projectsState.updateProjectLoading}
-            helperText="Unique key (uppercase letters and numbers, max 20 characters)"
+            helperText={t('projects.helperKey')}
             inputProps={{ maxLength: 20 }}
             sx={UI_INPUT_STYLES.default}
             InputLabelProps={{
@@ -267,30 +259,30 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
               },
             }}
           >
-            <InputLabel>Project Type</InputLabel>
+            <InputLabel>{t('projects.typeLabel')}</InputLabel>
             <Select
               value={formData.type}
               onChange={handleChange('type')}
-              label="Project Type"
+              label={t('projects.typeLabel')}
               disabled={projectsState.updateProjectLoading}
             >
-              {projectTypes.map((type) => (
-                <MenuItem key={type.value} value={type.value}>
-                  {type.label}
+              {PROJECT_TYPE_VALUES.map((typeValue) => (
+                <MenuItem key={typeValue} value={typeValue}>
+                  {t(`projects.types.${typeValue}`)}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
 
           <TextField
-            label="Description"
+            label={t('projects.descriptionLabel')}
             fullWidth
             multiline
             rows={3}
             value={formData.description}
             onChange={handleChange('description')}
             disabled={projectsState.updateProjectLoading}
-            helperText="Describe the purpose and goals of this project (optional)"
+            helperText={t('projects.helperDescription')}
             sx={UI_INPUT_STYLES.default}
             InputLabelProps={{
               shrink: true,
@@ -327,7 +319,7 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
             },
           }}
         >
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -343,7 +335,7 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
             ...UI_BUTTON_STYLES.primary,
           }}
         >
-          {projectsState.updateProjectLoading ? 'Saving...' : 'Save Changes'}
+          {projectsState.updateProjectLoading ? t('projects.saving') : t('projects.saveChanges')}
         </Button>
       </DialogActions>
     </Dialog>
@@ -351,7 +343,3 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
 };
 
 export default EditProjectModal;
-
-
-
-

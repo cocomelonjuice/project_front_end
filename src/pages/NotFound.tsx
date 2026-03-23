@@ -2,9 +2,11 @@ import React from 'react';
 import { Box, Typography, Button, Container } from '@mui/material';
 import { Home as HomeIcon, ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { UI_COLORS, UI_TYPOGRAPHY, UI_SPACING, UI_BORDER_RADIUS, UI_SHADOWS, UI_BUTTON_STYLES } from '../shared/constants/src/ui';
 
 const NotFound = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   return (
@@ -60,7 +62,7 @@ const NotFound = () => {
             lineHeight: UI_TYPOGRAPHY.lineHeight.relaxed,
           }}
         >
-          The page you are looking for does not exist or has been moved. Please check the URL or return to the home page.
+          {t('notFound.description')}
         </Typography>
 
         {/* Action Buttons */}
@@ -95,7 +97,7 @@ const NotFound = () => {
               textTransform: 'none',
             }}
           >
-            Go Back
+            {t('notFound.goBack')}
           </Button>
         </Box>
       </Box>

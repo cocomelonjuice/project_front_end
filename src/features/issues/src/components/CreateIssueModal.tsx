@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -33,6 +34,7 @@ interface CreateIssueModalProps {
 }
 
 const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, projectId, reporterId, onIssueCreated }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const usersState = useSelectorUsers((state) => state);
   const referenceDataState = useSelectorReferenceData((state) => state);
@@ -147,12 +149,12 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, proj
 
   const handleSubmit = () => {
     if (!formData.summary.trim()) {
-      setError('Summary is required');
+      setError(t('issueModal.summaryRequired'));
       return;
     }
 
     if (formData.summary.trim().length < 3) {
-      setError('Summary must be at least 3 characters');
+      setError(t('issueModal.summaryMin'));
       return;
     }
 
@@ -195,6 +197,7 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, proj
 
   return (
     <Dialog 
+      key={i18n.language}
       open={open} 
       onClose={handleClose} 
       maxWidth="md" 
@@ -219,7 +222,7 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, proj
             fontSize: UI_TYPOGRAPHY.fontSize.xl,
           }}
         >
-          Create Issue
+          {t('issueModal.title')}
         </Typography>
       </DialogTitle>
       <DialogContent sx={{ pt: 4 }}>
@@ -264,14 +267,14 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, proj
           />
 
           <TextField
-            label="Description"
+            label={t('issueModal.descriptionLabel')}
             fullWidth
             multiline
             rows={4}
             value={formData.description}
             onChange={handleChange('description')}
             disabled={issuesState.createIssueLoading}
-            helperText="Detailed description of the issue (optional)"
+            helperText={t('issueModal.descriptionHelper')}
             sx={UI_INPUT_STYLES.default}
             InputLabelProps={{
               shrink: true,
@@ -289,8 +292,8 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, proj
 
           <Box sx={{ display: 'flex', gap: 2 }}>
             <FormControl fullWidth disabled={issuesState.createIssueLoading || referenceDataState.getIssueTypesLoading}>
-              <InputLabel>Type</InputLabel>
-              <Select value={formData.typeId} onChange={handleChange('typeId')} label="Type">
+              <InputLabel>{t('issueModal.type')}</InputLabel>
+              <Select value={formData.typeId} onChange={handleChange('typeId')} label={t('issueModal.type')}>
                 {referenceDataState.issueTypes.length > 0 ? (
                   referenceDataState.issueTypes.map((type) => (
                     <MenuItem key={type.id} value={type.id}>
@@ -298,14 +301,14 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, proj
                     </MenuItem>
                   ))
                 ) : (
-                  <MenuItem disabled>Loading types...</MenuItem>
+                  <MenuItem disabled>{t('issueModal.loadingTypes')}</MenuItem>
                 )}
               </Select>
             </FormControl>
 
             <FormControl fullWidth disabled={issuesState.createIssueLoading || referenceDataState.getPrioritiesLoading}>
-              <InputLabel>Priority</InputLabel>
-              <Select value={formData.priorityId} onChange={handleChange('priorityId')} label="Priority">
+              <InputLabel>{t('issueModal.priority')}</InputLabel>
+              <Select value={formData.priorityId} onChange={handleChange('priorityId')} label={t('issueModal.priority')}>
                 {referenceDataState.priorities.length > 0 ? (
                   referenceDataState.priorities.map((priority) => (
                     <MenuItem key={priority.id} value={priority.id}>
@@ -313,7 +316,7 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, proj
                     </MenuItem>
                   ))
                 ) : (
-                  <MenuItem disabled>Loading priorities...</MenuItem>
+                  <MenuItem disabled>{t('issueModal.loadingPriorities')}</MenuItem>
                 )}
               </Select>
             </FormControl>
@@ -321,8 +324,8 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, proj
 
           <Box sx={{ display: 'flex', gap: 2 }}>
             <FormControl fullWidth disabled={issuesState.createIssueLoading || referenceDataState.getStatusesLoading}>
-              <InputLabel>Status</InputLabel>
-              <Select value={formData.statusId} onChange={handleChange('statusId')} label="Status">
+              <InputLabel>{t('issueModal.status')}</InputLabel>
+              <Select value={formData.statusId} onChange={handleChange('statusId')} label={t('issueModal.status')}>
                 {referenceDataState.statuses.length > 0 ? (
                   referenceDataState.statuses.map((status) => (
                     <MenuItem key={status.id} value={status.id}>
@@ -330,15 +333,15 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, proj
                     </MenuItem>
                   ))
                 ) : (
-                  <MenuItem disabled>Loading statuses...</MenuItem>
+                  <MenuItem disabled>{t('issueModal.loadingStatuses')}</MenuItem>
                 )}
               </Select>
             </FormControl>
 
             <FormControl fullWidth disabled={issuesState.createIssueLoading || usersState.getUsersLoading}>
-              <InputLabel>Assignee</InputLabel>
-              <Select value={formData.assigneeId} onChange={handleChange('assigneeId')} label="Assignee">
-                <MenuItem value="">Unassigned</MenuItem>
+              <InputLabel>{t('issueModal.assignee')}</InputLabel>
+              <Select value={formData.assigneeId} onChange={handleChange('assigneeId')} label={t('issueModal.assignee')}>
+                <MenuItem value="">{t('issueModal.unassigned')}</MenuItem>
                 {(usersState.users.length > 0 ? usersState.users : mockUsers).map((user) => (
                   <MenuItem key={user.id} value={user.id}>
                     {user.displayName}
@@ -351,7 +354,7 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, proj
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={issuesState.createIssueLoading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -359,7 +362,7 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, proj
           disabled={issuesState.createIssueLoading || !formData.summary.trim()}
           startIcon={issuesState.createIssueLoading ? <CircularProgress size={16} /> : null}
         >
-          {issuesState.createIssueLoading ? 'Creating...' : 'Create'}
+          {issuesState.createIssueLoading ? t('issueModal.creating') : t('issueModal.create')}
         </Button>
       </DialogActions>
     </Dialog>

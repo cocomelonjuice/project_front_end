@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -26,6 +27,7 @@ const EditPriorityModal: React.FC<EditPriorityModalProps> = ({
   priority,
   onPriorityUpdated,
 }) => {
+  const { t, i18n } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
@@ -43,17 +45,17 @@ const EditPriorityModal: React.FC<EditPriorityModalProps> = ({
     if (!priority) return;
 
     if (!name.trim()) {
-      setError('Name is required');
+      setError(t('adminRefData.nameRequired'));
       return;
     }
 
     if (name.length > 50) {
-      setError('Name must be 50 characters or less');
+      setError(t('adminRefData.nameMax50'));
       return;
     }
 
     if (orderNum < 1) {
-      setError('Order number must be at least 1');
+      setError(t('adminRefData.orderMin'));
       return;
     }
 
@@ -70,8 +72,8 @@ const EditPriorityModal: React.FC<EditPriorityModalProps> = ({
         onPriorityUpdated();
       }
       onClose();
-    } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update priority';
+    } catch (err: any) {
+      const errorMessage = err?.response?.data?.message || err?.message || t('adminPriorityModal.updateFailed');
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -88,8 +90,8 @@ const EditPriorityModal: React.FC<EditPriorityModalProps> = ({
   if (!priority) return null;
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Edit Priority</DialogTitle>
+    <Dialog key={i18n.language} open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{t('adminPriorityModal.editTitle')}</DialogTitle>
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 2 }}>
           {error && (
@@ -99,7 +101,7 @@ const EditPriorityModal: React.FC<EditPriorityModalProps> = ({
           )}
 
           <TextField
-            label="Name"
+            label={t('adminRefData.nameLabel')}
             required
             fullWidth
             value={name}
@@ -112,15 +114,15 @@ const EditPriorityModal: React.FC<EditPriorityModalProps> = ({
           />
 
           <TextField
-            label="Order Number"
+            label={t('adminRefData.orderLabel')}
             required
             fullWidth
             type="number"
             value={orderNum}
-            onChange={(e) => setOrderNum(parseInt(e.target.value) || 1)}
+            onChange={(e) => setOrderNum(parseInt(e.target.value, 10) || 1)}
             disabled={loading}
             inputProps={{ min: 1 }}
-            helperText="Lower numbers appear first"
+            helperText={t('adminRefData.orderHelper')}
             InputLabelProps={{
               shrink: true,
             }}
@@ -129,7 +131,7 @@ const EditPriorityModal: React.FC<EditPriorityModalProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={loading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -137,7 +139,7 @@ const EditPriorityModal: React.FC<EditPriorityModalProps> = ({
           disabled={loading || !name.trim()}
           startIcon={loading ? <CircularProgress size={16} /> : null}
         >
-          {loading ? 'Saving...' : 'Save Changes'}
+          {loading ? t('adminRefData.saving') : t('adminRefData.saveChanges')}
         </Button>
       </DialogActions>
     </Dialog>
@@ -145,7 +147,3 @@ const EditPriorityModal: React.FC<EditPriorityModalProps> = ({
 };
 
 export default EditPriorityModal;
-
-
-
-

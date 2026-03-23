@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import {
   Dialog,
@@ -29,6 +30,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
   user,
   onUserUpdated,
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const adminState = useSelectorAdmin((state) => state);
   const [error, setError] = useState<string | null>(null);
@@ -97,7 +99,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
             onClose();
           },
           onError: (error: any) => {
-            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update user';
+            const errorMessage = error?.response?.data?.message || error?.message || t('adminUserForm.updateFailed');
             setError(errorMessage);
           },
         },
@@ -126,11 +128,11 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
           )}
 
           <TextField
-            label="Username"
+            label={t('adminUserForm.username')}
             fullWidth
             value={user.username}
             disabled
-            helperText="Username cannot be changed"
+            helperText={t('adminUserForm.usernameDisabledHelper')}
             InputLabelProps={{
               shrink: true,
             }}
@@ -149,7 +151,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
           />
 
           <TextField
-            label="Email"
+            label={t('adminUserForm.email')}
             required
             fullWidth
             type="email"
@@ -175,7 +177,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={adminState.updateUserLoading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -183,7 +185,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
           disabled={adminState.updateUserLoading || !formData.displayName.trim() || !formData.email.trim()}
           startIcon={adminState.updateUserLoading ? <CircularProgress size={16} /> : null}
         >
-          {adminState.updateUserLoading ? 'Saving...' : 'Save Changes'}
+          {adminState.updateUserLoading ? t('adminUserForm.saving') : t('adminUserForm.saveChanges')}
         </Button>
       </DialogActions>
     </Dialog>

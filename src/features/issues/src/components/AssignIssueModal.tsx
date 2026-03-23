@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -44,6 +45,7 @@ const AssignIssueModal: React.FC<AssignIssueModalProps> = ({
   availableUsers: propAvailableUsers,
   onIssueAssigned,
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const usersState = useSelectorUsers((state) => state);
   const issuesState = useSelectorIssues((state) => state);
@@ -110,8 +112,8 @@ const AssignIssueModal: React.FC<AssignIssueModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Assign Issue</DialogTitle>
+    <Dialog key={i18n.language} open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{t('assignIssueModal.title')}</DialogTitle>
       <DialogContent>
         <Box sx={{ pt: 1 }}>
           <TextField
@@ -145,8 +147,8 @@ const AssignIssueModal: React.FC<AssignIssueModalProps> = ({
                   />
                 </ListItemIcon>
                 <ListItemText
-                  primary="Unassigned"
-                  secondary="No one assigned to this issue"
+                  primary={t('assignIssueModal.unassignedPrimary')}
+                  secondary={t('assignIssueModal.unassignedSecondary')}
                 />
               </ListItemButton>
             </ListItem>
@@ -157,7 +159,7 @@ const AssignIssueModal: React.FC<AssignIssueModalProps> = ({
                 <ListItemText
                   primary={
                     <Typography variant="body2" color="text.secondary">
-                      {searchQuery ? 'No users found' : 'No users available'}
+                      {searchQuery ? t('assignIssueModal.noUsersFound') : t('assignIssueModal.noUsersAvailable')}
                     </Typography>
                   }
                 />
@@ -200,7 +202,7 @@ const AssignIssueModal: React.FC<AssignIssueModalProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={isSubmitting}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         {currentAssigneeId && (
           <Button
@@ -209,7 +211,7 @@ const AssignIssueModal: React.FC<AssignIssueModalProps> = ({
             disabled={isSubmitting}
             startIcon={isSubmitting ? <CircularProgress size={16} /> : <PersonIcon />}
           >
-            Unassign
+            {t('assignIssueModal.unassign')}
           </Button>
         )}
         <Button
@@ -218,7 +220,7 @@ const AssignIssueModal: React.FC<AssignIssueModalProps> = ({
           disabled={isSubmitting}
           startIcon={isSubmitting ? <CircularProgress size={16} /> : <PersonIcon />}
         >
-          {isSubmitting ? 'Assigning...' : 'Assign'}
+          {isSubmitting ? t('assignIssueModal.assigning') : t('assignIssueModal.assign')}
         </Button>
       </DialogActions>
     </Dialog>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -30,6 +31,7 @@ const DeleteAttachmentDialog: React.FC<DeleteAttachmentDialogProps> = ({
   attachment,
   onAttachmentDeleted,
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const attachmentsState = useSelectorAttachments((state) => state);
   const [error, setError] = useState<string | null>(null);
@@ -68,8 +70,8 @@ const DeleteAttachmentDialog: React.FC<DeleteAttachmentDialogProps> = ({
   if (!attachment) return null;
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Delete Attachment</DialogTitle>
+    <Dialog key={i18n.language} open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{t('deleteAttachmentDialog.title')}</DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -90,15 +92,15 @@ const DeleteAttachmentDialog: React.FC<DeleteAttachmentDialogProps> = ({
         </Box>
 
         <DialogContentText>
-          Are you sure you want to delete this attachment?
+          {t('deleteAttachmentDialog.confirm')}
           <br />
           <br />
-          This action cannot be undone. The file will be permanently removed.
+          {t('deleteAttachmentDialog.warning')}
         </DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={attachmentsState.deleteAttachmentLoading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleDelete}
@@ -107,7 +109,9 @@ const DeleteAttachmentDialog: React.FC<DeleteAttachmentDialogProps> = ({
           disabled={attachmentsState.deleteAttachmentLoading}
           startIcon={attachmentsState.deleteAttachmentLoading ? <CircularProgress size={16} /> : null}
         >
-          {attachmentsState.deleteAttachmentLoading ? 'Deleting...' : 'Delete'}
+          {attachmentsState.deleteAttachmentLoading
+            ? t('deleteAttachmentDialog.deleting')
+            : t('deleteAttachmentDialog.delete')}
         </Button>
       </DialogActions>
     </Dialog>

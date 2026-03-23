@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -32,6 +33,7 @@ const TabPanel: React.FC<TabPanelProps> = ({ children, value, index }) => {
 };
 
 const AdminDashboard: React.FC = () => {
+  const { t } = useTranslation();
   const { checkRole } = useAuth();
   const navigate = useNavigate();
   const [tabValue, setTabValue] = useState(0);
@@ -67,7 +69,7 @@ const AdminDashboard: React.FC = () => {
           fontSize: UI_TYPOGRAPHY.fontSize['2xl'],
         }}
       >
-        Admin Management
+        {t('adminPage.title')}
       </Typography>
 
       <Paper
@@ -107,13 +109,13 @@ const AdminDashboard: React.FC = () => {
           <Tab
             icon={<PeopleIcon />}
             iconPosition="start"
-            label="Users"
+            label={t('adminPage.tabUsers')}
             value={0}
           />
           <Tab
             icon={<SettingsIcon />}
             iconPosition="start"
-            label="System Settings"
+            label={t('adminPage.tabSystemSettings')}
             value={1}
           />
         </Tabs>

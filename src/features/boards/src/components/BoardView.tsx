@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Typography,
@@ -18,6 +19,7 @@ interface BoardViewProps {
 }
 
 const BoardView: React.FC<BoardViewProps> = ({ issues, columns, onIssueMove }) => {
+  const { t } = useTranslation();
   const [draggedIssue, setDraggedIssue] = useState<Issue | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
 
@@ -162,7 +164,7 @@ const BoardView: React.FC<BoardViewProps> = ({ issues, columns, onIssueMove }) =
                             }}
                           />
                           <Chip
-                            label={priority?.name || 'Unknown'}
+                            label={priority?.name || t('projectDetail.unknown')}
                             size="small"
                             sx={{
                               bgcolor: priority?.color || '#ccc',

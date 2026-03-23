@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -26,6 +27,7 @@ const EditIssueTypeModal: React.FC<EditIssueTypeModalProps> = ({
   issueType,
   onIssueTypeUpdated,
 }) => {
+  const { t, i18n } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
@@ -43,12 +45,12 @@ const EditIssueTypeModal: React.FC<EditIssueTypeModalProps> = ({
     if (!issueType) return;
 
     if (!name.trim()) {
-      setError('Name is required');
+      setError(t('adminRefData.nameRequired'));
       return;
     }
 
     if (name.length > 50) {
-      setError('Name must be 50 characters or less');
+      setError(t('adminRefData.nameMax50'));
       return;
     }
 
@@ -66,7 +68,7 @@ const EditIssueTypeModal: React.FC<EditIssueTypeModalProps> = ({
       }
       onClose();
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update issue type';
+      const errorMessage = error?.response?.data?.message || error?.message || t('adminIssueTypeModal.updateFailed');
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -83,8 +85,8 @@ const EditIssueTypeModal: React.FC<EditIssueTypeModalProps> = ({
   if (!issueType) return null;
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Edit Issue Type</DialogTitle>
+    <Dialog key={i18n.language} open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{t('adminIssueTypeModal.editTitle')}</DialogTitle>
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 2 }}>
           {error && (
@@ -94,7 +96,7 @@ const EditIssueTypeModal: React.FC<EditIssueTypeModalProps> = ({
           )}
 
           <TextField
-            label="Name"
+            label={t('adminRefData.nameLabel')}
             required
             fullWidth
             value={name}
@@ -107,7 +109,7 @@ const EditIssueTypeModal: React.FC<EditIssueTypeModalProps> = ({
           />
 
           <TextField
-            label="Description"
+            label={t('adminRefData.descriptionLabel')}
             fullWidth
             multiline
             rows={3}
@@ -122,7 +124,7 @@ const EditIssueTypeModal: React.FC<EditIssueTypeModalProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={loading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -130,7 +132,7 @@ const EditIssueTypeModal: React.FC<EditIssueTypeModalProps> = ({
           disabled={loading || !name.trim()}
           startIcon={loading ? <CircularProgress size={16} /> : null}
         >
-          {loading ? 'Saving...' : 'Save Changes'}
+          {loading ? t('adminRefData.saving') : t('adminRefData.saveChanges')}
         </Button>
       </DialogActions>
     </Dialog>

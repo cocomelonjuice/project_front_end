@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -32,6 +33,7 @@ const AddTransitionModal: React.FC<AddTransitionModalProps> = ({
   existingTransitions = [],
   onTransitionAdded,
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const workflowsState = useSelectorWorkflows((state) => state);
   const referenceDataState = useSelectorReferenceData((state) => state);
@@ -82,7 +84,7 @@ const AddTransitionModal: React.FC<AddTransitionModalProps> = ({
         (t) => t.fromStatusId === fromStatus.id && t.toStatusId === toStatus.id,
       )
     ) {
-      newErrors.toStatus = 'This transition already exists';
+      newErrors.toStatus = t('addTransitionModal.duplicate');
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -124,8 +126,8 @@ const AddTransitionModal: React.FC<AddTransitionModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Add Transition</DialogTitle>
+    <Dialog key={i18n.language} open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{t('addTransitionModal.title')}</DialogTitle>
       <DialogContent>
         <Box sx={{ pt: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
           {errors.general && (
@@ -175,7 +177,7 @@ const AddTransitionModal: React.FC<AddTransitionModalProps> = ({
             renderInput={(params) => (
               <TextField
                 {...params}
-                label="To Status"
+                label={t('addTransitionModal.toStatus')}
                 variant="outlined"
                 fullWidth
                 error={!!errors.toStatus}
@@ -200,7 +202,7 @@ const AddTransitionModal: React.FC<AddTransitionModalProps> = ({
           disabled={workflowsState.addTransitionLoading || !fromStatus || !toStatus}
           startIcon={workflowsState.addTransitionLoading ? <CircularProgress size={16} /> : null}
         >
-          {workflowsState.addTransitionLoading ? 'Adding...' : 'Add Transition'}
+          {workflowsState.addTransitionLoading ? t('addTransitionModal.adding') : t('addTransitionModal.add')}
         </Button>
       </DialogActions>
     </Dialog>

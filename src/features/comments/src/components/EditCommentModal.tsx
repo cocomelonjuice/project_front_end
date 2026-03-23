@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -27,6 +28,7 @@ const EditCommentModal: React.FC<EditCommentModalProps> = ({
   comment,
   onCommentUpdated,
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const commentsState = useSelectorComments((state) => state);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +44,7 @@ const EditCommentModal: React.FC<EditCommentModalProps> = ({
 
   const handleSubmit = () => {
     if (!content.trim()) {
-      setError('Comment content is required');
+      setError(t('commentModal.contentRequired'));
       return;
     }
 
@@ -62,7 +64,8 @@ const EditCommentModal: React.FC<EditCommentModalProps> = ({
             onClose();
           },
           onError: (error: any) => {
-            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update comment';
+            const errorMessage =
+              error?.response?.data?.message || error?.message || t('commentModal.updateFailed');
             setError(errorMessage);
           },
         },
@@ -80,8 +83,8 @@ const EditCommentModal: React.FC<EditCommentModalProps> = ({
   if (!comment) return null;
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Edit Comment</DialogTitle>
+    <Dialog key={i18n.language} open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{t('commentModal.editTitle')}</DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -91,7 +94,7 @@ const EditCommentModal: React.FC<EditCommentModalProps> = ({
 
         <Box sx={{ pt: 1 }}>
           <TextField
-            label="Comment"
+            label={t('commentModal.contentLabel')}
             fullWidth
             multiline
             rows={6}
@@ -107,7 +110,7 @@ const EditCommentModal: React.FC<EditCommentModalProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={commentsState.updateCommentLoading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -115,7 +118,9 @@ const EditCommentModal: React.FC<EditCommentModalProps> = ({
           disabled={commentsState.updateCommentLoading || !content.trim()}
           startIcon={commentsState.updateCommentLoading ? <CircularProgress size={16} /> : null}
         >
-          {commentsState.updateCommentLoading ? 'Updating...' : 'Update Comment'}
+          {commentsState.updateCommentLoading
+            ? t('commentModal.updating')
+            : t('commentModal.updateComment')}
         </Button>
       </DialogActions>
     </Dialog>

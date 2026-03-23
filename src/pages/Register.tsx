@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Container,
@@ -13,11 +14,13 @@ import {
   Link as MuiLink,
 } from '@mui/material';
 import { authActions, useSelectorAuth } from '../features/auth/src/store';
-import { UI_COLORS, UI_TYPOGRAPHY, UI_SPACING, UI_BORDER_RADIUS, UI_SHADOWS, UI_TRANSITIONS, UI_INPUT_STYLES, UI_BUTTON_STYLES } from '../shared/constants/src/ui';
+import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS, UI_TRANSITIONS, UI_INPUT_STYLES, UI_BUTTON_STYLES } from '../shared/constants/src/ui';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { t, i18n } = useTranslation();
   const authState = useSelectorAuth((state) => state);
 
   const [username, setUsername] = useState('');
@@ -42,32 +45,32 @@ const Register: React.FC = () => {
 
   const validateForm = () => {
     if (!username.trim() || !email.trim() || !displayName.trim() || !password.trim()) {
-      setError('Please fill in all fields');
+      setError(t('auth.fillAllFields'));
       return false;
     }
 
     if (username.length < 3 || username.length > 50) {
-      setError('Username must be between 3 and 50 characters');
+      setError(t('auth.usernameLength'));
       return false;
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError('Please enter a valid email address');
+      setError(t('auth.invalidEmail'));
       return false;
     }
 
     if (displayName.length < 3 || displayName.length > 100) {
-      setError('Display name must be between 3 and 100 characters');
+      setError(t('auth.displayNameLength'));
       return false;
     }
 
     if (password.length < 8 || password.length > 100) {
-      setError('Password must be between 8 and 100 characters');
+      setError(t('auth.passwordLength'));
       return false;
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('auth.passwordsMismatch'));
       return false;
     }
 
@@ -95,7 +98,7 @@ const Register: React.FC = () => {
             navigate('/');
           },
           onError: (err: any) => {
-            const errorMsg = err?.response?.data?.message || err?.message || 'Registration failed';
+            const errorMsg = err?.response?.data?.message || err?.message || t('auth.registrationFailed');
             setError(errorMsg);
           },
         },
@@ -106,6 +109,7 @@ const Register: React.FC = () => {
   return (
     <Box
       sx={{
+        position: 'relative',
         minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
@@ -114,6 +118,9 @@ const Register: React.FC = () => {
         py: 4,
       }}
     >
+      <Box sx={{ position: 'absolute', top: 16, right: 16, zIndex: 1 }}>
+        <LanguageSwitcher variant="light" />
+      </Box>
       <Container maxWidth="sm">
         <Paper
           elevation={0}
@@ -138,7 +145,7 @@ const Register: React.FC = () => {
                 fontSize: { xs: UI_TYPOGRAPHY.fontSize['2xl'], sm: UI_TYPOGRAPHY.fontSize['3xl'] },
               }}
             >
-              Create Account
+              {t('auth.registerTitle')}
             </Typography>
             <Typography
               variant="body1"
@@ -148,7 +155,7 @@ const Register: React.FC = () => {
                 lineHeight: UI_TYPOGRAPHY.lineHeight.relaxed,
               }}
             >
-              Join us to start managing your projects
+              {t('auth.registerSubtitle')}
             </Typography>
           </Box>
 
@@ -188,17 +195,17 @@ const Register: React.FC = () => {
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit}>
+          <form key={i18n.language} onSubmit={handleSubmit}>
             <TextField
               fullWidth
-              label="Username"
+              label={t('auth.username')}
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
               autoFocus
               disabled={authState.registerLoading}
-              helperText="3-50 characters"
+              helperText={t('auth.helperUsernameLength')}
               sx={{
                 mb: 2.5,
                 ...UI_INPUT_STYLES.default,
@@ -211,7 +218,7 @@ const Register: React.FC = () => {
 
             <TextField
               fullWidth
-              label="Email"
+              label={t('auth.email')}
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -244,13 +251,13 @@ const Register: React.FC = () => {
 
             <TextField
               fullWidth
-              label="Password"
+              label={t('auth.password')}
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={authState.registerLoading}
-              helperText="8-100 characters"
+              helperText={t('auth.helperPasswordLength')}
               sx={{
                 mb: 2.5,
                 ...UI_INPUT_STYLES.default,
@@ -263,7 +270,7 @@ const Register: React.FC = () => {
 
             <TextField
               fullWidth
-              label="Confirm Password"
+              label={t('auth.confirmPassword')}
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -294,7 +301,7 @@ const Register: React.FC = () => {
               {authState.registerLoading ? (
                 <CircularProgress size={24} sx={{ color: UI_COLORS.primary.contrast }} />
               ) : (
-                'Create Account'
+                t('auth.registerSubmit')
               )}
             </Button>
 
@@ -307,7 +314,7 @@ const Register: React.FC = () => {
                   fontSize: UI_TYPOGRAPHY.fontSize.sm,
                 }}
               >
-                Already have an account?{' '}
+                {t('auth.hasAccount')}{' '}
                 <MuiLink
                   component={Link}
                   to="/login"
@@ -320,7 +327,7 @@ const Register: React.FC = () => {
                     },
                   }}
                 >
-                  Sign in
+                  {t('auth.signInLink')}
                 </MuiLink>
               </Typography>
             </Box>

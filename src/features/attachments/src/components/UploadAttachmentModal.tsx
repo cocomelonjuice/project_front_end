@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -37,6 +38,7 @@ const UploadAttachmentModal: React.FC<UploadAttachmentModalProps> = ({
   uploadedById,
   onAttachmentUploaded,
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const authState = useSelectorAuth((state) => state);
   const currentUser = authState.user;
@@ -66,7 +68,7 @@ const UploadAttachmentModal: React.FC<UploadAttachmentModalProps> = ({
       // Check file size (e.g., max 10MB)
       const maxSize = 10 * 1024 * 1024; // 10MB
       if (file.size > maxSize) {
-        setError(`File size exceeds the maximum limit of ${formatFileSize(maxSize)}`);
+        setError(t('uploadAttachmentModal.fileTooLarge', { max: formatFileSize(maxSize) }));
         setSelectedFile(null);
         return;
       }
@@ -84,12 +86,12 @@ const UploadAttachmentModal: React.FC<UploadAttachmentModalProps> = ({
 
   const handleSubmit = () => {
     if (!selectedFile) {
-      setError('Please select a file to upload');
+      setError(t('uploadAttachmentModal.selectFileRequired'));
       return;
     }
 
     if (!finalUploadedById) {
-      setError('User not authenticated');
+      setError(t('uploadAttachmentModal.notAuthenticated'));
       return;
     }
 
@@ -112,7 +114,8 @@ const UploadAttachmentModal: React.FC<UploadAttachmentModalProps> = ({
             onClose();
           },
           onError: (error: any) => {
-            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to upload attachment';
+            const errorMessage =
+              error?.response?.data?.message || error?.message || t('uploadAttachmentModal.uploadFailed');
             setError(errorMessage);
           },
         },
@@ -156,10 +159,10 @@ const UploadAttachmentModal: React.FC<UploadAttachmentModalProps> = ({
             >
               <CloudUploadIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
               <Typography variant="body1" gutterBottom>
-                Click to select a file
+                {t('uploadAttachmentModal.clickToSelect')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Maximum file size: 10MB
+                {t('uploadAttachmentModal.maxSizeHint', { size: formatFileSize(10 * 1024 * 1024) })}
               </Typography>
               <input
                 ref={fileInputRef}
@@ -187,7 +190,8 @@ const UploadAttachmentModal: React.FC<UploadAttachmentModalProps> = ({
                   {selectedFile.name}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  {formatFileSize(selectedFile.size)} • {selectedFile.type || 'Unknown type'}
+                  {formatFileSize(selectedFile.size)} •{' '}
+                  {selectedFile.type || t('uploadAttachmentModal.unknownType')}
                 </Typography>
               </Box>
               <IconButton
@@ -204,7 +208,7 @@ const UploadAttachmentModal: React.FC<UploadAttachmentModalProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={attachmentsState.uploadAttachmentLoading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -212,7 +216,9 @@ const UploadAttachmentModal: React.FC<UploadAttachmentModalProps> = ({
           disabled={attachmentsState.uploadAttachmentLoading || !selectedFile}
           startIcon={attachmentsState.uploadAttachmentLoading ? <CircularProgress size={16} /> : <CloudUploadIcon />}
         >
-          {attachmentsState.uploadAttachmentLoading ? 'Uploading...' : 'Upload'}
+          {attachmentsState.uploadAttachmentLoading
+            ? t('uploadAttachmentModal.uploading')
+            : t('uploadAttachmentModal.upload')}
         </Button>
       </DialogActions>
     </Dialog>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import {
   Dialog,
@@ -31,6 +32,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
   existingEmails = [],
   existingUsernames = [],
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const adminState = useSelectorAdmin((state) => state);
   const [error, setError] = useState<string | null>(null);
@@ -150,7 +152,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
         })
       );
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to create user';
+      const errorMessage = error?.response?.data?.message || error?.message || t('adminUserForm.createFailed');
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -190,7 +192,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
             fontSize: UI_TYPOGRAPHY.fontSize.xl,
           }}
         >
-          Add New User
+          {t('adminUserForm.addTitle')}
         </Typography>
       </DialogTitle>
       <DialogContent>
@@ -216,7 +218,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
           />
 
           <TextField
-            label="Display Name"
+            label={t('adminUserForm.displayName')}
             required
             fullWidth
             value={formData.displayName}
@@ -242,14 +244,14 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
           />
 
           <TextField
-            label="Password"
+            label={t('adminUserForm.password')}
             required
             fullWidth
             type="password"
             value={formData.password}
             onChange={handleChange('password')}
             disabled={loading}
-            helperText="Must be at least 6 characters"
+            helperText={t('adminUserForm.passwordHelper')}
             InputLabelProps={{
               shrink: true,
             }}
@@ -271,7 +273,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={loading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -286,7 +288,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
           }
           startIcon={loading ? <CircularProgress size={16} /> : null}
         >
-          {loading ? 'Creating...' : 'Create User'}
+          {loading ? t('adminUserForm.creatingUser') : t('adminUserForm.createUser')}
         </Button>
       </DialogActions>
     </Dialog>

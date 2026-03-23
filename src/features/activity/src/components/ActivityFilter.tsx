@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   FormControl,
@@ -14,29 +15,26 @@ interface ActivityFilterProps {
   onEntityTypeChange: (entityType: EntityTypeFilter) => void;
 }
 
-const ActivityFilter: React.FC<ActivityFilterProps> = ({
-  entityType,
-  onEntityTypeChange,
-}) => {
+const ActivityFilter: React.FC<ActivityFilterProps> = ({ entityType, onEntityTypeChange }) => {
+  const { t, i18n } = useTranslation();
+
   const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     onEntityTypeChange(event.target.value as EntityTypeFilter);
   };
 
+  const label = t('projectDetail.activityFilterLabel');
+
   return (
     <Box sx={{ mb: 2 }}>
-      <FormControl size="small" sx={{ minWidth: 200 }}>
-        <InputLabel>Filter by Type</InputLabel>
-        <Select
-          value={entityType}
-          label="Filter by Type"
-          onChange={handleChange}
-        >
-          <MenuItem value="all">All Activity</MenuItem>
-          <MenuItem value="issue">Issues</MenuItem>
-          <MenuItem value="project">Projects</MenuItem>
-          <MenuItem value="comment">Comments</MenuItem>
-          <MenuItem value="attachment">Attachments</MenuItem>
-          <MenuItem value="sprint">Sprints</MenuItem>
+      <FormControl key={i18n.language} size="small" sx={{ minWidth: 200 }}>
+        <InputLabel>{label}</InputLabel>
+        <Select value={entityType} label={label} onChange={handleChange}>
+          <MenuItem value="all">{t('projectDetail.activityFilterAll')}</MenuItem>
+          <MenuItem value="issue">{t('projectDetail.activityFilterIssue')}</MenuItem>
+          <MenuItem value="project">{t('projectDetail.activityFilterProject')}</MenuItem>
+          <MenuItem value="comment">{t('projectDetail.activityFilterComment')}</MenuItem>
+          <MenuItem value="attachment">{t('projectDetail.activityFilterAttachment')}</MenuItem>
+          <MenuItem value="sprint">{t('projectDetail.activityFilterSprint')}</MenuItem>
         </Select>
       </FormControl>
     </Box>

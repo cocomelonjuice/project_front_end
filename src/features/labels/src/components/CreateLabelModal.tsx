@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -30,6 +31,7 @@ const CreateLabelModal: React.FC<CreateLabelModalProps> = ({
   onLabelCreated,
   existingLabels = [],
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const labelsState = useSelectorLabels((state) => state);
   const [error, setError] = useState<string | null>(null);
@@ -50,12 +52,12 @@ const CreateLabelModal: React.FC<CreateLabelModalProps> = ({
   const handleSubmit = () => {
     // Validation
     if (!name.trim()) {
-      setError('Label name is required');
+      setError(t('labelModal.nameRequired'));
       return;
     }
 
     if (name.length > 50) {
-      setError('Label name must be 50 characters or less');
+      setError(t('labelModal.nameMax'));
       return;
     }
 
@@ -64,13 +66,13 @@ const CreateLabelModal: React.FC<CreateLabelModalProps> = ({
       (l) => l.name.toLowerCase() === name.trim().toLowerCase()
     );
     if (nameExists) {
-      setError('A label with this name already exists');
+      setError(t('labelModal.duplicateName'));
       return;
     }
 
     // Validate color if provided
     if (color && !isValidHexColor(color)) {
-      setError('Color must be a valid hex color code (e.g., #FF5733)');
+      setError(t('labelModal.colorInvalid'));
       return;
     }
 
@@ -92,7 +94,8 @@ const CreateLabelModal: React.FC<CreateLabelModalProps> = ({
             onClose();
           },
           onError: (error: any) => {
-            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to create label';
+            const errorMessage =
+              error?.response?.data?.message || error?.message || t('labelModal.createFailed');
             setError(errorMessage);
           },
         },
@@ -109,6 +112,7 @@ const CreateLabelModal: React.FC<CreateLabelModalProps> = ({
 
   return (
     <Dialog
+      key={i18n.language}
       open={open}
       onClose={handleClose}
       maxWidth="sm"
@@ -133,7 +137,7 @@ const CreateLabelModal: React.FC<CreateLabelModalProps> = ({
             fontSize: UI_TYPOGRAPHY.fontSize.xl,
           }}
         >
-          Create Label
+          {t('labelModal.createTitle')}
         </Typography>
       </DialogTitle>
       <DialogContent>
@@ -145,7 +149,7 @@ const CreateLabelModal: React.FC<CreateLabelModalProps> = ({
 
         <Box sx={{ pt: 1 }}>
           <TextField
-            label="Name"
+            label={t('labelModal.nameLabel')}
             fullWidth
             required
             value={name}
@@ -154,7 +158,7 @@ const CreateLabelModal: React.FC<CreateLabelModalProps> = ({
             autoFocus
             sx={{ mb: 2 }}
             inputProps={{ maxLength: 50 }}
-            helperText={`${name.length}/50 characters`}
+            helperText={t('labelModal.charCount50', { current: name.length })}
             InputLabelProps={{
               shrink: true,
             }}
@@ -162,7 +166,7 @@ const CreateLabelModal: React.FC<CreateLabelModalProps> = ({
 
           <Box sx={{ mb: 2 }}>
             <Typography variant="body2" color="text.secondary" gutterBottom>
-              Color
+              {t('labelModal.colorSection')}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Box
@@ -190,7 +194,7 @@ const CreateLabelModal: React.FC<CreateLabelModalProps> = ({
                 size="small"
                 sx={{ flex: 1 }}
                 error={color ? !isValidHexColor(color) : false}
-                helperText={color && !isValidHexColor(color) ? 'Invalid hex color' : ''}
+                helperText={color && !isValidHexColor(color) ? t('labelModal.invalidHex') : ''}
                 InputLabelProps={{
                   shrink: true,
                 }}
@@ -199,7 +203,7 @@ const CreateLabelModal: React.FC<CreateLabelModalProps> = ({
           </Box>
 
           <TextField
-            label="Description (Optional)"
+            label={t('labelModal.descriptionOptional')}
             fullWidth
             multiline
             rows={3}
@@ -214,7 +218,7 @@ const CreateLabelModal: React.FC<CreateLabelModalProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={labelsState.createLabelLoading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -222,7 +226,7 @@ const CreateLabelModal: React.FC<CreateLabelModalProps> = ({
           disabled={labelsState.createLabelLoading || !name.trim()}
           startIcon={labelsState.createLabelLoading ? <CircularProgress size={16} /> : null}
         >
-          {labelsState.createLabelLoading ? 'Creating...' : 'Create Label'}
+          {labelsState.createLabelLoading ? t('labelModal.creating') : t('labelModal.createLabel')}
         </Button>
       </DialogActions>
     </Dialog>

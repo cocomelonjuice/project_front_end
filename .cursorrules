@@ -1,0 +1,11 @@
+# Project conventions (frontend)
+
+## react-i18next / `useTranslation`
+- Importing `useTranslation` from `react-i18next` is **not enough**.
+- In **every** React function component that uses `t(...)` or `i18n`, call the hook at the top of that component:
+  - `const { t, i18n } = useTranslation();` (use `i18n` only if needed, e.g. `key={i18n.language}` on MUI `Dialog`).
+- Omitting the hook causes **runtime** `ReferenceError: t is not defined` (TypeScript does not catch this).
+- After replacing strings with `t('...')`, run `npx tsc --noEmit` and smoke-test the affected screen.
+
+## Locale files
+- Add new keys to **both** `src/locales/en.json` and `src/locales/vi.json` with the same structure.

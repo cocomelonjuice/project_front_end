@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Typography,
@@ -28,6 +29,9 @@ const CommentList: React.FC<CommentListProps> = ({
   onDelete,
   currentUserId,
 }) => {
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language?.startsWith('vi') ? 'vi-VN' : 'en-US';
+
   const [menuAnchor, setMenuAnchor] = React.useState<null | HTMLElement>(null);
   const [selectedComment, setSelectedComment] = React.useState<Comment | null>(null);
 
@@ -58,7 +62,7 @@ const CommentList: React.FC<CommentListProps> = ({
   if (comments.length === 0) {
     return (
       <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
-        No comments yet. Be the first to comment!
+        {t('commentList.empty')}
       </Typography>
     );
   }
@@ -91,10 +95,10 @@ const CommentList: React.FC<CommentListProps> = ({
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                      {author?.displayName || 'Unknown User'}
+                      {author?.displayName || t('commentList.unknownUser')}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {new Date(comment.createdAt).toLocaleDateString('en-US', {
+                      {new Date(comment.createdAt).toLocaleDateString(dateLocale, {
                         year: 'numeric',
                         month: 'short',
                         day: 'numeric',
@@ -104,7 +108,7 @@ const CommentList: React.FC<CommentListProps> = ({
                     </Typography>
                     {comment.updatedAt !== comment.createdAt && (
                       <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                        (edited)
+                        {t('commentList.edited')}
                       </Typography>
                     )}
                   </Box>
@@ -141,13 +145,13 @@ const CommentList: React.FC<CommentListProps> = ({
         {onEdit && (
           <MenuItem onClick={handleEdit}>
             <EditIcon sx={{ mr: 1, fontSize: 18 }} />
-            Edit
+            {t('home.edit')}
           </MenuItem>
         )}
         {onDelete && (
           <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
             <DeleteIcon sx={{ mr: 1, fontSize: 18 }} />
-            Delete
+            {t('home.delete')}
           </MenuItem>
         )}
       </Menu>
@@ -156,6 +160,3 @@ const CommentList: React.FC<CommentListProps> = ({
 };
 
 export default CommentList;
-
-
-

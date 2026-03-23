@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -27,6 +28,7 @@ const AddPriorityModal: React.FC<AddPriorityModalProps> = ({
   onPriorityAdded,
   existingNames = [],
 }) => {
+  const { t, i18n } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
@@ -42,22 +44,22 @@ const AddPriorityModal: React.FC<AddPriorityModalProps> = ({
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      setError('Name is required');
+      setError(t('adminRefData.nameRequired'));
       return;
     }
 
     if (name.length > 50) {
-      setError('Name must be 50 characters or less');
+      setError(t('adminRefData.nameMax50'));
       return;
     }
 
     if (existingNames.includes(name.trim().toLowerCase())) {
-      setError('A priority with this name already exists');
+      setError(t('adminPriorityModal.duplicate'));
       return;
     }
 
     if (orderNum < 1) {
-      setError('Order number must be at least 1');
+      setError(t('adminRefData.orderMin'));
       return;
     }
 
@@ -75,7 +77,7 @@ const AddPriorityModal: React.FC<AddPriorityModalProps> = ({
       }
       onClose();
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to create priority';
+      const errorMessage = error?.response?.data?.message || error?.message || t('adminPriorityModal.createFailed');
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -91,6 +93,7 @@ const AddPriorityModal: React.FC<AddPriorityModalProps> = ({
 
   return (
     <Dialog
+      key={i18n.language}
       open={open}
       onClose={handleClose}
       maxWidth="sm"
@@ -115,7 +118,7 @@ const AddPriorityModal: React.FC<AddPriorityModalProps> = ({
             fontSize: UI_TYPOGRAPHY.fontSize.xl,
           }}
         >
-          Add Priority
+          {t('adminPriorityModal.addTitle')}
         </Typography>
       </DialogTitle>
       <DialogContent>
@@ -127,7 +130,7 @@ const AddPriorityModal: React.FC<AddPriorityModalProps> = ({
           )}
 
           <TextField
-            label="Name"
+            label={t('adminRefData.nameLabel')}
             required
             fullWidth
             value={name}
@@ -141,15 +144,15 @@ const AddPriorityModal: React.FC<AddPriorityModalProps> = ({
           />
 
           <TextField
-            label="Order Number"
+            label={t('adminRefData.orderLabel')}
             required
             fullWidth
             type="number"
             value={orderNum}
-            onChange={(e) => setOrderNum(parseInt(e.target.value) || 1)}
+            onChange={(e) => setOrderNum(parseInt(e.target.value, 10) || 1)}
             disabled={loading}
             inputProps={{ min: 1 }}
-            helperText="Lower numbers appear first"
+            helperText={t('adminRefData.orderHelper')}
             InputLabelProps={{
               shrink: true,
             }}
@@ -158,7 +161,7 @@ const AddPriorityModal: React.FC<AddPriorityModalProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={loading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -166,7 +169,7 @@ const AddPriorityModal: React.FC<AddPriorityModalProps> = ({
           disabled={loading || !name.trim()}
           startIcon={loading ? <CircularProgress size={16} /> : null}
         >
-          {loading ? 'Creating...' : 'Create Priority'}
+          {loading ? t('adminRefData.creating') : t('adminPriorityModal.create')}
         </Button>
       </DialogActions>
     </Dialog>

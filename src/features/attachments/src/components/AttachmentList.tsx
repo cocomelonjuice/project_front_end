@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   List,
@@ -39,6 +40,9 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
   onDownload,
   currentUserId,
 }) => {
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language?.startsWith('vi') ? 'vi-VN' : 'en-US';
+
   const getFileIconComponent = (mimeType: string) => {
     const iconName = getFileIcon(mimeType);
     switch (iconName) {
@@ -65,7 +69,7 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
     return (
       <Box sx={{ textAlign: 'center', py: 4 }}>
         <Typography variant="body2" color="text.secondary">
-          No attachments yet
+          {t('issueDetailPage.attachmentsEmpty')}
         </Typography>
       </Box>
     );
@@ -117,15 +121,15 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
               }
               secondary={
                 <Typography variant="caption" color="text.secondary">
-                  {attachment.uploadedBy?.displayName || 'Unknown'} •{' '}
-                  {new Date(attachment.createdAt).toLocaleDateString()}
+                  {attachment.uploadedBy?.displayName || t('issueDetailPage.unknown')} •{' '}
+                  {new Date(attachment.createdAt).toLocaleDateString(dateLocale)}
                 </Typography>
               }
             />
             <ListItemSecondaryAction>
               <Box sx={{ display: 'flex', gap: 0.5 }}>
                 {onDownload && (
-                  <Tooltip title="Download">
+                  <Tooltip title={t('issueDetailPage.attachmentDownload')}>
                     <IconButton
                       edge="end"
                       size="small"
@@ -137,7 +141,7 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
                   </Tooltip>
                 )}
                 {onDelete && canDelete && (
-                  <Tooltip title="Delete">
+                  <Tooltip title={t('issueDetailPage.attachmentDelete')}>
                     <IconButton
                       edge="end"
                       size="small"

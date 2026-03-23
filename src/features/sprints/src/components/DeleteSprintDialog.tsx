@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -28,6 +29,7 @@ const DeleteSprintDialog: React.FC<DeleteSprintDialogProps> = ({
   sprint,
   onSprintDeleted,
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const sprintsState = useSelectorSprints((state) => state);
   const [error, setError] = useState<string | null>(null);
@@ -80,8 +82,8 @@ const DeleteSprintDialog: React.FC<DeleteSprintDialogProps> = ({
   if (!sprint) return null;
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Delete Sprint</DialogTitle>
+    <Dialog key={i18n.language} open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{t('sprintDeleteDialog.title')}</DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -101,15 +103,15 @@ const DeleteSprintDialog: React.FC<DeleteSprintDialogProps> = ({
         </Box>
 
         <DialogContentText>
-          Are you sure you want to delete this sprint?
+          {t('sprintDeleteDialog.confirmIntro')}
           <br />
           <br />
-          This action cannot be undone. All issues in this sprint will remain but will no longer be associated with a sprint.
+          {t('sprintDeleteDialog.warning')}
         </DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={isDeleting}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleDelete}
@@ -118,7 +120,7 @@ const DeleteSprintDialog: React.FC<DeleteSprintDialogProps> = ({
           disabled={isDeleting}
           startIcon={isDeleting ? <CircularProgress size={16} /> : null}
         >
-          {isDeleting ? 'Deleting...' : 'Delete'}
+          {isDeleting ? t('sprintDeleteDialog.deleting') : t('sprintDeleteDialog.delete')}
         </Button>
       </DialogActions>
     </Dialog>

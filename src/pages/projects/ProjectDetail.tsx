@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Typography,
@@ -71,6 +72,7 @@ import { useSelectorAuth } from '../../features/auth/src/store';
 import { UI_COLORS, UI_TYPOGRAPHY, UI_SPACING, UI_BORDER_RADIUS, UI_SHADOWS, UI_BUTTON_STYLES, UI_INPUT_STYLES } from '../../shared/constants/src/ui';
 
 const ProjectDetail: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const { id: projectId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -101,7 +103,7 @@ const ProjectDetail: React.FC = () => {
     if (todoStatuses.length > 0) {
       columns.push({
         id: 'todo',
-        name: 'To Do',
+        name: t('projectDetail.columnTodo'),
         statusIds: todoStatuses.map((s) => s.id),
         color: '#42526E',
       });
@@ -110,7 +112,7 @@ const ProjectDetail: React.FC = () => {
     if (inProgressStatuses.length > 0) {
       columns.push({
         id: 'inprogress',
-        name: 'In Progress',
+        name: t('projectDetail.columnInProgress'),
         statusIds: inProgressStatuses.map((s) => s.id),
         color: '#0052CC',
       });
@@ -119,7 +121,7 @@ const ProjectDetail: React.FC = () => {
     if (doneStatuses.length > 0) {
       columns.push({
         id: 'done',
-        name: 'Done',
+        name: t('projectDetail.columnDone'),
         statusIds: doneStatuses.map((s) => s.id),
         color: '#36B37E',
       });
@@ -136,7 +138,7 @@ const ProjectDetail: React.FC = () => {
     }
 
     return columns;
-  }, [referenceDataState.statuses]);
+  }, [referenceDataState.statuses, t]);
 
   const [tabValue, setTabValue] = useState(0);
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
@@ -637,7 +639,7 @@ const ProjectDetail: React.FC = () => {
   }
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
+    <Container key={i18n.language} maxWidth="xl" sx={{ py: 4 }}>
       {/* Header */}
       <Box
         sx={{
@@ -701,7 +703,7 @@ const ProjectDetail: React.FC = () => {
                 fontSize: UI_TYPOGRAPHY.fontSize.sm,
               }}
             >
-              {project.description || 'No description'}
+              {project.description || t('projectDetail.noDescription')}
             </Typography>
           </Box>
         </Box>
@@ -734,10 +736,10 @@ const ProjectDetail: React.FC = () => {
             },
           }}
         >
-          <Tab label="Boards" />
-          <Tab label="Issues" />
-          <Tab label="Team" />
-          <Tab label="Activity" />
+          <Tab label={t('projectDetail.tabBoards')} />
+          <Tab label={t('projectDetail.tabIssues')} />
+          <Tab label={t('projectDetail.tabTeam')} />
+          <Tab label={t('projectDetail.tabActivity')} />
         </Tabs>
       </Paper>
 
@@ -773,14 +775,14 @@ const ProjectDetail: React.FC = () => {
                         fontSize: UI_TYPOGRAPHY.fontSize.xl,
                       }}
                     >
-                      Sprints
+                      {t('projectDetail.sprints')}
                     </Typography>
                     {boardsState.boards.length > 1 ? (
                       <FormControl size="small" sx={{ minWidth: 200 }}>
-                        <InputLabel>Select Board</InputLabel>
+                        <InputLabel>{t('projectDetail.selectBoard')}</InputLabel>
                         <Select
                           value={currentBoardId || ''}
-                          label="Select Board"
+                          label={t('projectDetail.selectBoard')}
                           onChange={(e) => setCurrentBoardId(e.target.value)}
                         >
                           {boardsState.boards.map((board) => (
@@ -792,7 +794,11 @@ const ProjectDetail: React.FC = () => {
                       </FormControl>
                     ) : boardsState.boards.length > 0 && currentBoardId ? (
                       <Chip
-                        label={`Board: ${boardsState.boards.find((b) => b.id === currentBoardId)?.name || 'Unknown'}`}
+                        label={t('projectDetail.boardNamed', {
+                          name:
+                            boardsState.boards.find((b) => b.id === currentBoardId)?.name ||
+                            t('projectDetail.unknown'),
+                        })}
                         size="small"
                         color="primary"
                         variant="outlined"
@@ -813,7 +819,7 @@ const ProjectDetail: React.FC = () => {
                             }
                           }}
                         >
-                          Edit Board
+                          {t('projectDetail.editBoard')}
                         </Button>
                         <Button
                           variant="outlined"
@@ -827,7 +833,7 @@ const ProjectDetail: React.FC = () => {
                             }
                           }}
                         >
-                          Delete Board
+                          {t('projectDetail.deleteBoard')}
                         </Button>
                       </>
                     )}
@@ -846,7 +852,7 @@ const ProjectDetail: React.FC = () => {
                           fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
                         }}
                       >
-                        Create Sprint
+                        {t('projectDetail.createSprint')}
                       </Button>
                     )}
                     {!currentBoardId && (
@@ -863,7 +869,7 @@ const ProjectDetail: React.FC = () => {
                           fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
                         }}
                       >
-                        Create Board
+                        {t('projectDetail.createBoard')}
                       </Button>
                     )}
                   </Box>
@@ -872,20 +878,20 @@ const ProjectDetail: React.FC = () => {
                   <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
                     <CircularProgress size={24} />
                     <Typography variant="body2" sx={{ ml: 2 }}>
-                      Loading boards...
+                      {t('projectDetail.loadingBoards')}
                     </Typography>
                   </Box>
                 ) : !currentBoardId ? (
                   <Box>
                     <Alert severity="info" sx={{ mb: 2 }}>
-                      No boards found for this project. Please create a board first to manage sprints.
+                      {t('projectDetail.noBoardsAlert')}
                       {projectId && (
                         <Typography variant="caption" display="block" sx={{ mt: 1 }}>
-                          Project ID: {projectId}
+                          {t('projectDetail.projectIdLabel')} {projectId}
                         </Typography>
                       )}
                     </Alert>
-                    <SprintList sprints={[]} emptyMessage="No sprints available (no board found)" />
+                    <SprintList sprints={[]} emptyMessage={t('projectDetail.emptySprintsNoBoard')} />
                   </Box>
                 ) : (
                   <SprintList
@@ -909,13 +915,13 @@ const ProjectDetail: React.FC = () => {
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Typography variant="h6">Board View</Typography>
+                    <Typography variant="h6">{t('projectDetail.boardView')}</Typography>
                     {boardsState.boards.length > 1 ? (
                       <FormControl size="small" sx={{ minWidth: 200 }}>
-                        <InputLabel>Select Board</InputLabel>
+                        <InputLabel>{t('projectDetail.selectBoard')}</InputLabel>
                         <Select
                           value={currentBoardId || ''}
-                          label="Select Board"
+                          label={t('projectDetail.selectBoard')}
                           onChange={(e) => setCurrentBoardId(e.target.value)}
                         >
                           {boardsState.boards.map((board) => (
@@ -927,7 +933,10 @@ const ProjectDetail: React.FC = () => {
                       </FormControl>
                     ) : boardsState.boards.length > 0 && currentBoardId ? (
                       <Chip
-                        label={boardsState.boards.find((b) => b.id === currentBoardId)?.name || 'Unknown'}
+                        label={
+                          boardsState.boards.find((b) => b.id === currentBoardId)?.name ||
+                          t('projectDetail.unknown')
+                        }
                         size="small"
                         color="primary"
                         variant="outlined"
@@ -948,7 +957,7 @@ const ProjectDetail: React.FC = () => {
                             }
                           }}
                         >
-                          Edit Board
+                          {t('projectDetail.editBoard')}
                         </Button>
                         <Button
                           variant="outlined"
@@ -962,7 +971,7 @@ const ProjectDetail: React.FC = () => {
                             }
                           }}
                         >
-                          Delete Board
+                          {t('projectDetail.deleteBoard')}
                         </Button>
                       </>
                     )}
@@ -973,7 +982,7 @@ const ProjectDetail: React.FC = () => {
                       size="small"
                       disabled={!currentBoardId}
                     >
-                      Create Issue
+                      {t('projectDetail.createIssue')}
                     </Button>
                   </Box>
                 </Box>
@@ -991,7 +1000,7 @@ const ProjectDetail: React.FC = () => {
       {tabValue === 1 && (
         <Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6">Issues</Typography>
+            <Typography variant="h6">{t('projectDetail.issuesTitle')}</Typography>
             <Button
               variant="contained"
               startIcon={<AddIcon />}
@@ -1005,7 +1014,7 @@ const ProjectDetail: React.FC = () => {
                 fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
               }}
             >
-              Create Issue
+              {t('projectDetail.createIssue')}
             </Button>
           </Box>
 
@@ -1032,7 +1041,7 @@ const ProjectDetail: React.FC = () => {
                         fontSize: UI_TYPOGRAPHY.fontSize.sm,
                       }}
                     >
-                      Key
+                      {t('projectDetail.colKey')}
                     </TableCell>
                     <TableCell
                       sx={{
@@ -1041,7 +1050,7 @@ const ProjectDetail: React.FC = () => {
                         fontSize: UI_TYPOGRAPHY.fontSize.sm,
                       }}
                     >
-                      Summary
+                      {t('projectDetail.colSummary')}
                     </TableCell>
                     <TableCell
                       sx={{
@@ -1050,7 +1059,7 @@ const ProjectDetail: React.FC = () => {
                         fontSize: UI_TYPOGRAPHY.fontSize.sm,
                       }}
                     >
-                      Type
+                      {t('projectDetail.colType')}
                     </TableCell>
                     <TableCell
                       sx={{
@@ -1059,7 +1068,7 @@ const ProjectDetail: React.FC = () => {
                         fontSize: UI_TYPOGRAPHY.fontSize.sm,
                       }}
                     >
-                      Priority
+                      {t('projectDetail.colPriority')}
                     </TableCell>
                     <TableCell
                       sx={{
@@ -1068,7 +1077,7 @@ const ProjectDetail: React.FC = () => {
                         fontSize: UI_TYPOGRAPHY.fontSize.sm,
                       }}
                     >
-                      Status
+                      {t('projectDetail.colStatus')}
                     </TableCell>
                     <TableCell
                       sx={{
@@ -1077,7 +1086,7 @@ const ProjectDetail: React.FC = () => {
                         fontSize: UI_TYPOGRAPHY.fontSize.sm,
                       }}
                     >
-                      Assignee
+                      {t('projectDetail.colAssignee')}
                     </TableCell>
                     <TableCell
                       width={50}
@@ -1094,7 +1103,7 @@ const ProjectDetail: React.FC = () => {
                     <TableRow>
                       <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
                         <Typography variant="body2" color="text.secondary">
-                          No issues found. Create your first issue to get started.
+                          {t('projectDetail.emptyIssues')}
                         </Typography>
                       </TableCell>
                     </TableRow>
@@ -1134,7 +1143,7 @@ const ProjectDetail: React.FC = () => {
                           <TableCell>{issue.summary}</TableCell>
                           <TableCell>
                             <Chip
-                              label={type?.name || 'Unknown'}
+                              label={type?.name || t('projectDetail.unknown')}
                               size="small"
                               sx={{
                                 bgcolor: type?.color || '#ccc',
@@ -1144,7 +1153,7 @@ const ProjectDetail: React.FC = () => {
                           </TableCell>
                           <TableCell>
                             <Chip
-                              label={priority?.name || 'Unknown'}
+                              label={priority?.name || t('projectDetail.unknown')}
                               size="small"
                               sx={{
                                 bgcolor: priority?.color || '#ccc',
@@ -1154,7 +1163,7 @@ const ProjectDetail: React.FC = () => {
                           </TableCell>
                           <TableCell>
                             <Chip
-                              label={status?.name || 'Unknown'}
+                              label={status?.name || t('projectDetail.unknown')}
                               size="small"
                               sx={{
                                 bgcolor: status?.color || '#ccc',
@@ -1172,7 +1181,7 @@ const ProjectDetail: React.FC = () => {
                               </Box>
                             ) : (
                               <Typography variant="body2" color="text.secondary">
-                                Unassigned
+                                {t('projectDetail.unassigned')}
                               </Typography>
                             )}
                           </TableCell>
@@ -1185,14 +1194,14 @@ const ProjectDetail: React.FC = () => {
                               open={Boolean(menuAnchor) && selectedIssue?.id === issue.id}
                               onClose={handleMenuClose}
                             >
-                              <MenuItem onClick={handleView}>View</MenuItem>
+                              <MenuItem onClick={handleView}>{t('home.view')}</MenuItem>
                               <MenuItem onClick={handleEdit}>
                                 <EditIcon sx={{ mr: 1, fontSize: 18 }} />
-                                Edit
+                                {t('home.edit')}
                               </MenuItem>
                               <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
                                 <DeleteIcon sx={{ mr: 1, fontSize: 18 }} />
-                                Delete
+                                {t('home.delete')}
                               </MenuItem>
                             </Menu>
                           </TableCell>
@@ -1224,7 +1233,7 @@ const ProjectDetail: React.FC = () => {
                   fontSize: UI_TYPOGRAPHY.fontSize.xl,
                 }}
               >
-                Team Members
+                {t('projectDetail.teamMembers')}
               </Typography>
               <Button
                 variant="contained"
@@ -1242,7 +1251,7 @@ const ProjectDetail: React.FC = () => {
                   fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
                 }}
               >
-                Add Member
+                {t('projectDetail.addMember')}
               </Button>
             </Box>
             <TeamList
@@ -1272,7 +1281,7 @@ const ProjectDetail: React.FC = () => {
                 fontSize: UI_TYPOGRAPHY.fontSize.xl,
               }}
             >
-              Activity
+              {t('projectDetail.activityTitle')}
             </Typography>
             <ActivityFilter
               entityType={activityFilter}
@@ -1282,7 +1291,7 @@ const ProjectDetail: React.FC = () => {
               auditLogs={[]}
               entityType={activityFilter === 'all' ? undefined : activityFilter}
               entityId={projectId}
-              emptyMessage="No activity for this project"
+              emptyMessage={t('projectDetail.emptyActivity')}
             />
           </Paper>
         </Box>
@@ -1393,16 +1402,23 @@ const ProjectDetail: React.FC = () => {
       />
 
       {/* Remove Team Member Dialog */}
-      <Dialog open={removeTeamMemberDialogOpen} onClose={() => setRemoveTeamMemberDialogOpen(false)}>
-        <DialogTitle>Remove Team Member</DialogTitle>
+      <Dialog
+        key={i18n.language}
+        open={removeTeamMemberDialogOpen}
+        onClose={() => setRemoveTeamMemberDialogOpen(false)}
+      >
+        <DialogTitle>{t('projectDetail.removeMemberTitle')}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to remove <strong>{memberToRemove?.user.displayName}</strong> ({memberToRemove?.role.name}) from this project team?
+            {t('projectDetail.removeMemberConfirm', {
+              user: memberToRemove?.user.displayName ?? '',
+              role: memberToRemove?.role.name ?? '',
+            })}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setRemoveTeamMemberDialogOpen(false)} disabled={teamState.removeRoleLoading}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button
             onClick={handleConfirmRemoveTeamMember}
@@ -1411,10 +1427,10 @@ const ProjectDetail: React.FC = () => {
             disabled={teamState.removeRoleLoading}
             startIcon={teamState.removeRoleLoading ? <CircularProgress size={16} /> : null}
           >
-            {teamState.removeRoleLoading ? 'Removing...' : 'Remove'}
+            {teamState.removeRoleLoading ? t('projectDetail.removing') : t('projectDetail.remove')}
           </Button>
-          </DialogActions>
-        </Dialog>
+        </DialogActions>
+      </Dialog>
       </Container>
     );
   };

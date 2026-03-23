@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Typography,
@@ -22,6 +23,7 @@ import EditProfileModal from './EditProfileModal';
 import type { AdminUser } from '../features/admin/src/store/states';
 
 const Profile = () => {
+  const { t, i18n } = useTranslation();
   const authState = useSelectorAuth((state) => state);
   const user = authState.user;
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -69,7 +71,7 @@ const Profile = () => {
             boxShadow: UI_SHADOWS.sm,
           }}
         >
-          Please log in to view your profile.
+          {t('profile.loginRequired')}
         </Alert>
       </Container>
     );
@@ -105,7 +107,7 @@ const Profile = () => {
           fontSize: { xs: UI_TYPOGRAPHY.fontSize['2xl'], md: UI_TYPOGRAPHY.fontSize['3xl'] },
         }}
       >
-        Profile
+        {t('profile.title')}
       </Typography>
 
       <Paper
@@ -173,7 +175,7 @@ const Profile = () => {
                   textTransform: 'none',
                 }}
               >
-                Edit Profile
+                {t('profile.editProfile')}
               </Button>
             </Box>
           </Box>
@@ -191,7 +193,7 @@ const Profile = () => {
                 fontSize: UI_TYPOGRAPHY.fontSize.xl,
               }}
             >
-              Personal Information
+              {t('profile.personalInfo')}
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -204,7 +206,7 @@ const Profile = () => {
                   }}
                 >
                   <Box component="span" sx={{ fontWeight: UI_TYPOGRAPHY.fontWeight.medium }}>
-                    Email:
+                    {t('profile.emailLabel')}
                   </Box>{' '}
                   {displayUser.email}
                 </Typography>
@@ -238,11 +240,15 @@ const Profile = () => {
                 fontSize: UI_TYPOGRAPHY.fontSize.sm,
               }}
             >
-              Member since: {new Date(displayUser.joinDate).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
+              {t('profile.memberSincePrefix')}{' '}
+              {new Date(displayUser.joinDate).toLocaleDateString(
+                i18n.language?.startsWith('vi') ? 'vi-VN' : 'en-US',
+                {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                }
+              )}
             </Typography>
           </Box>
         </Box>

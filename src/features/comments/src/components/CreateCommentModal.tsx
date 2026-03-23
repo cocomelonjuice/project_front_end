@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -29,6 +30,7 @@ const CreateCommentModal: React.FC<CreateCommentModalProps> = ({
   authorId,
   onCommentCreated,
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const authState = useSelectorAuth((state) => state);
   const currentUser = authState.user;
@@ -50,12 +52,12 @@ const CreateCommentModal: React.FC<CreateCommentModalProps> = ({
 
   const handleSubmit = () => {
     if (!content.trim()) {
-      setError('Comment content is required');
+      setError(t('commentModal.contentRequired'));
       return;
     }
 
     if (!finalAuthorId) {
-      setError('User not authenticated');
+      setError(t('commentModal.notAuthenticated'));
       return;
     }
 
@@ -75,7 +77,8 @@ const CreateCommentModal: React.FC<CreateCommentModalProps> = ({
             onClose();
           },
           onError: (error: any) => {
-            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to create comment';
+            const errorMessage =
+              error?.response?.data?.message || error?.message || t('commentModal.createFailed');
             setError(errorMessage);
           },
         },
@@ -91,8 +94,8 @@ const CreateCommentModal: React.FC<CreateCommentModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Add Comment</DialogTitle>
+    <Dialog key={i18n.language} open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{t('commentModal.createTitle')}</DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -102,7 +105,7 @@ const CreateCommentModal: React.FC<CreateCommentModalProps> = ({
 
         <Box sx={{ pt: 1 }}>
           <TextField
-            label="Comment"
+            label={t('commentModal.contentLabel')}
             fullWidth
             multiline
             rows={6}
@@ -118,7 +121,7 @@ const CreateCommentModal: React.FC<CreateCommentModalProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={commentsState.createCommentLoading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -126,7 +129,7 @@ const CreateCommentModal: React.FC<CreateCommentModalProps> = ({
           disabled={commentsState.createCommentLoading || !content.trim()}
           startIcon={commentsState.createCommentLoading ? <CircularProgress size={16} /> : null}
         >
-          {commentsState.createCommentLoading ? 'Posting...' : 'Post Comment'}
+          {commentsState.createCommentLoading ? t('commentModal.posting') : t('commentModal.postComment')}
         </Button>
       </DialogActions>
     </Dialog>

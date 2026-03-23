@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Box, Typography } from '@mui/material';
 import LabelChip from './LabelChip';
 import type { Label } from '../store/states';
@@ -14,8 +15,10 @@ const LabelsList: React.FC<LabelsListProps> = ({
   labels,
   onDelete,
   onClick,
-  emptyMessage = 'No labels',
+  emptyMessage: emptyMessageProp,
 }) => {
+  const { t } = useTranslation();
+  const emptyMessage = emptyMessageProp ?? t('labelsList.empty');
   if (labels.length === 0) {
     return (
       <Box sx={{ py: 1 }}>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import {
   Box,
@@ -36,6 +37,7 @@ import AddUserModal from './AddUserModal';
 import DeleteUserDialog from './DeleteUserDialog';
 
 const UsersManagement: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const adminState = useSelectorAdmin((state) => state);
   const { users, getUsersLoading, updateUserLoading, deleteUserLoading, errors } = adminState;
@@ -88,7 +90,7 @@ const UsersManagement: React.FC = () => {
           },
           callback: {
             onSuccess: () => {
-              setSnackbar({ open: true, message: 'User updated successfully', severity: 'success' });
+              setSnackbar({ open: true, message: t('adminUsers.snackbarUpdateSuccess'), severity: 'success' });
               handleMenuClose();
             },
             onError: (error: any) => {
@@ -116,7 +118,7 @@ const UsersManagement: React.FC = () => {
         data: {},
         callback: {
           onError: (error: any) => {
-            setSnackbar({ open: true, message: 'Failed to refresh users', severity: 'error' });
+            setSnackbar({ open: true, message: t('adminUsers.snackbarRefreshFailed'), severity: 'error' });
           },
         },
       })
@@ -138,10 +140,10 @@ const UsersManagement: React.FC = () => {
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h6">Users</Typography>
+        <Typography variant="h6">{t('adminUsers.title')}</Typography>
         {isAdmin && (
           <Button variant="contained" startIcon={<AddIcon />} onClick={() => setAddModalOpen(true)}>
-            Add User
+            {t('adminUsers.addUser')}
           </Button>
         )}
       </Box>
@@ -153,12 +155,12 @@ const UsersManagement: React.FC = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>User</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Roles</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Created</TableCell>
-                <TableCell align="right">Actions</TableCell>
+                <TableCell>{t('adminUsers.colUser')}</TableCell>
+                <TableCell>{t('adminUsers.colEmail')}</TableCell>
+                <TableCell>{t('adminUsers.colRoles')}</TableCell>
+                <TableCell>{t('adminUsers.colStatus')}</TableCell>
+                <TableCell>{t('adminUsers.colCreated')}</TableCell>
+                <TableCell align="right">{t('adminUsers.colActions')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -203,7 +205,9 @@ const UsersManagement: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     <Typography variant="body2" color="text.secondary">
-                      {new Date(user.createdAt).toLocaleDateString()}
+                      {new Date(user.createdAt).toLocaleDateString(
+                        i18n.language?.startsWith('vi') ? 'vi-VN' : 'en-US',
+                      )}
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
@@ -233,12 +237,12 @@ const UsersManagement: React.FC = () => {
           {selectedUser?.isActive ? (
             <>
               <BlockIcon fontSize="small" sx={{ mr: 1 }} />
-              Deactivate
+              {t('adminUsers.menuDeactivate')}
             </>
           ) : (
             <>
               <CheckCircleIcon fontSize="small" sx={{ mr: 1 }} />
-              Activate
+              {t('adminUsers.menuActivate')}
             </>
           )}
         </MenuItem>
@@ -259,7 +263,7 @@ const UsersManagement: React.FC = () => {
         user={selectedUser}
         onUserUpdated={() => {
           handleRefreshUsers();
-          setSnackbar({ open: true, message: 'User updated successfully', severity: 'success' });
+          setSnackbar({ open: true, message: t('adminUsers.snackbarUpdateSuccess'), severity: 'success' });
         }}
       />
 
@@ -282,7 +286,7 @@ const UsersManagement: React.FC = () => {
         user={selectedUser}
         onUserDeleted={() => {
           handleRefreshUsers();
-          setSnackbar({ open: true, message: 'User deleted successfully', severity: 'success' });
+          setSnackbar({ open: true, message: t('adminUsers.snackbarDeleteSuccess'), severity: 'success' });
         }}
       />
 

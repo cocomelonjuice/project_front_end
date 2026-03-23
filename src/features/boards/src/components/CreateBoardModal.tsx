@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -26,19 +27,22 @@ interface CreateBoardModalProps {
   projectId: string;
 }
 
-const boardTypes = [
-  { value: 'kanban', label: 'Kanban' },
-  { value: 'scrum', label: 'Scrum' },
-];
-
 const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
   open,
   onClose,
   onBoardCreated,
   projectId,
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const boardsState = useSelectorBoards((state) => state);
+  const boardTypes = useMemo(
+    () => [
+      { value: 'kanban', label: t('boardModal.typeKanban') },
+      { value: 'scrum', label: t('boardModal.typeScrum') },
+    ],
+    [t, i18n.language]
+  );
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
@@ -67,17 +71,17 @@ const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
   const handleSubmit = () => {
     // Validation
     if (!formData.name.trim()) {
-      setError('Board name is required');
+      setError(t('boardModal.nameRequired'));
       return;
     }
 
     if (formData.name.trim().length < 3) {
-      setError('Board name must be at least 3 characters');
+      setError(t('boardModal.nameMin'));
       return;
     }
 
     if (formData.name.trim().length > 100) {
-      setError('Board name must be at most 100 characters');
+      setError(t('boardModal.nameMax'));
       return;
     }
 
@@ -99,7 +103,7 @@ const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
             onClose();
           },
           onError: (error: any) => {
-            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to create board';
+            const errorMessage = error?.response?.data?.message || error?.message || t('boardModal.createFailed');
             setError(errorMessage);
           },
         },
@@ -115,6 +119,7 @@ const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
 
   return (
     <Dialog
+      key={i18n.language}
       open={open}
       onClose={handleClose}
       maxWidth="sm"
@@ -139,7 +144,7 @@ const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
             fontSize: UI_TYPOGRAPHY.fontSize.xl,
           }}
         >
-          Create Board
+          {t('boardModal.createTitle')}
         </Typography>
       </DialogTitle>
       <DialogContent sx={{ pt: 4 }}>
@@ -162,13 +167,13 @@ const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
           )}
 
           <TextField
-            label="Board Name"
+            label={t('boardModal.nameLabel')}
             required
             fullWidth
             value={formData.name}
             onChange={handleChange('name')}
             disabled={boardsState.createBoardLoading}
-            helperText="A descriptive name for your board (3-100 characters)"
+            helperText={t('boardModal.nameHelper')}
             inputProps={{ maxLength: 100 }}
             sx={UI_INPUT_STYLES.default}
             InputLabelProps={{
@@ -186,11 +191,11 @@ const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
           />
 
           <FormControl fullWidth required>
-            <InputLabel>Board Type</InputLabel>
+            <InputLabel>{t('boardModal.typeLabel')}</InputLabel>
             <Select
               value={formData.type}
               onChange={handleChange('type')}
-              label="Board Type"
+              label={t('boardModal.typeLabel')}
               disabled={boardsState.createBoardLoading}
             >
               {boardTypes.map((type) => (
@@ -204,7 +209,7 @@ const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={boardsState.createBoardLoading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -212,7 +217,7 @@ const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
           disabled={boardsState.createBoardLoading || !formData.name.trim() || formData.name.trim().length < 3}
           startIcon={boardsState.createBoardLoading ? <CircularProgress size={16} /> : null}
         >
-          {boardsState.createBoardLoading ? 'Creating...' : 'Create Board'}
+          {boardsState.createBoardLoading ? t('boardModal.creating') : t('boardModal.createBoard')}
         </Button>
       </DialogActions>
     </Dialog>

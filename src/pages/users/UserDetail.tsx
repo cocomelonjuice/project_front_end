@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Typography,
@@ -19,6 +20,7 @@ import { useSelectorUsers, usersActions } from '../../features/users/src/store';
 import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS } from '../../shared/constants/src/ui';
 
 const UserDetail = () => {
+  const { t, i18n } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const dispatch = useDispatch();
   const usersState = useSelectorUsers((state) => state);
@@ -87,7 +89,7 @@ const UserDetail = () => {
             boxShadow: UI_SHADOWS.sm,
           }}
         >
-          User not found.
+          {t('userDetail.userNotFound')}
         </Alert>
       </Container>
     );
@@ -187,7 +189,7 @@ const UserDetail = () => {
                     fontStyle: 'italic',
                   }}
                 >
-                  (Inactive)
+                  {t('userDetail.inactive')}
                 </Typography>
               )}
             </Box>
@@ -219,7 +221,7 @@ const UserDetail = () => {
                   }}
                 >
                   <Box component="span" sx={{ fontWeight: UI_TYPOGRAPHY.fontWeight.medium }}>
-                    Email:
+                    {t('profile.emailLabel')}
                   </Box>{' '}
                   {displayUser.email}
                 </Typography>
@@ -253,11 +255,15 @@ const UserDetail = () => {
                 fontSize: UI_TYPOGRAPHY.fontSize.sm,
               }}
             >
-              Member since: {new Date(displayUser.joinDate).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
+              {t('profile.memberSincePrefix')}{' '}
+              {new Date(displayUser.joinDate).toLocaleDateString(
+                i18n.language?.startsWith('vi') ? 'vi-VN' : 'en-US',
+                {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                }
+              )}
             </Typography>
           </Box>
         </Box>

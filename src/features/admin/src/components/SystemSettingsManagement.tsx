@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import {
   Box,
@@ -56,6 +57,7 @@ const TabPanel: React.FC<TabPanelProps> = ({ children, value, index }) => {
 };
 
 const SystemSettingsManagement: React.FC = () => {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const adminState = useSelectorAdmin((state) => state);
   const { systemSettings, getSystemSettingsLoading } = adminState;
@@ -149,8 +151,9 @@ const SystemSettingsManagement: React.FC = () => {
 
       handleMenuClose();
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete item';
-      alert(errorMessage); // Simple alert for now
+      const errorMessage =
+        error?.response?.data?.message || error?.message || t('adminSettings.deleteFailed');
+      alert(errorMessage); // Simple alert for now (stage 14: toast)
     }
   };
 
@@ -161,7 +164,7 @@ const SystemSettingsManagement: React.FC = () => {
 
   const renderTable = (typeSettings: SystemSetting[]) => {
     if (typeSettings.length === 0) {
-      return <Alert severity="info">No items found. Add your first item to get started.</Alert>;
+      return <Alert severity="info">{t('adminSettings.empty')}</Alert>;
     }
 
     return (
@@ -169,12 +172,12 @@ const SystemSettingsManagement: React.FC = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Description</TableCell>
-              {tabValue === 1 && <TableCell>Order</TableCell>}
-              {tabValue === 2 && <TableCell>Category</TableCell>}
-              {tabValue === 3 && <TableCell>Color</TableCell>}
-              <TableCell align="right">Actions</TableCell>
+              <TableCell>{t('adminSettings.colName')}</TableCell>
+              <TableCell>{t('adminSettings.colDescription')}</TableCell>
+              {tabValue === 1 && <TableCell>{t('adminSettings.colOrder')}</TableCell>}
+              {tabValue === 2 && <TableCell>{t('adminSettings.colCategory')}</TableCell>}
+              {tabValue === 3 && <TableCell>{t('adminSettings.colColor')}</TableCell>}
+              <TableCell align="right">{t('adminSettings.colActions')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -245,18 +248,18 @@ const SystemSettingsManagement: React.FC = () => {
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h6">System Settings</Typography>
+        <Typography variant="h6">{t('adminSettings.title')}</Typography>
         <Button variant="contained" startIcon={<AddIcon />} onClick={handleAdd}>
-          Add Item
+          {t('adminSettings.addItem')}
         </Button>
       </Box>
 
       <Paper sx={{ mb: 2 }}>
         <Tabs value={tabValue} onChange={handleTabChange}>
-          <Tab icon={<BugReportIcon />} iconPosition="start" label="Issue Types" />
-          <Tab icon={<LowPriorityIcon />} iconPosition="start" label="Priorities" />
-          <Tab icon={<SwapHorizIcon />} iconPosition="start" label="Statuses" />
-          <Tab icon={<LabelIcon />} iconPosition="start" label="Labels" />
+          <Tab icon={<BugReportIcon />} iconPosition="start" label={t('adminSettings.tabIssueTypes')} />
+          <Tab icon={<LowPriorityIcon />} iconPosition="start" label={t('adminSettings.tabPriorities')} />
+          <Tab icon={<SwapHorizIcon />} iconPosition="start" label={t('adminSettings.tabStatuses')} />
+          <Tab icon={<LabelIcon />} iconPosition="start" label={t('adminSettings.tabLabels')} />
         </Tabs>
       </Paper>
 
@@ -280,11 +283,11 @@ const SystemSettingsManagement: React.FC = () => {
       <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleMenuClose}>
         <MenuItem onClick={handleEdit}>
           <EditIcon fontSize="small" sx={{ mr: 1 }} />
-          Edit
+          {t('adminSettings.menuEdit')}
         </MenuItem>
         <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
           <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
-          Delete
+          {t('adminSettings.menuDelete')}
         </MenuItem>
       </Menu>
 

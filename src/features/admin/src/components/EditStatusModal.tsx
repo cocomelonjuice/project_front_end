@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -24,18 +25,21 @@ interface EditStatusModalProps {
   onStatusUpdated?: () => void;
 }
 
-const statusCategories = [
-  { value: 'todo', label: 'To Do' },
-  { value: 'inprogress', label: 'In Progress' },
-  { value: 'done', label: 'Done' },
-];
-
 const EditStatusModal: React.FC<EditStatusModalProps> = ({
   open,
   onClose,
   status,
   onStatusUpdated,
 }) => {
+  const { t, i18n } = useTranslation();
+  const statusCategories = useMemo(
+    () => [
+      { value: 'todo', label: t('adminStatusModal.catTodo') },
+      { value: 'inprogress', label: t('adminStatusModal.catInProgress') },
+      { value: 'done', label: t('adminStatusModal.catDone') },
+    ],
+    [t],
+  );
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
@@ -55,17 +59,17 @@ const EditStatusModal: React.FC<EditStatusModalProps> = ({
     if (!status) return;
 
     if (!name.trim()) {
-      setError('Name is required');
+      setError(t('adminRefData.nameRequired'));
       return;
     }
 
     if (name.length > 50) {
-      setError('Name must be 50 characters or less');
+      setError(t('adminRefData.nameMax50'));
       return;
     }
 
     if (!category) {
-      setError('Category is required');
+      setError(t('adminRefData.categoryRequired'));
       return;
     }
 
@@ -84,7 +88,7 @@ const EditStatusModal: React.FC<EditStatusModalProps> = ({
       }
       onClose();
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update status';
+      const errorMessage = error?.response?.data?.message || error?.message || t('adminStatusModal.updateFailed');
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -101,8 +105,8 @@ const EditStatusModal: React.FC<EditStatusModalProps> = ({
   if (!status) return null;
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Edit Status</DialogTitle>
+    <Dialog key={i18n.language} open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{t('adminStatusModal.editTitle')}</DialogTitle>
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 2 }}>
           {error && (
@@ -112,7 +116,7 @@ const EditStatusModal: React.FC<EditStatusModalProps> = ({
           )}
 
           <TextField
-            label="Name"
+            label={t('adminRefData.nameLabel')}
             required
             fullWidth
             value={name}
@@ -125,11 +129,11 @@ const EditStatusModal: React.FC<EditStatusModalProps> = ({
           />
 
           <FormControl fullWidth required>
-            <InputLabel>Category</InputLabel>
+            <InputLabel>{t('adminRefData.categoryLabel')}</InputLabel>
             <Select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              label="Category"
+              label={t('adminRefData.categoryLabel')}
               disabled={loading}
             >
               {statusCategories.map((cat) => (
@@ -153,7 +157,7 @@ const EditStatusModal: React.FC<EditStatusModalProps> = ({
                 }}
               />
               <TextField
-                label="Hex Color"
+                label={t('adminRefData.hexColor')}
                 value={color}
                 onChange={(e) => {
                   const value = e.target.value;
@@ -176,7 +180,7 @@ const EditStatusModal: React.FC<EditStatusModalProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={loading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -184,7 +188,7 @@ const EditStatusModal: React.FC<EditStatusModalProps> = ({
           disabled={loading || !name.trim()}
           startIcon={loading ? <CircularProgress size={16} /> : null}
         >
-          {loading ? 'Saving...' : 'Save Changes'}
+          {loading ? t('adminRefData.saving') : t('adminRefData.saveChanges')}
         </Button>
       </DialogActions>
     </Dialog>

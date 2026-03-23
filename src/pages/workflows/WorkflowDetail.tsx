@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Typography,
@@ -35,6 +36,7 @@ import { useSelectorProjects } from '../../features/projects/src/store';
 import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS, UI_BUTTON_STYLES } from '../../shared/constants/src/ui';
 
 const WorkflowDetail: React.FC = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -126,10 +128,10 @@ const WorkflowDetail: React.FC = () => {
 
   const getProjectName = (projectId: string | null | undefined): string => {
     if (!projectId) {
-      return 'Global (All Projects)';
+      return t('workflowDetail.globalAllProjects');
     }
     const project = projectsState.projects.find((p) => p.id === projectId);
-    return project ? project.name : 'Unknown';
+    return project ? project.name : t('workflowDetail.unknown');
   };
 
   if (workflowsState.getWorkflowLoading && !workflow) {
@@ -166,7 +168,7 @@ const WorkflowDetail: React.FC = () => {
           }}
           onClick={() => navigate('/workflows')}
         >
-          Back to Workflows
+          {t('workflowDetail.backToList')}
         </Button>
       </Box>
     );
@@ -255,7 +257,7 @@ const WorkflowDetail: React.FC = () => {
                   fontWeight: UI_TYPOGRAPHY.fontWeight.normal,
                 }}
               >
-                {workflow.description || 'No description'}
+                {workflow.description || t('workflowDetail.noDescription')}
               </Typography>
             </Box>
           </Box>
@@ -307,7 +309,7 @@ const WorkflowDetail: React.FC = () => {
                 transition: 'all 0.2s ease-in-out',
               }}
             >
-              Delete
+              {t('workflowDetail.delete')}
             </Button>
           </Box>
         </Box>
@@ -381,7 +383,7 @@ const WorkflowDetail: React.FC = () => {
                     transition: 'all 0.2s ease-in-out',
                   }}
                 >
-                  Add Transition
+                  {t('workflowDetail.addTransition')}
                 </Button>
               </Box>
 
@@ -421,7 +423,7 @@ const WorkflowDetail: React.FC = () => {
                           primary={
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
                               <Chip
-                                label={transition.fromStatus?.name || 'Unknown'}
+                                label={transition.fromStatus?.name || t('workflowDetail.unknownStatus')}
                                 size="medium"
                                 sx={{
                                   bgcolor: transition.fromStatus?.color || UI_COLORS.text.secondary,
@@ -540,7 +542,7 @@ const WorkflowDetail: React.FC = () => {
                     letterSpacing: '0.5px',
                   }}
                 >
-                  Project
+                  {t('workflowDetail.fieldProject')}
                 </Typography>
               </Box>
               <Box
@@ -620,7 +622,7 @@ const WorkflowDetail: React.FC = () => {
                     letterSpacing: '0.5px',
                   }}
                 >
-                  Transitions Count
+                  {t('workflowDetail.transitionsCount')}
                 </Typography>
               </Box>
               <Box

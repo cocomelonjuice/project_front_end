@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -12,7 +13,6 @@ import {
   Switch,
   Autocomplete,
   CircularProgress,
-  Typography,
   Alert,
 } from '@mui/material';
 import { workflowsActions, useSelectorWorkflows } from '../store';
@@ -30,10 +30,18 @@ const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
   onClose,
   onWorkflowCreated,
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const workflowsState = useSelectorWorkflows((state) => state);
   const projectsState = useSelectorProjects((state) => state);
   const projects = projectsState.projects;
+
+  const globalOption = useMemo(
+    () => ({ id: 'global' as const, name: t('workflowForm.globalAllProjects') }),
+    [t]
+  );
+  const projectOptions = useMemo(() => [globalOption, ...projects], [globalOption, projects]);
+
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [projectId, setProjectId] = useState<string | null>(null);
@@ -54,11 +62,11 @@ const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
   const validate = (): boolean => {
     const newErrors: { name?: string } = {};
     if (!name.trim()) {
-      newErrors.name = 'Name is required';
+      newErrors.name = t('workflowForm.nameRequired');
     } else if (name.trim().length < 3) {
-      newErrors.name = 'Name must be at least 3 characters';
+      newErrors.name = t('workflowForm.nameMin');
     } else if (name.trim().length > 100) {
-      newErrors.name = 'Name must be at most 100 characters';
+      newErrors.name = t('workflowForm.nameMax');
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -85,7 +93,7 @@ const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
             onClose();
           },
           onError: (error: any) => {
-            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to create workflow';
+            const errorMessage = error?.response?.data?.message || error?.message || t('workflowForm.createFailed');
             setErrors({ general: errorMessage });
           },
         },
@@ -101,15 +109,15 @@ const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Create Workflow</DialogTitle>
+    <Dialog key={i18n.language} open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{t('workflowForm.createTitle')}</DialogTitle>
       <DialogContent>
         <Box sx={{ pt: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
           {errors.general && (
             <Alert severity="error">{errors.general}</Alert>
           )}
           <TextField
-            label="Name"
+            label={t('workflowForm.nameLabel')}
             value={name}
             onChange={(e) => setName(e.target.value)}
             error={!!errors.name}
@@ -123,7 +131,7 @@ const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
           />
 
           <TextField
-            label="Description"
+            label={t('workflowForm.descriptionLabel')}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             multiline
@@ -135,10 +143,10 @@ const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
           />
 
           <Autocomplete
-            options={[{ id: 'global', name: 'Global (All Projects)' }, ...projects]}
-            getOptionLabel={(option) => (option.id === 'global' ? 'Global (All Projects)' : option.name)}
+            options={projectOptions}
+            getOptionLabel={(option) => option.name}
             isOptionEqualToValue={(option, value) => option.id === value.id}
-            value={projectId ? projects.find((p) => p.id === projectId) || null : { id: 'global', name: 'Global (All Projects)' }}
+            value={projectId ? projects.find((p) => p.id === projectId) || null : globalOption}
             onChange={(_event, newValue) => {
               if (newValue && newValue.id === 'global') {
                 setProjectId(null);
@@ -149,7 +157,7 @@ const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
             renderInput={(params) => (
               <TextField
                 {...params}
-                label="Project"
+                label={t('workflowForm.projectLabel')}
                 variant="outlined"
                 fullWidth
                 InputLabelProps={{
@@ -162,13 +170,13 @@ const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
 
           <FormControlLabel
             control={<Switch checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />}
-            label="Active"
+            label={t('workflowForm.activeLabel')}
           />
         </Box>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={workflowsState.createWorkflowLoading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -176,7 +184,7 @@ const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
           disabled={workflowsState.createWorkflowLoading || !name.trim()}
           startIcon={workflowsState.createWorkflowLoading ? <CircularProgress size={16} /> : null}
         >
-          {workflowsState.createWorkflowLoading ? 'Creating...' : 'Create'}
+          {workflowsState.createWorkflowLoading ? t('workflowForm.creating') : t('workflowForm.create')}
         </Button>
       </DialogActions>
     </Dialog>

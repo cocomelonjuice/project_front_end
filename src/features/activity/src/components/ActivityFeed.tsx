@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Typography,
@@ -28,8 +29,12 @@ const ActivityFeed: React.FC<ActivityFeedProps> = ({
   auditLogs,
   entityType,
   entityId,
-  emptyMessage = 'No activity',
+  emptyMessage: emptyMessageProp,
 }) => {
+  const { t, i18n } = useTranslation();
+  const emptyMessage = emptyMessageProp ?? t('projectDetail.activityFeedEmpty');
+  const dateLocale = i18n.language?.startsWith('vi') ? 'vi-VN' : 'en-US';
+
   // Filter logs if filters are provided
   const filteredLogs = auditLogs.filter((log) => {
     if (entityType && log.entityType !== entityType) return false;
@@ -57,17 +62,23 @@ const ActivityFeed: React.FC<ActivityFeedProps> = ({
 
   const formatTimestamp = (timestamp: string): string => {
     const date = new Date(timestamp);
+    if (isNaN(date.getTime())) {
+      return t('projectDetail.invalidDate');
+    }
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
+    if (diffMs < 0) {
+      return t('projectDetail.relativeJustNow');
+    }
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
-    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-    return date.toLocaleDateString('en-US', {
+    if (diffMins < 1) return t('projectDetail.relativeJustNow');
+    if (diffMins < 60) return t('projectDetail.relativeMinutesAgo', { count: diffMins });
+    if (diffHours < 24) return t('projectDetail.relativeHoursAgo', { count: diffHours });
+    if (diffDays < 7) return t('projectDetail.relativeDaysAgo', { count: diffDays });
+    return date.toLocaleDateString(dateLocale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -111,7 +122,7 @@ const ActivityFeed: React.FC<ActivityFeedProps> = ({
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                    {log.user?.displayName || 'Unknown User'}
+                    {log.user?.displayName || t('projectDetail.unknownUser')}
                   </Typography>
                   <Chip
                     label={log.action}

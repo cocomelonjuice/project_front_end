@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import {
   Dialog,
@@ -26,6 +27,7 @@ const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
   user,
   onUserDeleted,
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const adminState = useSelectorAdmin((state) => state);
   const [error, setError] = useState<string | null>(null);
@@ -64,8 +66,8 @@ const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
   if (!user) return null;
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Delete User</DialogTitle>
+    <Dialog key={i18n.language} open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{t('adminDeleteUser.title')}</DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -74,15 +76,15 @@ const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
         )}
 
         <DialogContentText>
-          Are you sure you want to delete user <strong>{user.displayName}</strong> ({user.email})?
+          {t('adminDeleteUser.confirm', { name: user.displayName, email: user.email })}
           <br />
           <br />
-          This action cannot be undone. The user will be permanently removed from the system.
+          {t('adminDeleteUser.warning')}
         </DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={adminState.deleteUserLoading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleDelete}
@@ -91,7 +93,7 @@ const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
           disabled={adminState.deleteUserLoading}
           startIcon={adminState.deleteUserLoading ? <CircularProgress size={16} /> : null}
         >
-          {adminState.deleteUserLoading ? 'Deleting...' : 'Delete'}
+          {adminState.deleteUserLoading ? t('adminDeleteUser.deleting') : t('adminDeleteUser.delete')}
         </Button>
       </DialogActions>
     </Dialog>

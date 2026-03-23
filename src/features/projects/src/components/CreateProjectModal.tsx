@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -26,12 +27,7 @@ interface CreateProjectModalProps {
   existingKeys?: string[]; // For validation - check if key already exists
 }
 
-const projectTypes = [
-  { value: 'software', label: 'Software' },
-  { value: 'business', label: 'Business' },
-  { value: 'marketing', label: 'Marketing' },
-  { value: 'operations', label: 'Operations' },
-];
+const PROJECT_TYPE_VALUES = ['software', 'business', 'marketing', 'operations'] as const;
 
 const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   open,
@@ -39,6 +35,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   onProjectCreated,
   existingKeys = [],
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const projectsState = useSelectorProjects((state) => state);
   const [error, setError] = useState<string | null>(null);
@@ -82,24 +79,24 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   const handleSubmit = () => {
     // Validation
     if (!formData.name.trim()) {
-      setError('Project name is required');
+      setError(t('projects.nameRequired'));
       return;
     }
 
     if (!formData.key.trim()) {
-      setError('Project key is required');
+      setError(t('projects.keyRequired'));
       return;
     }
 
     // Check if key already exists
     if (existingKeys.includes(formData.key.toUpperCase())) {
-      setError('Project key already exists. Please choose a different key.');
+      setError(t('projects.keyExists'));
       return;
     }
 
     // Validate key format (alphanumeric, max 20 chars)
     if (!/^[A-Z0-9]+$/.test(formData.key)) {
-      setError('Project key must contain only uppercase letters and numbers');
+      setError(t('projects.keyInvalid'));
       return;
     }
 
@@ -122,7 +119,8 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             onClose();
           },
           onError: (error: any) => {
-            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to create project';
+            const errorMessage =
+              error?.response?.data?.message || error?.message || t('projects.createFailed');
             setError(errorMessage);
           },
         },
@@ -138,6 +136,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
   return (
     <Dialog
+      key={i18n.language}
       open={open}
       onClose={handleClose}
       maxWidth="sm"
@@ -148,12 +147,10 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           boxShadow: UI_SHADOWS['2xl'],
         },
       }}
-     
     >
       <DialogTitle
         sx={{
           pb: 1,
-          // borderBottom: `1px solid ${UI_COLORS.border.light}`,
         }}
       >
         <Typography
@@ -164,11 +161,11 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             fontSize: UI_TYPOGRAPHY.fontSize.xl,
           }}
         >
-          Create New Project
+          {t('projects.createTitle')}
         </Typography>
       </DialogTitle>
       <DialogContent sx={{ pt: 4 }}>
-        <Box sx={{mt:3,  display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 3 }}>
           {error && (
             <Alert
               severity="error"
@@ -187,13 +184,13 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           )}
 
           <TextField
-            label="Project Name"
+            label={t('projects.nameLabel')}
             required
             fullWidth
             value={formData.name}
             onChange={handleChange('name')}
             disabled={projectsState.createProjectLoading}
-            helperText="A descriptive name for your project"
+            helperText={t('projects.helperName')}
             sx={UI_INPUT_STYLES.default}
             InputLabelProps={{
               shrink: true,
@@ -210,13 +207,13 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           />
 
           <TextField
-            label="Project Key"
+            label={t('projects.keyLabel')}
             required
             fullWidth
             value={formData.key}
             onChange={handleKeyChange}
             disabled={projectsState.createProjectLoading}
-            helperText="Unique key (uppercase letters and numbers, max 20 characters)"
+            helperText={t('projects.helperKey')}
             inputProps={{ maxLength: 20 }}
             sx={UI_INPUT_STYLES.default}
             InputLabelProps={{
@@ -256,30 +253,30 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               },
             }}
           >
-            <InputLabel>Project Type</InputLabel>
+            <InputLabel>{t('projects.typeLabel')}</InputLabel>
             <Select
               value={formData.type}
               onChange={handleChange('type')}
-              label="Project Type"
+              label={t('projects.typeLabel')}
               disabled={projectsState.createProjectLoading}
             >
-              {projectTypes.map((type) => (
-                <MenuItem key={type.value} value={type.value}>
-                  {type.label}
+              {PROJECT_TYPE_VALUES.map((typeValue) => (
+                <MenuItem key={typeValue} value={typeValue}>
+                  {t(`projects.types.${typeValue}`)}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
 
           <TextField
-            label="Description"
+            label={t('projects.descriptionLabel')}
             fullWidth
             multiline
             rows={3}
             value={formData.description}
             onChange={handleChange('description')}
             disabled={projectsState.createProjectLoading}
-            helperText="Describe the purpose and goals of this project (optional)"
+            helperText={t('projects.helperDescription')}
             sx={UI_INPUT_STYLES.default}
             InputLabelProps={{
               shrink: true,
@@ -316,7 +313,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             },
           }}
         >
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -332,7 +329,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             ...UI_BUTTON_STYLES.primary,
           }}
         >
-          {projectsState.createProjectLoading ? 'Creating...' : 'Create Project'}
+          {projectsState.createProjectLoading ? t('projects.creating') : t('projects.createProject')}
         </Button>
       </DialogActions>
     </Dialog>
@@ -340,7 +337,3 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 };
 
 export default CreateProjectModal;
-
-
-
-

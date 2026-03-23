@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -35,6 +36,7 @@ export interface SearchModalProps {
 }
 
 export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const searchState = useSelectorSearch((state) => state);
@@ -243,8 +245,9 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
           }
           secondary={
             <Typography variant="caption" color="text.secondary">
-              {issue.project?.name || 'Unknown Project'}
-              {issue.assignee && ` • Assigned to ${issue.assignee.displayName}`}
+              {issue.project?.name || t('searchModal.unknownProject')}
+              {issue.assignee &&
+                ` • ${t('searchModal.assignedTo', { name: issue.assignee.displayName })}`}
             </Typography>
           }
         />
@@ -326,7 +329,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
           <TextField
             inputRef={inputRef}
             fullWidth
-            placeholder="Search projects, issues, users..."
+            placeholder={t('searchModal.placeholder')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             variant="outlined"
@@ -383,7 +386,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
             <Box sx={{ p: 4, textAlign: 'center' }}>
               <SearchIcon sx={{ fontSize: 48, color: '#d1d5db', mb: 2 }} />
               <Typography variant="body2" color="text.secondary">
-                Start typing to search projects, issues, and users
+                {t('searchModal.hint')}
               </Typography>
             </Box>
           )}
@@ -391,7 +394,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
           {!searchState.loading && query && !hasResults && (
             <Box sx={{ p: 4, textAlign: 'center' }}>
               <Typography variant="body2" color="text.secondary">
-                No results found for "{query}"
+                {t('searchModal.noResults', { query })}
               </Typography>
             </Box>
           )}
@@ -418,7 +421,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
                 <>
                   <Box sx={{ px: 2, py: 1, backgroundColor: '#f9fafb' }}>
                     <Typography variant="caption" fontWeight={600} color="text.secondary">
-                      🐛 ISSUES ({searchState.results!.issues.length})
+                      {t('searchModal.sectionIssues', { count: searchState.results!.issues.length })}
                     </Typography>
                   </Box>
                   {searchState.results!.issues.map((issue, idx) =>
@@ -433,7 +436,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
                 <>
                   <Box sx={{ px: 2, py: 1, backgroundColor: '#f9fafb' }}>
                     <Typography variant="caption" fontWeight={600} color="text.secondary">
-                      👤 USERS ({searchState.results!.users.length})
+                      {t('searchModal.sectionUsers', { count: searchState.results!.users.length })}
                     </Typography>
                   </Box>
                   {searchState.results!.users.map((user, idx) =>
@@ -447,7 +450,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
           {searchState.error && (
             <Box sx={{ p: 4, textAlign: 'center' }}>
               <Typography variant="body2" color="error">
-                Search failed. Please try again.
+                {t('searchModal.failed')}
               </Typography>
             </Box>
           )}

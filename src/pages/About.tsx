@@ -15,42 +15,30 @@ import {
   Dashboard as BoardsIcon,
   Speed as SprintsIcon,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import { APP_CONFIG } from '../shared/constants/src/config';
 import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS, UI_TRANSITIONS } from '../shared/constants/src/ui';
 
+const FEATURE_ICON_SX = { fontSize: 48, color: 'primary.main' as const };
+
+const FEATURE_CONFIG = [
+  { key: 'projectManagement' as const, icon: <ProjectsIcon sx={FEATURE_ICON_SX} /> },
+  { key: 'issueTracking' as const, icon: <IssuesIcon sx={FEATURE_ICON_SX} /> },
+  { key: 'customWorkflows' as const, icon: <WorkflowsIcon sx={FEATURE_ICON_SX} /> },
+  { key: 'kanbanBoards' as const, icon: <BoardsIcon sx={FEATURE_ICON_SX} /> },
+  { key: 'sprintPlanning' as const, icon: <SprintsIcon sx={FEATURE_ICON_SX} /> },
+  { key: 'teamCollaboration' as const, icon: <TeamIcon sx={FEATURE_ICON_SX} /> },
+];
+
 const About = () => {
-  const features = [
-    {
-      icon: <ProjectsIcon sx={{ fontSize: 48, color: 'primary.main' }} />,
-      title: 'Project Management',
-      description: 'Create, organize, and manage multiple projects with ease. Track progress, set deadlines, and collaborate with your team.',
-    },
-    {
-      icon: <IssuesIcon sx={{ fontSize: 48, color: 'primary.main' }} />,
-      title: 'Issue Tracking',
-      description: 'Track bugs, tasks, and feature requests. Assign issues to team members, set priorities, and monitor progress.',
-    },
-    {
-      icon: <WorkflowsIcon sx={{ fontSize: 48, color: 'primary.main' }} />,
-      title: 'Custom Workflows',
-      description: 'Define custom workflows and status transitions to match your team\'s unique processes and methodologies.',
-    },
-    {
-      icon: <BoardsIcon sx={{ fontSize: 48, color: 'primary.main' }} />,
-      title: 'Kanban Boards',
-      description: 'Visualize your work with Kanban boards. Drag and drop issues between columns to track progress in real-time.',
-    },
-    {
-      icon: <SprintsIcon sx={{ fontSize: 48, color: 'primary.main' }} />,
-      title: 'Sprint Planning',
-      description: 'Plan and execute sprints efficiently. Organize issues into sprints, track velocity, and manage your agile workflow.',
-    },
-    {
-      icon: <TeamIcon sx={{ fontSize: 48, color: 'primary.main' }} />,
-      title: 'Team Collaboration',
-      description: 'Manage team members, assign roles, and control permissions. Keep everyone aligned and productive.',
-    },
-  ];
+  const { t } = useTranslation();
+  const appName = APP_CONFIG.NAME;
+
+  const features = FEATURE_CONFIG.map(({ key, icon }) => ({
+    icon,
+    title: t(`about.features.${key}.title`),
+    description: t(`about.features.${key}.description`),
+  }));
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -75,7 +63,7 @@ const About = () => {
             fontSize: { xs: UI_TYPOGRAPHY.fontSize['2xl'], md: UI_TYPOGRAPHY.fontSize['3xl'] },
           }}
         >
-          About {APP_CONFIG.NAME}
+          {t('about.title', { name: appName })}
         </Typography>
         <Typography
           variant="h6"
@@ -88,8 +76,7 @@ const About = () => {
             fontSize: { xs: UI_TYPOGRAPHY.fontSize.base, md: UI_TYPOGRAPHY.fontSize.lg },
           }}
         >
-          A powerful, modern project management platform designed to help teams collaborate,
-          track progress, and deliver exceptional results.
+          {t('about.subtitle')}
         </Typography>
       </Box>
 
@@ -114,10 +101,7 @@ const About = () => {
             color: UI_COLORS.text.primary,
           }}
         >
-          {APP_CONFIG.NAME} is a comprehensive project management solution that empowers teams to
-          work smarter, faster, and more efficiently. Whether you're managing software development
-          projects, coordinating cross-functional teams, or tracking complex workflows, our platform
-          provides the tools you need to succeed.
+          {t('about.body1', { name: appName })}
         </Typography>
         <Typography
           variant="body1"
@@ -128,9 +112,7 @@ const About = () => {
             color: UI_COLORS.text.primary,
           }}
         >
-          Built with modern technology and user experience in mind, {APP_CONFIG.NAME} combines
-          powerful features with an intuitive interface. From issue tracking to sprint planning,
-          from team management to custom workflows, everything you need is at your fingertips.
+          {t('about.body2', { name: appName })}
         </Typography>
       </Paper>
 
@@ -147,7 +129,7 @@ const About = () => {
             fontSize: { xs: UI_TYPOGRAPHY.fontSize.xl, md: UI_TYPOGRAPHY.fontSize['2xl'] },
           }}
         >
-          Key Features
+          {t('about.keyFeatures')}
         </Typography>
         <Box
           sx={{
@@ -256,7 +238,7 @@ const About = () => {
                 fontSize: { xs: UI_TYPOGRAPHY.fontSize.xl, md: UI_TYPOGRAPHY.fontSize['2xl'] },
               }}
             >
-              Why Choose {APP_CONFIG.NAME}?
+              {t('about.whyTitle', { name: appName })}
             </Typography>
             <Box
               sx={{
@@ -285,7 +267,7 @@ const About = () => {
                 >
                   •
                 </Box>
-                Streamline your project management workflow with intuitive tools
+                {t('about.whyBullet1')}
               </Typography>
               <Typography
                 variant="body1"
@@ -307,7 +289,7 @@ const About = () => {
                 >
                   •
                 </Box>
-                Improve team collaboration with real-time updates and notifications
+                {t('about.whyBullet2')}
               </Typography>
               <Typography
                 variant="body1"
@@ -329,7 +311,7 @@ const About = () => {
                 >
                   •
                 </Box>
-                Customize workflows to match your team's unique processes
+                {t('about.whyBullet3')}
               </Typography>
               <Typography
                 variant="body1"
@@ -351,7 +333,7 @@ const About = () => {
                 >
                   •
                 </Box>
-                Track progress and make data-driven decisions
+                {t('about.whyBullet4')}
               </Typography>
             </Box>
           </Box>
@@ -365,7 +347,7 @@ const About = () => {
                 fontSize: { xs: UI_TYPOGRAPHY.fontSize.xl, md: UI_TYPOGRAPHY.fontSize['2xl'] },
               }}
             >
-              Get Started
+              {t('about.getStartedTitle')}
             </Typography>
             <Typography
               variant="body1"
@@ -377,9 +359,7 @@ const About = () => {
                 fontSize: UI_TYPOGRAPHY.fontSize.base,
               }}
             >
-              Ready to transform how your team manages projects? Start by creating your first
-              project, invite team members, and begin tracking your work. Our platform is designed
-              to scale with your needs, from small teams to large enterprises.
+              {t('about.getStartedP1')}
             </Typography>
             <Typography
               variant="body1"
@@ -389,8 +369,7 @@ const About = () => {
                 fontSize: UI_TYPOGRAPHY.fontSize.base,
               }}
             >
-              For administrative tasks, user management, and system configuration, visit the
-              Admin Dashboard to customize your experience.
+              {t('about.getStartedP2')}
             </Typography>
           </Box>
         </Box>

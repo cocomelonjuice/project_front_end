@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -46,7 +46,7 @@ const AssignLabelsModal: React.FC<AssignLabelsModalProps> = ({
   onLabelsAssigned,
   onCreateLabel,
 }) => {
-  const dispatch = useDispatch();
+  const { t, i18n } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedLabelIds, setSelectedLabelIds] = useState<string[]>([]);
@@ -94,7 +94,8 @@ const AssignLabelsModal: React.FC<AssignLabelsModalProps> = ({
       onLabelsAssigned?.(selectedLabelIds);
       onClose();
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update labels';
+      const errorMessage =
+        error?.response?.data?.message || error?.message || t('assignLabelsModal.updateFailed');
       setError(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -126,7 +127,7 @@ const AssignLabelsModal: React.FC<AssignLabelsModalProps> = ({
           {/* Search */}
           <TextField
             fullWidth
-            placeholder="Search labels..."
+            placeholder={t('assignLabelsModal.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             size="small"
@@ -149,7 +150,7 @@ const AssignLabelsModal: React.FC<AssignLabelsModalProps> = ({
               onClick={onCreateLabel}
               sx={{ mb: 2 }}
             >
-              Create New Label
+              {t('assignLabelsModal.createNewLabel')}
             </Button>
           )}
 
@@ -157,7 +158,7 @@ const AssignLabelsModal: React.FC<AssignLabelsModalProps> = ({
           {selectedLabelIds.length > 0 && (
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                Selected ({selectedLabelIds.length})
+                {t('assignLabelsModal.selectedCount', { count: selectedLabelIds.length })}
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                 {selectedLabelIds.map((labelId) => {
@@ -178,7 +179,9 @@ const AssignLabelsModal: React.FC<AssignLabelsModalProps> = ({
           {filteredLabels.length === 0 ? (
             <Box sx={{ textAlign: 'center', py: 4 }}>
               <Typography variant="body2" color="text.secondary">
-                {searchQuery ? 'No labels found matching your search' : 'No labels available'}
+                {searchQuery
+                  ? t('assignLabelsModal.noMatchSearch')
+                  : t('assignLabelsModal.noLabelsAvailable')}
               </Typography>
             </Box>
           ) : (
@@ -218,7 +221,7 @@ const AssignLabelsModal: React.FC<AssignLabelsModalProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={isSubmitting}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -226,7 +229,7 @@ const AssignLabelsModal: React.FC<AssignLabelsModalProps> = ({
           disabled={isSubmitting}
           startIcon={isSubmitting ? <CircularProgress size={16} /> : null}
         >
-          {isSubmitting ? 'Saving...' : 'Save'}
+          {isSubmitting ? t('assignLabelsModal.saving') : t('assignLabelsModal.save')}
         </Button>
       </DialogActions>
     </Dialog>

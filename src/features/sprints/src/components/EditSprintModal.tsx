@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -27,6 +28,7 @@ const EditSprintModal: React.FC<EditSprintModalProps> = ({
   sprint,
   onSprintUpdated,
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const sprintsState = useSelectorSprints((state) => state);
   const [error, setError] = useState<string | null>(null);
@@ -115,8 +117,8 @@ const EditSprintModal: React.FC<EditSprintModalProps> = ({
   if (!sprint) return null;
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Edit Sprint</DialogTitle>
+    <Dialog key={i18n.language} open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{t('sprintModal.editTitle')}</DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -142,7 +144,7 @@ const EditSprintModal: React.FC<EditSprintModalProps> = ({
           />
 
           <TextField
-            label="Goal (Optional)"
+            label={t('sprintModal.goalLabel')}
             fullWidth
             multiline
             rows={3}
@@ -157,7 +159,7 @@ const EditSprintModal: React.FC<EditSprintModalProps> = ({
 
           <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
             <TextField
-              label="Start Date"
+              label={t('sprintModal.startDate')}
               type="date"
               fullWidth
               value={startDate}
@@ -183,7 +185,7 @@ const EditSprintModal: React.FC<EditSprintModalProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={isSubmitting}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -191,7 +193,7 @@ const EditSprintModal: React.FC<EditSprintModalProps> = ({
           disabled={isSubmitting || !name.trim()}
           startIcon={isSubmitting ? <CircularProgress size={16} /> : null}
         >
-          {isSubmitting ? 'Updating...' : 'Update Sprint'}
+          {isSubmitting ? t('sprintModal.updating') : t('sprintModal.updateSprint')}
         </Button>
       </DialogActions>
     </Dialog>

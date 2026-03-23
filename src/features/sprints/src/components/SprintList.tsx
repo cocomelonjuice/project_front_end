@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Typography,
@@ -21,7 +22,7 @@ import {
   Flag as FlagIcon,
 } from '@mui/icons-material';
 import type { Sprint } from '../store/states';
-import { formatSprintDuration, getSprintStatusColor, isSprintActive } from '../store/mockData';
+import { getSprintStatusColor, isSprintActive } from '../store/mockData';
 
 interface SprintListProps {
   sprints: Sprint[];
@@ -40,10 +41,35 @@ const SprintList: React.FC<SprintListProps> = ({
   onStart,
   onComplete,
   onViewIssues,
-  emptyMessage = 'No sprints',
+  emptyMessage: emptyMessageProp,
 }) => {
+  const { t, i18n } = useTranslation();
+  const emptyMessage = emptyMessageProp ?? t('projectDetail.sprintListEmpty');
   const [menuAnchor, setMenuAnchor] = React.useState<null | HTMLElement>(null);
   const [selectedSprint, setSelectedSprint] = React.useState<Sprint | null>(null);
+
+  const dateLocale = i18n.language?.startsWith('vi') ? 'vi-VN' : 'en-US';
+
+  const formatSprintDurationLabel = (startDate?: string, endDate?: string): string => {
+    if (!startDate || !endDate) return t('projectDetail.sprintNotScheduled');
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    return t('projectDetail.sprintDurationDays', { days });
+  };
+
+  const sprintStatusLabel = (status: Sprint['status']): string => {
+    switch (status) {
+      case 'planned':
+        return t('projectDetail.sprintStatusPlanned');
+      case 'active':
+        return t('projectDetail.sprintStatusActive');
+      case 'closed':
+        return t('projectDetail.sprintStatusClosed');
+      default:
+        return status;
+    }
+  };
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, sprint: Sprint) => {
     setMenuAnchor(event.currentTarget);
@@ -72,7 +98,7 @@ const SprintList: React.FC<SprintListProps> = ({
 
   return (
     <Box>
-      {sprints.map((sprint, index) => {
+      {sprints.map((sprint) => {
         const statusColor = getSprintStatusColor(sprint.status);
         const canStart = sprint.status === 'planned';
         const canComplete = sprint.status === 'active';
@@ -98,7 +124,7 @@ const SprintList: React.FC<SprintListProps> = ({
                       {sprint.name}
                     </Typography>
                     <Chip
-                      label={sprint.status.charAt(0).toUpperCase() + sprint.status.slice(1)}
+                      label={sprintStatusLabel(sprint.status)}
                       size="small"
                       sx={{
                         bgcolor: statusColor,
@@ -122,8 +148,8 @@ const SprintList: React.FC<SprintListProps> = ({
                       <CalendarIcon fontSize="small" color="action" />
                       <Typography variant="caption" color="text.secondary">
                         {sprint.startDate && sprint.endDate
-                          ? `${new Date(sprint.startDate).toLocaleDateString()} - ${new Date(sprint.endDate).toLocaleDateString()}`
-                          : 'Not scheduled'}
+                          ? `${new Date(sprint.startDate).toLocaleDateString(dateLocale)} - ${new Date(sprint.endDate).toLocaleDateString(dateLocale)}`
+                          : t('projectDetail.sprintNotScheduled')}
                       </Typography>
                     </Box>
                     {sprint.startDate && sprint.endDate && (
@@ -132,7 +158,7 @@ const SprintList: React.FC<SprintListProps> = ({
                           •
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {formatSprintDuration(sprint.startDate, sprint.endDate)}
+                          {formatSprintDurationLabel(sprint.startDate, sprint.endDate)}
                         </Typography>
                       </>
                     )}
@@ -148,7 +174,7 @@ const SprintList: React.FC<SprintListProps> = ({
                       onClick={() => onStart(sprint)}
                       color="primary"
                     >
-                      Start
+                      {t('projectDetail.sprintStart')}
                     </Button>
                   )}
                   {canComplete && onComplete && (
@@ -159,22 +185,15 @@ const SprintList: React.FC<SprintListProps> = ({
                       onClick={() => onComplete(sprint)}
                       color="success"
                     >
-                      Complete
+                      {t('projectDetail.sprintComplete')}
                     </Button>
                   )}
                   {onViewIssues && (
-                    <Button
-                      size="small"
-                      variant="text"
-                      onClick={() => onViewIssues(sprint)}
-                    >
-                      View Issues
+                    <Button size="small" variant="text" onClick={() => onViewIssues(sprint)}>
+                      {t('projectDetail.sprintViewIssues')}
                     </Button>
                   )}
-                  <IconButton
-                    size="small"
-                    onClick={(e) => handleMenuOpen(e, sprint)}
-                  >
+                  <IconButton size="small" onClick={(e) => handleMenuOpen(e, sprint)}>
                     <MoreVertIcon />
                   </IconButton>
                 </Box>
@@ -184,24 +203,23 @@ const SprintList: React.FC<SprintListProps> = ({
         );
       })}
 
-      {/* Menu */}
       <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleMenuClose}>
         {selectedSprint && onEdit && (
           <MenuItem onClick={() => handleAction(() => onEdit(selectedSprint))}>
             <EditIcon sx={{ mr: 1, fontSize: 18 }} />
-            Edit
+            {t('home.edit')}
           </MenuItem>
         )}
         {selectedSprint && selectedSprint.status === 'planned' && onStart && (
           <MenuItem onClick={() => handleAction(() => onStart(selectedSprint))}>
             <StartIcon sx={{ mr: 1, fontSize: 18 }} />
-            Start Sprint
+            {t('projectDetail.sprintMenuStartSprint')}
           </MenuItem>
         )}
         {selectedSprint && selectedSprint.status === 'active' && onComplete && (
           <MenuItem onClick={() => handleAction(() => onComplete(selectedSprint))}>
             <CompleteIcon sx={{ mr: 1, fontSize: 18 }} />
-            Complete Sprint
+            {t('projectDetail.sprintMenuCompleteSprint')}
           </MenuItem>
         )}
         {selectedSprint && onDelete && (
@@ -212,7 +230,7 @@ const SprintList: React.FC<SprintListProps> = ({
               sx={{ color: 'error.main' }}
             >
               <DeleteIcon sx={{ mr: 1, fontSize: 18 }} />
-              Delete
+              {t('home.delete')}
             </MenuItem>
           </>
         )}

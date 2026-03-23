@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -37,6 +38,7 @@ const TransitionStatusModal: React.FC<TransitionStatusModalProps> = ({
   availableStatuses,
   onStatusTransitioned,
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const referenceDataState = useSelectorReferenceData((state) => state);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -97,8 +99,8 @@ const TransitionStatusModal: React.FC<TransitionStatusModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Change Status</DialogTitle>
+    <Dialog key={i18n.language} open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{t('transitionStatusModal.title')}</DialogTitle>
       <DialogContent>
         <Box sx={{ pt: 1 }}>
           {referenceDataState.getStatusesLoading && !availableStatuses ? (
@@ -135,12 +137,12 @@ const TransitionStatusModal: React.FC<TransitionStatusModalProps> = ({
                         />
                         {status.id === currentStatusId && (
                           <Typography variant="caption" color="text.secondary">
-                            (Current)
+                            {t('transitionStatusModal.current')}
                           </Typography>
                         )}
                       </Box>
                     }
-                    secondary={status.category && `Category: ${status.category}`}
+                    secondary={status.category ? t('transitionStatusModal.category', { category: status.category }) : undefined}
                   />
                 </ListItemButton>
               </ListItem>
@@ -151,7 +153,7 @@ const TransitionStatusModal: React.FC<TransitionStatusModalProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={isSubmitting}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -159,7 +161,7 @@ const TransitionStatusModal: React.FC<TransitionStatusModalProps> = ({
           disabled={isSubmitting || selectedStatusId === currentStatusId}
           startIcon={isSubmitting ? <CircularProgress size={16} /> : null}
         >
-          {isSubmitting ? 'Changing...' : 'Change Status'}
+          {isSubmitting ? t('transitionStatusModal.changing') : t('transitionStatusModal.changeStatus')}
         </Button>
       </DialogActions>
     </Dialog>

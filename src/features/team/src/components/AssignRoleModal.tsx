@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -48,6 +49,7 @@ const AssignRoleModal: React.FC<AssignRoleModalProps> = ({
   editingMember,
   onRoleAssigned,
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const teamState = useSelectorTeam((state) => state);
   const usersState = useSelectorUsers((state) => state);
@@ -117,12 +119,12 @@ const AssignRoleModal: React.FC<AssignRoleModalProps> = ({
 
   const handleSubmit = () => {
     if (!selectedUserId) {
-      setError('Please select a user');
+      setError(t('teamModal.selectUserRequired'));
       return;
     }
 
     if (!selectedRoleId) {
-      setError('Please select a role');
+      setError(t('teamModal.selectRoleRequired'));
       return;
     }
 
@@ -141,7 +143,7 @@ const AssignRoleModal: React.FC<AssignRoleModalProps> = ({
             onClose();
           },
           onError: (error: any) => {
-            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to assign role';
+            const errorMessage = error?.response?.data?.message || error?.message || t('teamModal.assignFailed');
             setError(errorMessage);
           },
         },
@@ -156,8 +158,8 @@ const AssignRoleModal: React.FC<AssignRoleModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{editingMember ? 'Change Role' : 'Add Team Member'}</DialogTitle>
+    <Dialog key={i18n.language} open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{editingMember ? t('teamModal.changeRoleTitle') : t('teamModal.addTitle')}</DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -168,11 +170,11 @@ const AssignRoleModal: React.FC<AssignRoleModalProps> = ({
         <Box sx={{ pt: 1 }}>
           {/* User Selection */}
           <Typography variant="subtitle2" gutterBottom sx={{ mt: 2, mb: 1 }}>
-            Select User
+            {t('teamModal.selectUser')}
           </Typography>
           <TextField
             fullWidth
-            placeholder="Search users..."
+            placeholder={t('teamModal.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             size="small"
@@ -191,7 +193,7 @@ const AssignRoleModal: React.FC<AssignRoleModalProps> = ({
                 <ListItemText
                   primary={
                     <Typography variant="body2" color="text.secondary">
-                      {searchQuery ? 'No users found' : 'No available users'}
+                      {searchQuery ? t('teamModal.noUsersFound') : t('teamModal.noAvailableUsers')}
                     </Typography>
                   }
                 />
@@ -222,7 +224,7 @@ const AssignRoleModal: React.FC<AssignRoleModalProps> = ({
 
           {/* Role Selection */}
           <Typography variant="subtitle2" gutterBottom sx={{ mt: 2, mb: 1 }}>
-            Select Role
+            {t('teamModal.selectRole')}
           </Typography>
           {teamState.getRolesLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
@@ -231,7 +233,7 @@ const AssignRoleModal: React.FC<AssignRoleModalProps> = ({
           ) : roles.length === 0 ? (
             <Box sx={{ py: 2, textAlign: 'center' }}>
               <Typography variant="body2" color="text.secondary">
-                No roles available
+                {t('teamModal.noRolesAvailable')}
               </Typography>
             </Box>
           ) : (
@@ -262,7 +264,7 @@ const AssignRoleModal: React.FC<AssignRoleModalProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={teamState.assignRoleLoading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -270,7 +272,11 @@ const AssignRoleModal: React.FC<AssignRoleModalProps> = ({
           disabled={teamState.assignRoleLoading || !selectedUserId || !selectedRoleId}
           startIcon={teamState.assignRoleLoading ? <CircularProgress size={16} /> : null}
         >
-          {teamState.assignRoleLoading ? 'Saving...' : editingMember ? 'Update Role' : 'Add Member'}
+          {teamState.assignRoleLoading
+            ? t('teamModal.saving')
+            : editingMember
+              ? t('teamModal.updateRole')
+              : t('teamModal.addMember')}
         </Button>
       </DialogActions>
     </Dialog>

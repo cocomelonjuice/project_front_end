@@ -23,6 +23,7 @@ import {
 import { useAuth } from '../../auth/src';
 import { SearchModal } from '../../../features/search/src';
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export interface GlobalHeaderProps {
   /**
@@ -108,6 +109,10 @@ export interface GlobalHeaderProps {
    * Callback when app launcher is clicked
    */
   onAppLauncherClick?: () => void;
+  /**
+   * Extra nodes in the right toolbar (e.g. language switcher)
+   */
+  extraActions?: ReactNode;
 }
 
 /**
@@ -142,9 +147,9 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
   onSidebarToggle,
   sidebarCollapsed = false,
   onSearch,
-  searchPlaceholder = 'Search',
-  onCreateClick,
-  createButtonText = 'Create',
+  searchPlaceholder,
+  onCreateClick: _onCreateClick,
+  createButtonText: _createButtonText,
   trialInfo,
   notificationCount = 0,
   onNotificationsClick,
@@ -156,8 +161,11 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
   userName,
   showAppLauncher = true,
   onAppLauncherClick,
+  extraActions,
 }) => {
+  const { t } = useTranslation();
   const { auth } = useAuth();
+  const resolvedSearchPlaceholder = searchPlaceholder ?? t('header.searchPlaceholder');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
@@ -173,7 +181,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
   }, [searchModalOpen]);
 
   // Get user name from auth if not provided
-  const displayUserName = userName || auth.user?.displayName || auth.user?.username || 'User';
+  const displayUserName = userName || auth.user?.displayName || auth.user?.username || t('common.user');
   const displayUserInitials = displayUserName
     .split(' ')
     .map((n: string) => n[0])
@@ -244,7 +252,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
           {/* Sidebar Toggle */}
           {onSidebarToggle && (
-            <Tooltip title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"} arrow placement="bottom">
+            <Tooltip title={sidebarCollapsed ? t('header.expandSidebar') : t('header.collapseSidebar')} arrow placement="bottom">
               <IconButton
                 edge="start"
                 color="inherit"
@@ -311,7 +319,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
         {/* Right Section - Actions */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexShrink: 0 }}>
           {/* Search Bar - Moved to right section */}
-          <Tooltip title="Search projects, issues, and more" arrow placement="bottom">
+          <Tooltip title={t('header.searchTooltip')} arrow placement="bottom">
             <Box
               component="form"
               onSubmit={(e) => {
@@ -354,7 +362,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
             >
               <SearchIcon sx={{ color: '#6366f1', fontSize: '18px', mr: 1 }} />
               <InputBase
-                placeholder="Search (Ctrl + K)"
+                placeholder={resolvedSearchPlaceholder}
                 value={searchQuery}
                 readOnly
                 onFocus={handleSearchFocus}
@@ -404,6 +412,8 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
             />
           )}
 
+          {extraActions}
+
           {/* Notifications */}
           {notificationComponent ? (
             notificationComponent
@@ -411,7 +421,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
             onNotificationsClick && (
               <IconButton
                 color="inherit"
-                aria-label="notifications"
+                aria-label={t('header.notifications')}
                 onClick={onNotificationsClick}
                 sx={{
                   color: '#666',
@@ -427,7 +437,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
 
           {/* Help */}
           {onHelpClick && (
-            <Tooltip title="Help & Documentation" arrow placement="bottom">
+            <Tooltip title={t('header.help')} arrow placement="bottom">
               <IconButton
                 color="inherit"
                 aria-label="help"
@@ -480,7 +490,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
           )}
 
           {/* User Avatar */}
-          <Tooltip title={`${displayUserName} - Account menu`} arrow placement="bottom">
+          <Tooltip title={t('header.accountMenu', { name: displayUserName })} arrow placement="bottom">
             <IconButton
               onClick={handleUserMenuOpen}
               size="small"

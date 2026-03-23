@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -25,18 +26,21 @@ interface AddStatusModalProps {
   existingNames?: string[];
 }
 
-const statusCategories = [
-  { value: 'todo', label: 'To Do' },
-  { value: 'inprogress', label: 'In Progress' },
-  { value: 'done', label: 'Done' },
-];
-
 const AddStatusModal: React.FC<AddStatusModalProps> = ({
   open,
   onClose,
   onStatusAdded,
   existingNames = [],
 }) => {
+  const { t, i18n } = useTranslation();
+  const statusCategories = useMemo(
+    () => [
+      { value: 'todo', label: t('adminStatusModal.catTodo') },
+      { value: 'inprogress', label: t('adminStatusModal.catInProgress') },
+      { value: 'done', label: t('adminStatusModal.catDone') },
+    ],
+    [t],
+  );
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
@@ -54,22 +58,22 @@ const AddStatusModal: React.FC<AddStatusModalProps> = ({
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      setError('Name is required');
+      setError(t('adminRefData.nameRequired'));
       return;
     }
 
     if (name.length > 50) {
-      setError('Name must be 50 characters or less');
+      setError(t('adminRefData.nameMax50'));
       return;
     }
 
     if (existingNames.includes(name.trim().toLowerCase())) {
-      setError('A status with this name already exists');
+      setError(t('adminStatusModal.duplicate'));
       return;
     }
 
     if (!category) {
-      setError('Category is required');
+      setError(t('adminRefData.categoryRequired'));
       return;
     }
 
@@ -88,7 +92,7 @@ const AddStatusModal: React.FC<AddStatusModalProps> = ({
       }
       onClose();
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to create status';
+      const errorMessage = error?.response?.data?.message || error?.message || t('adminStatusModal.createFailed');
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -104,6 +108,7 @@ const AddStatusModal: React.FC<AddStatusModalProps> = ({
 
   return (
     <Dialog
+      key={i18n.language}
       open={open}
       onClose={handleClose}
       maxWidth="sm"
@@ -128,7 +133,7 @@ const AddStatusModal: React.FC<AddStatusModalProps> = ({
             fontSize: UI_TYPOGRAPHY.fontSize.xl,
           }}
         >
-          Add Status
+          {t('adminStatusModal.addTitle')}
         </Typography>
       </DialogTitle>
       <DialogContent sx={{ pt: 4 }}>
@@ -151,7 +156,7 @@ const AddStatusModal: React.FC<AddStatusModalProps> = ({
           )}
 
           <TextField
-            label="Name"
+            label={t('adminRefData.nameLabel')}
             required
             fullWidth
             value={name}
@@ -169,11 +174,11 @@ const AddStatusModal: React.FC<AddStatusModalProps> = ({
           />
 
           <FormControl fullWidth required>
-            <InputLabel>Category</InputLabel>
+            <InputLabel>{t('adminRefData.categoryLabel')}</InputLabel>
             <Select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              label="Category"
+              label={t('adminRefData.categoryLabel')}
               disabled={loading}
             >
               {statusCategories.map((cat) => (
@@ -197,7 +202,7 @@ const AddStatusModal: React.FC<AddStatusModalProps> = ({
                 }}
               />
               <TextField
-                label="Hex Color"
+                label={t('adminRefData.hexColor')}
                 value={color}
                 onChange={(e) => {
                   const value = e.target.value;
@@ -220,7 +225,7 @@ const AddStatusModal: React.FC<AddStatusModalProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={loading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -228,7 +233,7 @@ const AddStatusModal: React.FC<AddStatusModalProps> = ({
           disabled={loading || !name.trim()}
           startIcon={loading ? <CircularProgress size={16} /> : null}
         >
-          {loading ? 'Creating...' : 'Create Status'}
+          {loading ? t('adminRefData.creating') : t('adminStatusModal.create')}
         </Button>
       </DialogActions>
     </Dialog>

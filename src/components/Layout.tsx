@@ -3,12 +3,14 @@ import type { ReactNode } from 'react';
 import { Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import { GlobalHeader } from '../shared/ui/header';
 import { NavigationSidebar } from '../shared/ui/sidebar';
 import { Logout as LogoutIcon, Person as PersonIcon } from '@mui/icons-material';
 import { APP_CONFIG } from '../shared/constants/src/config';
 import { NotificationsDropdown } from '../features/notifications/src';
 import { authActions } from '../features/auth/src/store';
+import { LanguageSwitcher } from './LanguageSwitcher';
 interface LayoutProps {
   children: ReactNode;
 }
@@ -16,6 +18,7 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -64,14 +67,14 @@ const Layout = ({ children }: LayoutProps) => {
 
   const userMenuItems = [
     {
-      label: 'Profile',
+      label: t('layout.profile'),
       onClick: () => {
         navigate('/profile');
       },
       icon: <PersonIcon fontSize="small" />,
     },
     {
-      label: 'Logout',
+      label: t('layout.logout'),
       onClick: handleLogout,
       icon: <LogoutIcon fontSize="small" />,
     },
@@ -120,9 +123,10 @@ const Layout = ({ children }: LayoutProps) => {
         onSidebarToggle={handleSidebarToggle}
         sidebarCollapsed={sidebarCollapsed}
         onSearch={handleSearch}
-        searchPlaceholder="Search"
+        searchPlaceholder={t('header.searchPlaceholder')}
         onCreateClick={handleCreate}
-        createButtonText="Create"
+        createButtonText={t('common.create')}
+        extraActions={<LanguageSwitcher />}
         // Trial info removed - not needed for this project
         // trialInfo={{
         //   daysLeft: 26,

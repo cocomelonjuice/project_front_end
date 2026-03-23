@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -25,6 +26,7 @@ const DeleteWorkflowDialog: React.FC<DeleteWorkflowDialogProps> = ({
   workflow,
   onWorkflowDeleted,
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const workflowsState = useSelectorWorkflows((state) => state);
 
@@ -43,7 +45,7 @@ const DeleteWorkflowDialog: React.FC<DeleteWorkflowDialogProps> = ({
           },
           onError: (error: any) => {
             console.error('Failed to delete workflow:', error);
-            alert('Failed to delete workflow. Please try again.');
+            alert(t('workflowDeleteDialog.deleteFailed'));
           },
         },
       } as any)
@@ -61,23 +63,23 @@ const DeleteWorkflowDialog: React.FC<DeleteWorkflowDialogProps> = ({
   }
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Delete Workflow</DialogTitle>
+    <Dialog key={i18n.language} open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{t('workflowDeleteDialog.title')}</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          Are you sure you want to delete the workflow &quot;{workflow.name}&quot;? This action cannot be undone.
+          {t('workflowDeleteDialog.confirm', { name: workflow.name })}
           {workflow.transitions && workflow.transitions.length > 0 && (
             <strong>
               <br />
               <br />
-              Warning: This workflow has {workflow.transitions.length} transition(s) that will also be deleted.
+              {t('workflowDeleteDialog.transitionsWarning', { count: workflow.transitions.length })}
             </strong>
           )}
         </DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={workflowsState.deleteWorkflowLoading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleDelete}
@@ -86,7 +88,7 @@ const DeleteWorkflowDialog: React.FC<DeleteWorkflowDialogProps> = ({
           disabled={workflowsState.deleteWorkflowLoading}
           startIcon={workflowsState.deleteWorkflowLoading ? <CircularProgress size={16} /> : null}
         >
-          {workflowsState.deleteWorkflowLoading ? 'Deleting...' : 'Delete'}
+          {workflowsState.deleteWorkflowLoading ? t('workflowDeleteDialog.deleting') : t('workflowDeleteDialog.delete')}
         </Button>
       </DialogActions>
     </Dialog>

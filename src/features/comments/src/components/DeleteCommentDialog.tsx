@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -26,6 +27,7 @@ const DeleteCommentDialog: React.FC<DeleteCommentDialogProps> = ({
   comment,
   onCommentDeleted,
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const commentsState = useSelectorComments((state) => state);
   const [error, setError] = useState<string | null>(null);
@@ -64,8 +66,8 @@ const DeleteCommentDialog: React.FC<DeleteCommentDialogProps> = ({
   if (!comment) return null;
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Delete Comment</DialogTitle>
+    <Dialog key={i18n.language} open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{t('commentDeleteDialog.title')}</DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -74,15 +76,15 @@ const DeleteCommentDialog: React.FC<DeleteCommentDialogProps> = ({
         )}
 
         <DialogContentText>
-          Are you sure you want to delete this comment?
+          {t('commentDeleteDialog.confirm')}
           <br />
           <br />
-          This action cannot be undone.
+          {t('commentDeleteDialog.warning')}
         </DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={commentsState.deleteCommentLoading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleDelete}
@@ -91,7 +93,9 @@ const DeleteCommentDialog: React.FC<DeleteCommentDialogProps> = ({
           disabled={commentsState.deleteCommentLoading}
           startIcon={commentsState.deleteCommentLoading ? <CircularProgress size={16} /> : null}
         >
-          {commentsState.deleteCommentLoading ? 'Deleting...' : 'Delete'}
+          {commentsState.deleteCommentLoading
+            ? t('commentDeleteDialog.deleting')
+            : t('commentDeleteDialog.delete')}
         </Button>
       </DialogActions>
     </Dialog>

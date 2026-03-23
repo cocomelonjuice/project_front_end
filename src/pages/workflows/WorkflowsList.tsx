@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Typography,
@@ -38,6 +39,7 @@ import { useSelectorProjects } from '../../features/projects/src/store';
 import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS, UI_BUTTON_STYLES } from '../../shared/constants/src/ui';
 
 const WorkflowsList: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const projectsState = useSelectorProjects((state) => state);
@@ -123,10 +125,10 @@ const WorkflowsList: React.FC = () => {
 
   const getProjectName = (projectId: string | null | undefined): string => {
     if (!projectId) {
-      return 'Global';
+      return t('workflowList.global');
     }
     const project = projectsState.projects.find((p) => p.id === projectId);
-    return project ? project.name : 'Unknown';
+    return project ? project.name : t('workflowList.unknown');
   };
 
   return (
@@ -141,7 +143,7 @@ const WorkflowsList: React.FC = () => {
             fontSize: UI_TYPOGRAPHY.fontSize['2xl'],
           }}
         >
-          Workflows
+          {t('workflowList.title')}
         </Typography>
         <Button
           variant="contained"
@@ -163,7 +165,7 @@ const WorkflowsList: React.FC = () => {
             transition: 'all 0.2s ease-in-out',
           }}
         >
-          Create Workflow
+          {t('workflowList.createWorkflow')}
         </Button>
       </Box>
 
@@ -181,7 +183,7 @@ const WorkflowsList: React.FC = () => {
             border: `1px solid ${UI_COLORS.info.light}`,
           }}
         >
-          No workflows found. Create your first workflow to get started.
+          {t('workflowList.empty')}
         </Alert>
       ) : (
         <TableContainer
@@ -205,7 +207,7 @@ const WorkflowsList: React.FC = () => {
                     letterSpacing: '0.5px',
                   }}
                 >
-                  Name
+                  {t('workflowList.colName')}
                 </TableCell>
                 <TableCell
                   sx={{
@@ -216,7 +218,7 @@ const WorkflowsList: React.FC = () => {
                     letterSpacing: '0.5px',
                   }}
                 >
-                  Description
+                  {t('workflowList.colDescription')}
                 </TableCell>
                 <TableCell
                   sx={{
@@ -227,7 +229,7 @@ const WorkflowsList: React.FC = () => {
                     letterSpacing: '0.5px',
                   }}
                 >
-                  Project
+                  {t('workflowList.colProject')}
                 </TableCell>
                 <TableCell
                   sx={{
@@ -238,7 +240,7 @@ const WorkflowsList: React.FC = () => {
                     letterSpacing: '0.5px',
                   }}
                 >
-                  Status
+                  {t('workflowList.colStatus')}
                 </TableCell>
                 <TableCell
                   sx={{
@@ -249,7 +251,7 @@ const WorkflowsList: React.FC = () => {
                     letterSpacing: '0.5px',
                   }}
                 >
-                  Transitions
+                  {t('workflowList.colTransitions')}
                 </TableCell>
                 <TableCell
                   align="right"
@@ -261,7 +263,7 @@ const WorkflowsList: React.FC = () => {
                     letterSpacing: '0.5px',
                   }}
                 >
-                  Actions
+                  {t('workflowList.colActions')}
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -315,7 +317,7 @@ const WorkflowsList: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     <Chip
-                      label={workflow.isActive ? 'Active' : 'Inactive'}
+                      label={workflow.isActive ? t('workflowDetail.active') : t('workflowDetail.inactive')}
                       size="small"
                       color={workflow.isActive ? 'success' : 'default'}
                       sx={{
@@ -334,7 +336,7 @@ const WorkflowsList: React.FC = () => {
                         fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
                       }}
                     >
-                      {workflow.transitions?.length || 0} transition(s)
+                      {t('workflowList.transitionCount', { count: workflow.transitions?.length || 0 })}
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
@@ -385,7 +387,7 @@ const WorkflowsList: React.FC = () => {
           }}
         >
           <VisibilityIcon fontSize="small" sx={{ mr: 1 }} />
-          View Details
+          {t('workflowList.viewDetails')}
         </MenuItem>
         <MenuItem
           onClick={handleEdit}
@@ -397,7 +399,7 @@ const WorkflowsList: React.FC = () => {
           }}
         >
           <EditIcon fontSize="small" sx={{ mr: 1 }} />
-          Edit
+          {t('workflowList.menuEdit')}
         </MenuItem>
         <MenuItem
           onClick={handleDelete}
@@ -410,7 +412,7 @@ const WorkflowsList: React.FC = () => {
           }}
         >
           <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
-          Delete
+          {t('workflowList.menuDelete')}
         </MenuItem>
       </Menu>
 

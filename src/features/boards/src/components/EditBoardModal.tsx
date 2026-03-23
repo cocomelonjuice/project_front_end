@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -25,19 +26,22 @@ interface EditBoardModalProps {
   board: Board | null;
 }
 
-const boardTypes = [
-  { value: 'kanban', label: 'Kanban' },
-  { value: 'scrum', label: 'Scrum' },
-];
-
 const EditBoardModal: React.FC<EditBoardModalProps> = ({
   open,
   onClose,
   onBoardUpdated,
   board,
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const boardsState = useSelectorBoards((state) => state);
+  const boardTypes = useMemo(
+    () => [
+      { value: 'kanban', label: t('boardModal.typeKanban') },
+      { value: 'scrum', label: t('boardModal.typeScrum') },
+    ],
+    [t, i18n.language]
+  );
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
@@ -100,7 +104,7 @@ const EditBoardModal: React.FC<EditBoardModalProps> = ({
             onClose();
           },
           onError: (error: any) => {
-            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update board';
+            const errorMessage = error?.response?.data?.message || error?.message || t('boardModal.updateFailed');
             setError(errorMessage);
           },
         },
@@ -119,8 +123,8 @@ const EditBoardModal: React.FC<EditBoardModalProps> = ({
   }
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Edit Board</DialogTitle>
+    <Dialog key={i18n.language} open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{t('boardModal.editTitle')}</DialogTitle>
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 2 }}>
           {error && (
@@ -130,13 +134,13 @@ const EditBoardModal: React.FC<EditBoardModalProps> = ({
           )}
 
           <TextField
-            label="Board Name"
+            label={t('boardModal.nameLabel')}
             required
             fullWidth
             value={formData.name}
             onChange={handleChange('name')}
             disabled={boardsState.updateBoardLoading}
-            helperText="A descriptive name for your board (3-100 characters)"
+            helperText={t('boardModal.nameHelper')}
             inputProps={{ maxLength: 100 }}
             InputLabelProps={{
               shrink: true,
@@ -144,11 +148,11 @@ const EditBoardModal: React.FC<EditBoardModalProps> = ({
           />
 
           <FormControl fullWidth required>
-            <InputLabel>Board Type</InputLabel>
+            <InputLabel>{t('boardModal.typeLabel')}</InputLabel>
             <Select
               value={formData.type}
               onChange={handleChange('type')}
-              label="Board Type"
+              label={t('boardModal.typeLabel')}
               disabled={boardsState.updateBoardLoading}
             >
               {boardTypes.map((type) => (
@@ -162,7 +166,7 @@ const EditBoardModal: React.FC<EditBoardModalProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={boardsState.updateBoardLoading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -170,7 +174,7 @@ const EditBoardModal: React.FC<EditBoardModalProps> = ({
           disabled={boardsState.updateBoardLoading || !formData.name.trim() || formData.name.trim().length < 3}
           startIcon={boardsState.updateBoardLoading ? <CircularProgress size={16} /> : null}
         >
-          {boardsState.updateBoardLoading ? 'Saving...' : 'Save Changes'}
+          {boardsState.updateBoardLoading ? t('boardModal.saving') : t('boardModal.saveChanges')}
         </Button>
       </DialogActions>
     </Dialog>

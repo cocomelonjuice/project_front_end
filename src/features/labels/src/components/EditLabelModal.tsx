@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -31,6 +32,7 @@ const EditLabelModal: React.FC<EditLabelModalProps> = ({
   onLabelUpdated,
   existingLabels = [],
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const labelsState = useSelectorLabels((state) => state);
   const [error, setError] = useState<string | null>(null);
@@ -53,12 +55,12 @@ const EditLabelModal: React.FC<EditLabelModalProps> = ({
 
     // Validation
     if (!name.trim()) {
-      setError('Label name is required');
+      setError(t('labelModal.nameRequired'));
       return;
     }
 
     if (name.length > 50) {
-      setError('Label name must be 50 characters or less');
+      setError(t('labelModal.nameMax'));
       return;
     }
 
@@ -67,13 +69,13 @@ const EditLabelModal: React.FC<EditLabelModalProps> = ({
       .filter((l) => l.id !== label.id)
       .some((l) => l.name.toLowerCase() === name.trim().toLowerCase());
     if (nameExists) {
-      setError('A label with this name already exists');
+      setError(t('labelModal.duplicateName'));
       return;
     }
 
     // Validate color if provided
     if (color && !isValidHexColor(color)) {
-      setError('Color must be a valid hex color code (e.g., #FF5733)');
+      setError(t('labelModal.colorInvalid'));
       return;
     }
 
@@ -93,7 +95,7 @@ const EditLabelModal: React.FC<EditLabelModalProps> = ({
             onClose();
           },
           onError: (error: any) => {
-            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update label';
+            const errorMessage = error?.response?.data?.message || error?.message || t('labelModal.updateFailed');
             setError(errorMessage);
           },
         },
@@ -111,8 +113,8 @@ const EditLabelModal: React.FC<EditLabelModalProps> = ({
   if (!label) return null;
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Edit Label</DialogTitle>
+    <Dialog key={i18n.language} open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{t('labelModal.editTitle')}</DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -122,7 +124,7 @@ const EditLabelModal: React.FC<EditLabelModalProps> = ({
 
         <Box sx={{ pt: 1 }}>
           <TextField
-            label="Name"
+            label={t('labelModal.nameLabel')}
             fullWidth
             required
             value={name}
@@ -131,7 +133,7 @@ const EditLabelModal: React.FC<EditLabelModalProps> = ({
             autoFocus
             sx={{ mb: 2 }}
             inputProps={{ maxLength: 50 }}
-            helperText={`${name.length}/50 characters`}
+            helperText={t('labelModal.charCount50', { current: name.length })}
             InputLabelProps={{
               shrink: true,
             }}
@@ -139,7 +141,7 @@ const EditLabelModal: React.FC<EditLabelModalProps> = ({
 
           <Box sx={{ mb: 2 }}>
             <Typography variant="body2" color="text.secondary" gutterBottom>
-              Color
+              {t('labelModal.colorSection')}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Box
@@ -167,7 +169,7 @@ const EditLabelModal: React.FC<EditLabelModalProps> = ({
                 size="small"
                 sx={{ flex: 1 }}
                 error={color ? !isValidHexColor(color) : false}
-                helperText={color && !isValidHexColor(color) ? 'Invalid hex color' : ''}
+                helperText={color && !isValidHexColor(color) ? t('labelModal.invalidHex') : ''}
                 InputLabelProps={{
                   shrink: true,
                 }}
@@ -176,7 +178,7 @@ const EditLabelModal: React.FC<EditLabelModalProps> = ({
           </Box>
 
           <TextField
-            label="Description (Optional)"
+            label={t('labelModal.descriptionOptional')}
             fullWidth
             multiline
             rows={3}
@@ -191,7 +193,7 @@ const EditLabelModal: React.FC<EditLabelModalProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={labelsState.updateLabelLoading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -199,7 +201,7 @@ const EditLabelModal: React.FC<EditLabelModalProps> = ({
           disabled={labelsState.updateLabelLoading || !name.trim()}
           startIcon={labelsState.updateLabelLoading ? <CircularProgress size={16} /> : null}
         >
-          {labelsState.updateLabelLoading ? 'Updating...' : 'Update Label'}
+          {labelsState.updateLabelLoading ? t('labelModal.updating') : t('labelModal.updateLabel')}
         </Button>
       </DialogActions>
     </Dialog>

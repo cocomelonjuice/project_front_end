@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -29,6 +30,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   user,
   onProfileUpdated,
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const adminState = useSelectorAdmin((state) => state);
   const [error, setError] = useState<string | null>(null);
@@ -60,19 +62,19 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
     // Validation
     if (!formData.displayName.trim()) {
-      setError('Display name is required');
+      setError(t('editProfile.displayNameRequired'));
       return;
     }
 
     if (!formData.email.trim()) {
-      setError('Email is required');
+      setError(t('editProfile.emailRequired'));
       return;
     }
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email.trim())) {
-      setError('Please enter a valid email address');
+      setError(t('auth.invalidEmail'));
       return;
     }
 
@@ -95,7 +97,8 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             onClose();
           },
           onError: (error: any) => {
-            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update profile';
+            const errorMessage =
+              error?.response?.data?.message || error?.message || t('editProfile.updateFailed');
             setError(errorMessage);
           },
         },
@@ -114,6 +117,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
   return (
     <Dialog
+      key={i18n.language}
       open={open}
       onClose={handleClose}
       maxWidth="sm"
@@ -131,7 +135,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           color: UI_COLORS.text.primary,
         }}
       >
-        Edit Profile
+        {t('editProfile.title')}
       </DialogTitle>
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 2 }}>
@@ -142,11 +146,11 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           )}
 
           <TextField
-            label="Username"
+            label={t('auth.username')}
             fullWidth
             value={user.username}
             disabled
-            helperText="Username cannot be changed"
+            helperText={t('editProfile.usernameDisabledHelper')}
             InputLabelProps={{
               shrink: true,
             }}
@@ -165,7 +169,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           />
 
           <TextField
-            label="Email"
+            label={t('auth.email')}
             required
             fullWidth
             type="email"
@@ -188,7 +192,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           disabled={adminState.updateUserLoading || !formData.displayName.trim() || !formData.email.trim()}
           startIcon={adminState.updateUserLoading ? <CircularProgress size={16} /> : null}
         >
-          {adminState.updateUserLoading ? 'Saving...' : 'Save Changes'}
+          {adminState.updateUserLoading ? t('editProfile.saving') : t('editProfile.saveChanges')}
         </Button>
       </DialogActions>
     </Dialog>

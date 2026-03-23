@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -36,6 +37,7 @@ interface NotificationsDropdownProps {
 const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
   onNotificationClick,
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const notificationsState = useSelectorNotifications((state) => state);
@@ -141,51 +143,44 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
     }
   };
 
-  const formatTimestamp = (timestamp: string): string => {
-    try {
-      // Parse the UTC timestamp from API (e.g., "2026-01-11T09:30:30.822Z")
-      // Ensure we're parsing it as UTC explicitly
-      const date = new Date(timestamp);
-      
-      // Validate the date was parsed correctly
-      if (isNaN(date.getTime())) {
-        console.error('Invalid timestamp:', timestamp);
-        return 'Invalid date';
-      }
-      
-      // Get current time in UTC
-      const now = new Date();
-      
-      // Calculate difference in milliseconds
-      // getTime() returns milliseconds since epoch (UTC), so this is timezone-independent
-      const diffMs = now.getTime() - date.getTime();
-      
-      // Handle negative differences (future dates) - shouldn't happen but just in case
-      if (diffMs < 0) {
-        return 'Just now';
-      }
-      
-      const diffMins = Math.floor(diffMs / 60000);
-      const diffHours = Math.floor(diffMs / 3600000);
-      const diffDays = Math.floor(diffMs / 86400000);
+  const formatTimestamp = useCallback(
+    (timestamp: string): string => {
+      try {
+        const date = new Date(timestamp);
+        if (isNaN(date.getTime())) {
+          console.error('Invalid timestamp:', timestamp);
+          return t('projectDetail.invalidDate');
+        }
 
-      // Return relative time
-      if (diffMins < 1) return 'Just now';
-      if (diffMins < 60) return `${diffMins}m ago`;
-      if (diffHours < 24) return `${diffHours}h ago`;
-      if (diffDays < 7) return `${diffDays}d ago`;
-      
-      // For dates older than 7 days, show in user's local timezone
-      return date.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric',
-        year: diffDays >= 365 ? 'numeric' : undefined,
-      });
-    } catch (error) {
-      console.error('Error formatting timestamp:', error, timestamp);
-      return 'Invalid date';
-    }
-  };
+        const now = new Date();
+        const diffMs = now.getTime() - date.getTime();
+        const dateLocale = i18n.language?.startsWith('vi') ? 'vi-VN' : 'en-US';
+
+        if (diffMs < 0) {
+          return t('projectDetail.relativeJustNow');
+        }
+
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        if (diffMins < 1) return t('projectDetail.relativeJustNow');
+        if (diffMins < 60) return t('projectDetail.relativeMinutesAgo', { count: diffMins });
+        if (diffHours < 24) return t('projectDetail.relativeHoursAgo', { count: diffHours });
+        if (diffDays < 7) return t('projectDetail.relativeDaysAgo', { count: diffDays });
+
+        return date.toLocaleDateString(dateLocale, {
+          month: 'short',
+          day: 'numeric',
+          year: diffDays >= 365 ? 'numeric' : undefined,
+        });
+      } catch (error) {
+        console.error('Error formatting timestamp:', error, timestamp);
+        return t('projectDetail.invalidDate');
+      }
+    },
+    [t, i18n.language],
+  );
 
   return (
     <>
@@ -210,7 +205,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
       >
         <Box sx={{ p: 2, pb: 1 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-            <Typography variant="h6">Notifications</Typography>
+            <Typography variant="h6">{t('notificationsDropdown.title')}</Typography>
             {unreadCount > 0 && (
               <Button
                 size="small"
@@ -218,7 +213,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
                 onClick={handleMarkAllAsRead}
                 disabled={markAllAsReadLoading}
               >
-                {markAllAsReadLoading ? 'Marking...' : 'Mark all read'}
+                {markAllAsReadLoading ? t('notificationsDropdown.marking') : t('notificationsDropdown.markAllRead')}
               </Button>
             )}
           </Box>
@@ -233,7 +228,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
             <Box sx={{ p: 3, textAlign: 'center' }}>
               <NotificationsNoneIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
               <Typography variant="body2" color="text.secondary">
-                No notifications
+                {t('notificationsDropdown.empty')}
               </Typography>
             </Box>
           ) : (

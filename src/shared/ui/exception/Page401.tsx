@@ -1,6 +1,7 @@
 import { Box, Typography, Button } from '@mui/material';
 import { LockOutlined } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 /**
  * 401 Unauthorized Page
@@ -9,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
  */
 export const Page401 = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <Box
@@ -27,14 +29,14 @@ export const Page401 = () => {
         403
       </Typography>
       <Typography variant="h6" color="text.secondary" gutterBottom>
-        Sorry, you are not authorized to access this page.
+        {t('errors.unauthorizedMessage')}
       </Typography>
       <Button
         variant="contained"
         onClick={() => navigate('/')}
         sx={{ mt: 3 }}
       >
-        Go Home
+        {t('errors.goHome')}
       </Button>
     </Box>
   );

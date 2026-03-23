@@ -8,6 +8,7 @@ import {
 import { BaseSidebar } from './BaseSidebar';
 import type { SidebarGroup, SidebarNavItem } from './types';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../auth/src';
 
 export interface NavigationSidebarProps {
@@ -43,6 +44,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const { checkRole } = useAuth();
   
   // Check if user has admin role
@@ -52,14 +54,14 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   const primaryNavItems: SidebarNavItem[] = [
     {
       id: 'home',
-      label: 'Projects',
+      label: t('nav.projects'),
       icon: <HomeIcon />,
       path: '/',
       active: location.pathname === '/' || location.pathname.startsWith('/projects'),
     },
     {
       id: 'workflows',
-      label: 'Workflows',
+      label: t('nav.workflows'),
       icon: <WorkflowIcon />,
       path: '/workflows',
       active: location.pathname.startsWith('/workflows'),
@@ -73,7 +75,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
       ? [
           {
             id: 'admin',
-            label: 'Admin',
+            label: t('nav.admin'),
             icon: <AdminIcon />,
             path: '/admin',
             active: location.pathname.startsWith('/admin'),
@@ -82,7 +84,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
       : []),
     {
       id: 'about',
-      label: 'About',
+      label: t('nav.about'),
       icon: <AboutIcon />,
       path: '/about',
       active: location.pathname === '/about',

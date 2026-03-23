@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -26,6 +27,7 @@ const DeleteBoardDialog: React.FC<DeleteBoardDialogProps> = ({
   onBoardDeleted,
   board,
 }) => {
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const boardsState = useSelectorBoards((state) => state);
   const [error, setError] = useState<string | null>(null);
@@ -69,8 +71,8 @@ const DeleteBoardDialog: React.FC<DeleteBoardDialogProps> = ({
   }
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Delete Board</DialogTitle>
+    <Dialog key={i18n.language} open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{t('boardModal.deleteTitle')}</DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
@@ -78,15 +80,15 @@ const DeleteBoardDialog: React.FC<DeleteBoardDialogProps> = ({
           </Alert>
         )}
         <DialogContentText>
-          Are you sure you want to delete the board <strong>"{board.name}"</strong>?
+          {t('boardModal.deleteConfirm', { name: board.name })}
         </DialogContentText>
         <DialogContentText sx={{ mt: 1, color: 'warning.main' }}>
-          This action cannot be undone. All sprints associated with this board will also be deleted.
+          {t('boardModal.deleteWarning')}
         </DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={boardsState.deleteBoardLoading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleDelete}
@@ -95,7 +97,7 @@ const DeleteBoardDialog: React.FC<DeleteBoardDialogProps> = ({
           disabled={boardsState.deleteBoardLoading}
           startIcon={boardsState.deleteBoardLoading ? <CircularProgress size={16} /> : null}
         >
-          {boardsState.deleteBoardLoading ? 'Deleting...' : 'Delete Board'}
+          {boardsState.deleteBoardLoading ? t('boardModal.deleting') : t('boardModal.deleteBoard')}
         </Button>
       </DialogActions>
     </Dialog>

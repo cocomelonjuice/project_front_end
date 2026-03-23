@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Typography,
@@ -33,6 +34,7 @@ import { projectsActions, useSelectorProjects } from '../features/projects/src/s
 import { UI_COLORS, UI_TYPOGRAPHY, UI_SPACING, UI_BORDER_RADIUS, UI_SHADOWS, UI_BUTTON_STYLES, UI_INPUT_STYLES } from '../shared/constants/src/ui';
 
 const Home = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const projectsState = useSelectorProjects((state) => state);
@@ -147,6 +149,19 @@ const Home = () => {
 
   const existingKeys = projectsState.projects.map((p) => p.key.toUpperCase());
 
+  const projectTypeLabel = (type: string) => {
+    const key = String(type).toLowerCase();
+    if (
+      key === 'software' ||
+      key === 'business' ||
+      key === 'marketing' ||
+      key === 'operations'
+    ) {
+      return t(`projects.types.${key}`);
+    }
+    return type;
+  };
+
   const filteredProjects = projectsState.projects.filter((project) => {
     const query = searchQuery.toLowerCase();
     return (
@@ -176,7 +191,7 @@ const Home = () => {
             fontSize: { xs: UI_TYPOGRAPHY.fontSize['2xl'], md: UI_TYPOGRAPHY.fontSize['3xl'] },
           }}
         >
-          Projects
+          {t('home.title')}
         </Typography>
         <Button
           variant="contained"
@@ -193,7 +208,7 @@ const Home = () => {
             boxShadow: UI_SHADOWS.md,
           }}
         >
-          Create Project
+          {t('home.createProject')}
         </Button>
       </Box>
 
@@ -201,7 +216,7 @@ const Home = () => {
       <Box sx={{ mb: 3 }}>
         <TextField
           fullWidth
-          placeholder="Search projects..."
+          placeholder={t('home.searchPlaceholder')}
           value={searchQuery}
           onChange={handleSearch}
           sx={UI_INPUT_STYLES.default}
@@ -238,7 +253,7 @@ const Home = () => {
                   fontSize: UI_TYPOGRAPHY.fontSize.sm,
                 }}
               >
-                Name
+                {t('home.colName')}
               </TableCell>
               <TableCell
                 sx={{
@@ -247,7 +262,7 @@ const Home = () => {
                   fontSize: UI_TYPOGRAPHY.fontSize.sm,
                 }}
               >
-                Key
+                {t('home.colKey')}
               </TableCell>
               <TableCell
                 sx={{
@@ -256,7 +271,7 @@ const Home = () => {
                   fontSize: UI_TYPOGRAPHY.fontSize.sm,
                 }}
               >
-                Type
+                {t('home.colType')}
               </TableCell>
               <TableCell
                 width={50}
@@ -279,7 +294,7 @@ const Home = () => {
               <TableRow>
                 <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
                   <Typography variant="body2" color="text.secondary">
-                    {searchQuery ? 'No projects match your search.' : 'No projects found.'}
+                    {searchQuery ? t('home.emptySearch') : t('home.empty')}
                   </Typography>
                 </TableCell>
               </TableRow>
@@ -368,7 +383,7 @@ const Home = () => {
                       fontSize: UI_TYPOGRAPHY.fontSize.sm,
                     }}
                   >
-                    {project.type}
+                    {projectTypeLabel(project.type)}
                   </TableCell>
                   <TableCell>
                     <IconButton
@@ -406,7 +421,7 @@ const Home = () => {
                           },
                         }}
                       >
-                        View
+                        {t('home.view')}
                       </MenuItem>
                       <MenuItem
                         onClick={handleEdit}
@@ -417,7 +432,7 @@ const Home = () => {
                           },
                         }}
                       >
-                        Edit
+                        {t('home.edit')}
                       </MenuItem>
                       <MenuItem
                         onClick={handleDelete}
@@ -429,7 +444,7 @@ const Home = () => {
                           },
                         }}
                       >
-                        Delete
+                        {t('home.delete')}
                       </MenuItem>
                     </Menu>
                   </TableCell>
@@ -450,7 +465,10 @@ const Home = () => {
               fontSize: UI_TYPOGRAPHY.fontSize.sm,
             }}
           >
-            Showing {filteredProjects.length} of {projectsState.projects.length} projects
+            {t('home.showing', {
+              current: filteredProjects.length,
+              total: projectsState.projects.length,
+            })}
           </Typography>
         </Box>
       )}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Typography,
@@ -29,8 +30,10 @@ const TeamList: React.FC<TeamListProps> = ({
   teamMembers,
   onEdit,
   onRemove,
-  emptyMessage = 'No team members',
+  emptyMessage: emptyMessageProp,
 }) => {
+  const { t } = useTranslation();
+  const emptyMessage = emptyMessageProp ?? t('projectDetail.teamListEmpty');
   const [menuAnchor, setMenuAnchor] = React.useState<null | HTMLElement>(null);
   const [selectedMember, setSelectedMember] = React.useState<ProjectTeamMember | null>(null);
 
@@ -111,7 +114,7 @@ const TeamList: React.FC<TeamListProps> = ({
             handleMenuClose();
           }}>
             <EditIcon sx={{ mr: 1, fontSize: 18 }} />
-            Change Role
+            {t('teamModal.changeRoleTitle')}
           </MenuItem>
         )}
         {selectedMember && onRemove && (
@@ -125,7 +128,7 @@ const TeamList: React.FC<TeamListProps> = ({
               sx={{ color: 'error.main' }}
             >
               <DeleteIcon sx={{ mr: 1, fontSize: 18 }} />
-              Remove from Team
+              {t('projectDetail.removeFromTeam')}
             </MenuItem>
           </>
         )}

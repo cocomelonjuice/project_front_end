@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -25,6 +26,7 @@ const AddIssueTypeModal: React.FC<AddIssueTypeModalProps> = ({
   onIssueTypeAdded,
   existingNames = [],
 }) => {
+  const { t, i18n } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
@@ -40,17 +42,17 @@ const AddIssueTypeModal: React.FC<AddIssueTypeModalProps> = ({
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      setError('Name is required');
+      setError(t('adminRefData.nameRequired'));
       return;
     }
 
     if (name.length > 50) {
-      setError('Name must be 50 characters or less');
+      setError(t('adminRefData.nameMax50'));
       return;
     }
 
     if (existingNames.includes(name.trim().toLowerCase())) {
-      setError('An issue type with this name already exists');
+      setError(t('adminIssueTypeModal.duplicate'));
       return;
     }
 
@@ -68,7 +70,7 @@ const AddIssueTypeModal: React.FC<AddIssueTypeModalProps> = ({
       }
       onClose();
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to create issue type';
+      const errorMessage = error?.response?.data?.message || error?.message || t('adminIssueTypeModal.createFailed');
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -83,8 +85,8 @@ const AddIssueTypeModal: React.FC<AddIssueTypeModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Add Issue Type</DialogTitle>
+    <Dialog key={i18n.language} open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{t('adminIssueTypeModal.addTitle')}</DialogTitle>
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 2 }}>
           {error && (
@@ -94,7 +96,7 @@ const AddIssueTypeModal: React.FC<AddIssueTypeModalProps> = ({
           )}
 
           <TextField
-            label="Name"
+            label={t('adminRefData.nameLabel')}
             required
             fullWidth
             value={name}
@@ -108,7 +110,7 @@ const AddIssueTypeModal: React.FC<AddIssueTypeModalProps> = ({
           />
 
           <TextField
-            label="Description"
+            label={t('adminRefData.descriptionLabel')}
             fullWidth
             multiline
             rows={3}
@@ -123,7 +125,7 @@ const AddIssueTypeModal: React.FC<AddIssueTypeModalProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={loading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -131,7 +133,7 @@ const AddIssueTypeModal: React.FC<AddIssueTypeModalProps> = ({
           disabled={loading || !name.trim()}
           startIcon={loading ? <CircularProgress size={16} /> : null}
         >
-          {loading ? 'Creating...' : 'Create Issue Type'}
+          {loading ? t('adminRefData.creating') : t('adminIssueTypeModal.create')}
         </Button>
       </DialogActions>
     </Dialog>
