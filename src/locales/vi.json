@@ -694,5 +694,31 @@
     "failed": "Tìm kiếm thất bại. Vui lòng thử lại.",
     "unknownProject": "Dự án không xác định",
     "assignedTo": "Giao cho {{name}}"
+  },
+  "chat": {
+    "title": "Trợ lý",
+    "openAssistant": "Mở trợ lý AI",
+    "close": "Đóng",
+    "conversation": "Cuộc trò chuyện",
+    "newChat": "Cuộc trò chuyện mới",
+    "untitledChat": "Chat",
+    "you": "Bạn",
+    "assistant": "Trợ lý",
+    "inputPlaceholder": "Nhập tin nhắn…",
+    "emptyThread": "Hỏi bất cứ điều gì về ứng dụng (dự án, công việc, quy trình).",
+    "loadFailed": "Không tải được chat. Vui lòng thử lại.",
+    "sendFailed": "Không gửi được tin nhắn. Vui lòng thử lại.",
+    "manageChats": "Chọn cuộc trò chuyện để xóa",
+    "doneSelecting": "Xong",
+    "deleteSelected": "Xóa đã chọn ({{count}})",
+    "confirmDeleteMany": "Xóa {{count}} cuộc trò chuyện? Không thể hoàn tác.",
+    "deleteFailed": "Không xóa được cuộc trò chuyện. Vui lòng thử lại.",
+    "retry": "Thử lại",
+    "rateLimited": "Gửi quá nhiều tin trong thời gian ngắn. Vui lòng đợi một chút rồi thử lại.",
+    "renameChat": "Đổi tên cuộc trò chuyện",
+    "renameDialogTitle": "Tên cuộc trò chuyện",
+    "renameSave": "Lưu",
+    "renameCancel": "Hủy",
+    "goToTop": "Lên đầu"
   }
 }

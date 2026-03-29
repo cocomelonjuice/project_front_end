@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +11,7 @@ import { APP_CONFIG } from '../shared/constants/src/config';
 import { NotificationsDropdown } from '../features/notifications/src';
 import { authActions } from '../features/auth/src/store';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { ChatPanel } from '../features/chat/src';
 interface LayoutProps {
   children: ReactNode;
 }
@@ -20,9 +21,6 @@ const Layout = ({ children }: LayoutProps) => {
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [isScrolling, setIsScrolling] = useState(false);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const mainContentRef = useRef<HTMLDivElement>(null);
 
   const handleSidebarToggle = () => {
     setSidebarCollapsed(!sidebarCollapsed);
@@ -80,35 +78,6 @@ const Layout = ({ children }: LayoutProps) => {
     },
   ];
 
-  // Handle scroll to show scrollbar when scrolling in main content
-  useEffect(() => {
-    const mainContent = mainContentRef.current;
-    if (!mainContent) return;
-
-    const handleScroll = () => {
-      setIsScrolling(true);
-      
-      // Clear existing timeout
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
-      
-      // Hide scrollbar after scrolling stops
-      scrollTimeoutRef.current = setTimeout(() => {
-        setIsScrolling(false);
-      }, 1000);
-    };
-
-    mainContent.addEventListener('scroll', handleScroll);
-    
-    return () => {
-      mainContent.removeEventListener('scroll', handleScroll);
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
-    };
-  }, []);
-
   return (
     <Box
       sx={{
@@ -153,44 +122,34 @@ const Layout = ({ children }: LayoutProps) => {
       >
         <NavigationSidebar collapsed={sidebarCollapsed} />
         <Box
-          ref={mainContentRef}
           component="main"
           sx={{
             flexGrow: 1,
             overflowY: 'auto',
             overflowX: 'hidden',
+            overscrollBehavior: 'contain',
             backgroundColor: '#f5f5f5',
             p: 3,
             minWidth: 0, // Important for flex children to respect overflow
-            // Hide scrollbar by default, show on hover or when scrolling
+            /* Steady scrollbar (no hover/show-hide) avoids width flicker next to fixed FAB */
             scrollbarWidth: 'thin',
-            scrollbarColor: isScrolling 
-              ? 'rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.1)' 
-              : 'transparent transparent',
+            scrollbarColor: 'rgba(0, 0, 0, 0.25) rgba(0, 0, 0, 0.06)',
             '&::-webkit-scrollbar': {
               width: '8px',
             },
             '&::-webkit-scrollbar-track': {
-              background: isScrolling ? 'rgba(0, 0, 0, 0.05)' : 'transparent',
+              background: 'rgba(0, 0, 0, 0.05)',
             },
             '&::-webkit-scrollbar-thumb': {
-              backgroundColor: isScrolling ? 'rgba(0, 0, 0, 0.2)' : 'transparent',
+              backgroundColor: 'rgba(0, 0, 0, 0.22)',
               borderRadius: '4px',
-            },
-            '&:hover': {
-              scrollbarColor: 'rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.1)',
-              '&::-webkit-scrollbar-thumb': {
-                backgroundColor: 'rgba(0, 0, 0, 0.2)',
-              },
-              '&::-webkit-scrollbar-track': {
-                backgroundColor: 'rgba(0, 0, 0, 0.05)',
-              },
             },
           }}
         >
           {children}
         </Box>
       </Box>
+      <ChatPanel />
     </Box>
   );
 };

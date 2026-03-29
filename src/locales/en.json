@@ -694,5 +694,31 @@
     "failed": "Search failed. Please try again.",
     "unknownProject": "Unknown Project",
     "assignedTo": "Assigned to {{name}}"
+  },
+  "chat": {
+    "title": "Assistant",
+    "openAssistant": "Open AI assistant",
+    "close": "Close",
+    "conversation": "Conversation",
+    "newChat": "New chat",
+    "untitledChat": "Chat",
+    "you": "You",
+    "assistant": "Assistant",
+    "inputPlaceholder": "Type a message…",
+    "emptyThread": "Ask anything about using this app (projects, issues, workflows).",
+    "loadFailed": "Could not load chat. Try again.",
+    "sendFailed": "Could not send message. Try again.",
+    "manageChats": "Select chats to remove",
+    "doneSelecting": "Done",
+    "deleteSelected": "Delete selected ({{count}})",
+    "confirmDeleteMany": "Remove {{count}} conversation(s)? This cannot be undone.",
+    "deleteFailed": "Could not delete conversations. Try again.",
+    "retry": "Retry",
+    "rateLimited": "Too many messages in a short time. Please wait a moment and try again.",
+    "renameChat": "Rename conversation",
+    "renameDialogTitle": "Conversation name",
+    "renameSave": "Save",
+    "renameCancel": "Cancel",
+    "goToTop": "Go to top"
   }
 }

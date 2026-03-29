@@ -24,6 +24,16 @@ axiosInstance.interceptors.request.use(
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Align with backend chat locale (i18next stores language in localStorage)
+    if (config.headers) {
+      const raw =
+        (typeof localStorage !== 'undefined' &&
+          localStorage.getItem('i18nextLng')) ||
+        (typeof navigator !== 'undefined' && navigator.language) ||
+        'en';
+      const code = String(raw).toLowerCase().split('-')[0] ?? 'en';
+      config.headers['Accept-Language'] = code === 'vi' ? 'vi' : 'en';
+    }
     return config;
   },
   (error: AxiosError) => {
