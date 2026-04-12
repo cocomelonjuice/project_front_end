@@ -17,6 +17,7 @@ import {
   MenuItem,
   Select,
   type SelectChangeEvent,
+  Snackbar,
   TextField,
   Tooltip,
   Typography,
@@ -24,6 +25,7 @@ import {
 import {
   AddComment as AddCommentIcon,
   Close as CloseIcon,
+  ContentCopy as ContentCopyIcon,
   DeleteSweep as DeleteSweepIcon,
   Edit as EditIcon,
   KeyboardArrowUp as KeyboardArrowUpIcon,
@@ -40,6 +42,107 @@ const assistantIconPulse = keyframes`
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.65; transform: scale(1.08); }
 `;
+
+const typingDotBounce = keyframes`
+  0%, 100% { opacity: 0.35; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-5px); }
+`;
+
+function AssistantTypingRow() {
+  const { t } = useTranslation();
+  return (
+    <Box
+      sx={{ mb: 1.5, display: 'flex', justifyContent: 'flex-start' }}
+      aria-live="polite"
+      aria-busy
+      aria-label={t('chat.assistantTyping')}
+    >
+      <Box
+        sx={{
+          maxWidth: '90%',
+          px: 1.5,
+          py: 1,
+          borderRadius: 2,
+          backgroundColor: (theme) =>
+            theme.palette.mode === 'light'
+              ? theme.palette.grey[200]
+              : theme.palette.grey[800],
+          color: 'text.primary',
+          boxShadow: 1,
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.75,
+            mb: 0.75,
+          }}
+        >
+          <SmartToyIcon
+            sx={{
+              fontSize: 15,
+              flexShrink: 0,
+              color: 'primary.main',
+              animation: `${assistantIconPulse} 2.2s ease-in-out infinite`,
+            }}
+          />
+          <Typography variant="caption" sx={{ opacity: 0.9 }}>
+            {t('chat.assistant')}
+          </Typography>
+        </Box>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.75,
+            pl: 0.25,
+            minHeight: 22,
+          }}
+        >
+          {[0, 1, 2].map((i) => (
+            <Box
+              key={i}
+              sx={{
+                width: 7,
+                height: 7,
+                borderRadius: '50%',
+                bgcolor: 'text.secondary',
+                animation: `${typingDotBounce} 1s ease-in-out infinite`,
+                animationDelay: `${i * 0.16}s`,
+              }}
+            />
+          ))}
+        </Box>
+      </Box>
+    </Box>
+  );
+}
+
+async function copyTextToClipboard(text: string): Promise<boolean> {
+  if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      /* fall through */
+    }
+  }
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch {
+    return false;
+  }
+}
 
 function getErrorMessage(err: unknown, fallback: string): string {
   if (
@@ -98,6 +201,7 @@ export const ChatPanel: React.FC = () => {
   const [renameDraft, setRenameDraft] = useState('');
   const [renameSaving, setRenameSaving] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [copySnackbarOpen, setCopySnackbarOpen] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const token =
@@ -118,9 +222,14 @@ export const ChatPanel: React.FC = () => {
     if (el) setShowScrollTop(el.scrollTop > 72);
   }, []);
 
+  const handleCopyMessage = useCallback(async (content: string) => {
+    const ok = await copyTextToClipboard(content);
+    if (ok) setCopySnackbarOpen(true);
+  }, []);
+
   useEffect(() => {
     scrollToBottom();
-  }, [messages, scrollToBottom]);
+  }, [messages, sending, scrollToBottom]);
 
   const bootstrap = useCallback(async () => {
     if (!token) return;
@@ -270,13 +379,29 @@ export const ChatPanel: React.FC = () => {
   const handleSend = async () => {
     const text = input.trim();
     if (!text || !selectedId || sending) return;
+    const optimisticId =
+      typeof crypto !== 'undefined' && 'randomUUID' in crypto
+        ? `optimistic-${crypto.randomUUID()}`
+        : `optimistic-${Date.now()}`;
+    const optimisticUser: ChatMessage = {
+      id: optimisticId,
+      conversationId: selectedId,
+      role: 'user',
+      content: text,
+      createdAt: new Date().toISOString(),
+    };
     setSending(true);
     setError(null);
     setErrorKind(null);
     setInput('');
+    setMessages((prev) => [...prev, optimisticUser]);
     try {
       const { data } = await chatApi.sendMessage(selectedId, text);
-      setMessages((prev) => [...prev, data.userMessage, data.assistantMessage]);
+      setMessages((prev) => [
+        ...prev.filter((m) => m.id !== optimisticId),
+        data.userMessage,
+        data.assistantMessage,
+      ]);
       setConversations((prev) =>
         prev.map((c) =>
           c.id === selectedId
@@ -285,6 +410,7 @@ export const ChatPanel: React.FC = () => {
         ),
       );
     } catch (err) {
+      setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
       setInput(text);
       setError(getChatErrorMessage(err, t('chat.sendFailed'), t));
       setErrorKind('send');
@@ -588,74 +714,125 @@ export const ChatPanel: React.FC = () => {
               <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
                 <CircularProgress size={32} />
               </Box>
-            ) : messages.length === 0 ? (
-              <Typography color="text.secondary" variant="body2" sx={{ py: 2 }}>
-                {t('chat.emptyThread')}
-              </Typography>
             ) : (
-              messages.map((m) => (
-                <Box
-                  key={m.id}
-                  sx={{
-                    mb: 1.5,
-                    display: 'flex',
-                    justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start',
-                  }}
-                >
+              <>
+                {messages.length === 0 && !sending ? (
+                  <Typography color="text.secondary" variant="body2" sx={{ py: 2 }}>
+                    {t('chat.emptyThread')}
+                  </Typography>
+                ) : null}
+                {messages.map((m) => (
                   <Box
+                    key={m.id}
                     sx={{
-                      maxWidth: '90%',
-                      px: 1.5,
-                      py: 1,
-                      borderRadius: 2,
-                      backgroundColor: (theme) =>
-                        m.role === 'user'
-                          ? theme.palette.primary.light
-                          : theme.palette.mode === 'light'
-                            ? theme.palette.grey[200]
-                            : theme.palette.grey[800],
-                      color:
-                        m.role === 'user'
-                          ? 'primary.contrastText'
-                          : 'text.primary',
-                      boxShadow: 1,
-                      whiteSpace: 'pre-wrap',
-                      wordBreak: 'break-word',
+                      mb: 1.5,
+                      display: 'flex',
+                      justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start',
                     }}
                   >
-                    {m.role === 'user' ? (
-                      <Typography
-                        variant="caption"
-                        sx={{ opacity: 0.85, display: 'block', mb: 0.5 }}
-                      >
-                        {t('chat.you')}
-                      </Typography>
-                    ) : (
+                    <Box
+                      sx={{
+                        maxWidth: '90%',
+                        px: 1.5,
+                        py: 1,
+                        borderRadius: 2,
+                        backgroundColor: (theme) =>
+                          m.role === 'user'
+                            ? theme.palette.primary.light
+                            : theme.palette.mode === 'light'
+                              ? theme.palette.grey[200]
+                              : theme.palette.grey[800],
+                        color:
+                          m.role === 'user'
+                            ? 'primary.contrastText'
+                            : 'text.primary',
+                        boxShadow: 1,
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
+                        '@media (hover: hover) and (pointer: fine)': {
+                          '& .chat-message-copy-btn': {
+                            opacity: 0,
+                            transition: 'opacity 0.15s ease-in-out',
+                          },
+                          '&:hover .chat-message-copy-btn, &:focus-within .chat-message-copy-btn':
+                            {
+                              opacity: 1,
+                            },
+                        },
+                      }}
+                    >
                       <Box
                         sx={{
                           display: 'flex',
-                          alignItems: 'center',
-                          gap: 0.75,
+                          alignItems: 'flex-start',
+                          justifyContent: 'space-between',
+                          gap: 0.5,
                           mb: 0.5,
                         }}
                       >
-                        <SmartToyIcon
-                          sx={{
-                            fontSize: 15,
-                            flexShrink: 0,
-                            color: 'primary.main',
-                            animation: `${assistantIconPulse} 2.2s ease-in-out infinite`,
-                          }}
-                        />
-                        <Typography variant="caption" sx={{ opacity: 0.9 }}>
-                          {t('chat.assistant')}
-                        </Typography>
+                        {m.role === 'user' ? (
+                          <Typography variant="caption" sx={{ opacity: 0.85 }}>
+                            {t('chat.you')}
+                          </Typography>
+                        ) : (
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 0.75,
+                              minWidth: 0,
+                            }}
+                          >
+                            <SmartToyIcon
+                              sx={{
+                                fontSize: 15,
+                                flexShrink: 0,
+                                color: 'primary.main',
+                                animation: `${assistantIconPulse} 2.2s ease-in-out infinite`,
+                              }}
+                            />
+                            <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                              {t('chat.assistant')}
+                            </Typography>
+                          </Box>
+                        )}
+                        <Tooltip title={t('chat.copyMessage')}>
+                          <IconButton
+                            className="chat-message-copy-btn"
+                            size="small"
+                            aria-label={t('chat.copyMessage')}
+                            onClick={() => void handleCopyMessage(m.content)}
+                            sx={{
+                              flexShrink: 0,
+                              mt: -0.75,
+                              mr: -0.75,
+                              transition: 'opacity 0.15s ease-in-out',
+                              color:
+                                m.role === 'user'
+                                  ? 'primary.contrastText'
+                                  : 'text.secondary',
+                              opacity: 0.9,
+                              '@media (hover: hover) and (pointer: fine)': {
+                                opacity: 0,
+                              },
+                              '&:hover': {
+                                backgroundColor: (theme) =>
+                                  m.role === 'user'
+                                    ? 'rgba(255,255,255,0.12)'
+                                    : theme.palette.action.hover,
+                              },
+                            }}
+                          >
+                            <ContentCopyIcon sx={{ fontSize: 16 }} />
+                          </IconButton>
+                        </Tooltip>
                       </Box>
-                    )}
-                    <Typography variant="body2">{m.content}</Typography>
+                      <Typography variant="body2">{m.content}</Typography>
+                    </Box>
                   </Box>
-                </Box>
-              ))
+                ))}
+                {sending ? <AssistantTypingRow /> : null}
+              </>
             )}
           </Box>
         </Box>
@@ -734,6 +911,17 @@ export const ChatPanel: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={copySnackbarOpen}
+        autoHideDuration={2200}
+        onClose={(_, reason) => {
+          if (reason === 'clickaway') return;
+          setCopySnackbarOpen(false);
+        }}
+        message={t('chat.copiedToClipboard')}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      />
     </>
   );
 };

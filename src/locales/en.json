@@ -719,6 +719,9 @@
     "renameDialogTitle": "Conversation name",
     "renameSave": "Save",
     "renameCancel": "Cancel",
-    "goToTop": "Go to top"
+    "goToTop": "Go to top",
+    "assistantTyping": "Assistant is replying…",
+    "copyMessage": "Copy message",
+    "copiedToClipboard": "Copied to clipboard"
   }
 }

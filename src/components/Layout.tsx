@@ -8,7 +8,10 @@ import { GlobalHeader } from '../shared/ui/header';
 import { NavigationSidebar } from '../shared/ui/sidebar';
 import { Logout as LogoutIcon, Person as PersonIcon } from '@mui/icons-material';
 import { APP_CONFIG } from '../shared/constants/src/config';
-import { NotificationsDropdown } from '../features/notifications/src';
+import {
+  NotificationsDropdown,
+  NotificationsRealtimeBridge,
+} from '../features/notifications/src';
 import { authActions } from '../features/auth/src/store';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { ChatPanel } from '../features/chat/src';
@@ -87,6 +90,7 @@ const Layout = ({ children }: LayoutProps) => {
         overflow: 'hidden',
       }}
     >
+      <NotificationsRealtimeBridge />
       <GlobalHeader
         appName={APP_CONFIG.NAME}//SoftPlace Project Management 
         onSidebarToggle={handleSidebarToggle}

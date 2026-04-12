@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -45,19 +45,9 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
   
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
-  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  // Load notifications on mount and set up polling
-  useEffect(() => {
-    // Load notifications immediately
     dispatch(
       notificationsActions.getNotificationsRequest({
         data: {},
@@ -65,29 +55,13 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
           onSuccess: () => {},
           onError: () => {},
         },
-      } as any)
+      } as any),
     );
+  };
 
-    // Set up polling every 30 seconds
-    pollingIntervalRef.current = setInterval(() => {
-      dispatch(
-        notificationsActions.getNotificationsRequest({
-          data: {},
-          callback: {
-            onSuccess: () => {},
-            onError: () => {},
-          },
-        } as any)
-      );
-    }, 30000); // 30 seconds
-
-    // Cleanup on unmount
-    return () => {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
-      }
-    };
-  }, [dispatch]);
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
   const handleNotificationClick = (notification: Notification) => {
     // Mark as read if not already read

@@ -1,6 +1,7 @@
 import { all, call, put, takeLatest } from 'redux-saga/effects';
 import { actions } from './reducers';
 import notificationsApi from './api';
+import { normalizeNotificationFromApi } from './notificationTransform';
 
 /**
  * Notifications Feature Sagas
@@ -11,19 +12,9 @@ const sagas = {
   *getNotificationsWorker({ payload }: any) {
     try {
       const response = yield call(notificationsApi.getNotifications);
-      // Transform notifications to add projectId to issue if project exists
-      const transformedNotifications = response.data.map((notification: any) => {
-        if (notification.issue && notification.issue.project) {
-          return {
-            ...notification,
-            issue: {
-              ...notification.issue,
-              projectId: notification.issue.project.id,
-            },
-          };
-        }
-        return notification;
-      });
+      const transformedNotifications = response.data.map((notification: unknown) =>
+        normalizeNotificationFromApi(notification),
+      );
       yield put(actions.getNotificationsSuccess({ data: transformedNotifications } as any));
       payload.callback?.onSuccess?.(transformedNotifications);
     } catch (error: any) {

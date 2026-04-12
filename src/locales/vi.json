@@ -719,6 +719,9 @@
     "renameDialogTitle": "Tên cuộc trò chuyện",
     "renameSave": "Lưu",
     "renameCancel": "Hủy",
-    "goToTop": "Lên đầu"
+    "goToTop": "Lên đầu",
+    "assistantTyping": "Trợ lý đang trả lời…",
+    "copyMessage": "Sao chép tin nhắn",
+    "copiedToClipboard": "Đã sao chép vào clipboard"
   }
 }

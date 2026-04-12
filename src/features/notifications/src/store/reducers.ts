@@ -71,6 +71,16 @@ const { actions, reducer } = createSlice({
       state.errors = null;
     },
     // #endregion - clearErrors
+
+    // #region - realtime (Socket.IO)
+    notificationReceived(state, { payload }: any) {
+      const n = payload;
+      if (!n?.id) return;
+      if (state.notifications.some((x) => x.id === n.id)) return;
+      state.notifications = [n, ...state.notifications];
+      state.unreadCount = state.notifications.filter((x) => !x.isRead).length;
+    },
+    // #endregion - realtime (Socket.IO)
   },
 });
 
