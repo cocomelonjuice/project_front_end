@@ -37,6 +37,15 @@ export interface AuthResponse {
   accessToken: string;
 }
 
+export interface ForgotPasswordData {
+  email: string;
+}
+
+export interface ResetPasswordData {
+  token: string;
+  newPassword: string;
+}
+
 // Initial state
 const initialState = {
   user: null as User | null,
@@ -47,6 +56,8 @@ const initialState = {
   loginLoading: false,
   registerLoading: false,
   getProfileLoading: false,
+  forgotPasswordLoading: false,
+  resetPasswordLoading: false,
   errors: null as Array<{ type: string; msg: string }> | null,
 };
 

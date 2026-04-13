@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { authActions } from '../../../../features/auth/src/store';
 import { AuthStateContext, useAuth as useAuthInternal } from './auth.service';
 import type { AppDispatch } from '../../../../store';
+import { isAuthPublicPath } from '../../../../app/authPaths';
 
 /**
  * Auth Provider Component
@@ -22,7 +23,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Initialize auth data on mount
   useEffect(() => {
-    const isPublicRoute = location.pathname === '/login' || location.pathname === '/register';
+    const isPublicRoute = isAuthPublicPath(location.pathname);
 
     // Don't fetch profile on public routes (login/register) - return early
     // This prevents any API calls or state updates on login/register pages

@@ -15,5 +15,12 @@ export const injectStore: InjectStore = {
 
 export { MODULE_NAME, actions as authActions, useSelectorAuth };
 export type { AuthState } from './states';
-export type { User, LoginData, RegisterData, AuthResponse } from './states';
+export type {
+  User,
+  LoginData,
+  RegisterData,
+  AuthResponse,
+  ForgotPasswordData,
+  ResetPasswordData,
+} from './states';
 

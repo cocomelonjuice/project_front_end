@@ -123,11 +123,41 @@ const { actions, reducer } = createSlice({
     },
     // #endregion - clearErrors
 
+    // #region - forgotPassword
+    forgotPasswordRequest(state, _action: any) {
+      state.forgotPasswordLoading = true;
+      state.errors = null;
+    },
+    forgotPasswordSuccess(state) {
+      state.forgotPasswordLoading = false;
+    },
+    forgotPasswordFailure(state, { type, payload }: any) {
+      state.forgotPasswordLoading = false;
+      state.errors = state.errors ? [...state.errors, { type, msg: payload }] : [{ type, msg: payload }];
+    },
+    // #endregion - forgotPassword
+
+    // #region - resetPassword
+    resetPasswordRequest(state, _action: any) {
+      state.resetPasswordLoading = true;
+      state.errors = null;
+    },
+    resetPasswordSuccess(state) {
+      state.resetPasswordLoading = false;
+    },
+    resetPasswordFailure(state, { type, payload }: any) {
+      state.resetPasswordLoading = false;
+      state.errors = state.errors ? [...state.errors, { type, msg: payload }] : [{ type, msg: payload }];
+    },
+    // #endregion - resetPassword
+
     // #region - resetLoadingStates
     resetLoadingStates(state) {
       state.loginLoading = false;
       state.registerLoading = false;
       state.getProfileLoading = false;
+      state.forgotPasswordLoading = false;
+      state.resetPasswordLoading = false;
     },
     // #endregion - resetLoadingStates
   },

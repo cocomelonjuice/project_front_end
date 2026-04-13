@@ -6,6 +6,7 @@ import { Routers } from './shared/routes/src';
 import { AuthProvider } from './shared/auth/src';
 import Layout from './components/Layout';
 import { privateRoutes, publicRoutes } from './app/routes';
+import { isAuthPublicPath } from './app/authPaths';
 import { useSelectorAuth } from './features/auth/src/store';
 
 /**
@@ -46,10 +47,10 @@ const AppContent = () => {
   const location = useLocation();
   const authState = useSelectorAuth((state) => state);
   const token = localStorage.getItem('token');
-  const isPublicRoute = location.pathname === '/login' || location.pathname === '/register';
+  const isPublicRoute = isAuthPublicPath(location.pathname);
 
-  // Show public routes (login/register) without layout
-  if (isPublicRoute && !token && !authState.isAuthenticated) {
+  // Auth pages (login, register, forgot/reset password) without layout
+  if (isPublicRoute) {
     return <PublicRoutes />;
   }
 

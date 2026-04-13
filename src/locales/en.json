@@ -58,7 +58,20 @@
     "displayNameLength": "Display name must be between 3 and 100 characters",
     "passwordLength": "Password must be between 8 and 100 characters",
     "passwordsMismatch": "Passwords do not match",
-    "registrationFailed": "Registration failed"
+    "registrationFailed": "Registration failed",
+    "forgotPasswordLink": "Forgot password?",
+    "forgotPasswordTitle": "Reset password",
+    "forgotPasswordSubtitle": "Enter your email and we will send you a reset link if an account exists.",
+    "forgotPasswordSubmit": "Send reset link",
+    "forgotPasswordSuccess": "If an account exists for this email, you will receive password reset instructions shortly.",
+    "forgotPasswordFailed": "Could not send reset email",
+    "resetPasswordTitle": "Choose a new password",
+    "resetPasswordSubtitle": "Enter and confirm your new password below.",
+    "resetPasswordSubmit": "Update password",
+    "resetPasswordMissingToken": "This reset link is invalid or incomplete. Request a new link from the login page.",
+    "resetPasswordFailed": "Could not reset password",
+    "newPassword": "New password",
+    "backToSignIn": "Back to sign in"
   },
   "errors": {
     "notFoundMessage": "Sorry, the page you visited does not exist.",

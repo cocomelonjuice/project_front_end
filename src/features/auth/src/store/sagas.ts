@@ -61,6 +61,44 @@ const sagas = {
     }
   },
   // #endregion - getProfile
+
+  // #region - forgotPassword
+  *forgotPasswordWorker({ payload }: any) {
+    try {
+      const response = yield call(authApi.forgotPassword, payload.data);
+      yield put(actions.forgotPasswordSuccess());
+      payload.callback?.onSuccess?.(response.data);
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        'Failed to request password reset';
+      yield put(actions.forgotPasswordFailure(errorMessage));
+      payload.callback?.onError?.(error);
+    } finally {
+      payload.callback?.onFinally?.();
+    }
+  },
+  // #endregion - forgotPassword
+
+  // #region - resetPassword
+  *resetPasswordWorker({ payload }: any) {
+    try {
+      const response = yield call(authApi.resetPassword, payload.data);
+      yield put(actions.resetPasswordSuccess());
+      payload.callback?.onSuccess?.(response.data);
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        'Failed to reset password';
+      yield put(actions.resetPasswordFailure(errorMessage));
+      payload.callback?.onError?.(error);
+    } finally {
+      payload.callback?.onFinally?.();
+    }
+  },
+  // #endregion - resetPassword
 };
 
 function* authSaga() {
@@ -68,6 +106,8 @@ function* authSaga() {
     takeLatest(actions.loginRequest.type, sagas.loginWorker),
     takeLatest(actions.registerRequest.type, sagas.registerWorker),
     takeLatest(actions.getProfileRequest.type, sagas.getProfileWorker),
+    takeLatest(actions.forgotPasswordRequest.type, sagas.forgotPasswordWorker),
+    takeLatest(actions.resetPasswordRequest.type, sagas.resetPasswordWorker),
   ]);
 }
 

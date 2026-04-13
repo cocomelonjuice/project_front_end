@@ -10,6 +10,8 @@ import type { RouteDefinition } from '../shared/navigation/src';
 
 import Login from '../pages/Login';
 import Register from '../pages/Register';
+import ForgotPassword from '../pages/ForgotPassword';
+import ResetPassword from '../pages/ResetPassword';
 
 export const publicRoutes: RoutesType = [
   {
@@ -21,6 +23,16 @@ export const publicRoutes: RoutesType = [
     name: 'Register',
     path: '/register',
     element: Register,
+  },
+  {
+    name: 'ForgotPassword',
+    path: '/forgot-password',
+    element: ForgotPassword,
+  },
+  {
+    name: 'ResetPassword',
+    path: '/reset-password',
+    element: ResetPassword,
   },
   {
     path: '*',

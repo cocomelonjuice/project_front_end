@@ -58,7 +58,20 @@
     "displayNameLength": "Tên hiển thị phải từ 3 đến 100 ký tự",
     "passwordLength": "Mật khẩu phải từ 8 đến 100 ký tự",
     "passwordsMismatch": "Mật khẩu xác nhận không khớp",
-    "registrationFailed": "Đăng ký thất bại"
+    "registrationFailed": "Đăng ký thất bại",
+    "forgotPasswordLink": "Quên mật khẩu?",
+    "forgotPasswordTitle": "Đặt lại mật khẩu",
+    "forgotPasswordSubtitle": "Nhập email của bạn. Nếu có tài khoản, chúng tôi sẽ gửi hướng dẫn đặt lại mật khẩu.",
+    "forgotPasswordSubmit": "Gửi liên kết",
+    "forgotPasswordSuccess": "Nếu có tài khoản với email này, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu.",
+    "forgotPasswordFailed": "Không gửi được email đặt lại mật khẩu",
+    "resetPasswordTitle": "Mật khẩu mới",
+    "resetPasswordSubtitle": "Nhập và xác nhận mật khẩu mới.",
+    "resetPasswordSubmit": "Cập nhật mật khẩu",
+    "resetPasswordMissingToken": "Liên kết không hợp lệ. Vui lòng yêu cầu liên kết mới từ trang đăng nhập.",
+    "resetPasswordFailed": "Không đặt lại được mật khẩu",
+    "newPassword": "Mật khẩu mới",
+    "backToSignIn": "Quay lại đăng nhập"
   },
   "errors": {
     "notFoundMessage": "Xin lỗi, trang bạn truy cập không tồn tại.",

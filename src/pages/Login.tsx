@@ -35,9 +35,12 @@ const Login: React.FC = () => {
     setError(null);
   }, [dispatch]);
 
-  // Redirect if already authenticated (only check once on mount, not on every state change)
-  // Removed this useEffect - it's not needed and could cause issues
-  // The AuthProvider handles redirects for authenticated users
+  useEffect(() => {
+    const tok = localStorage.getItem('token');
+    if (tok && authState.isAuthenticated) {
+      navigate('/', { replace: true });
+    }
+  }, [authState.isAuthenticated, navigate]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,10 +187,26 @@ const Login: React.FC = () => {
               required
               disabled={authState.loginLoading}
               sx={{
-                mb: 3,
+                mb: 1,
                 ...UI_INPUT_STYLES.default,
               }}
             />
+
+            <Box sx={{ textAlign: 'right', mb: 2 }}>
+              <MuiLink
+                component={Link}
+                to="/forgot-password"
+                variant="body2"
+                sx={{
+                  color: UI_COLORS.primary.main,
+                  fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                  textDecoration: 'none',
+                  '&:hover': { textDecoration: 'underline' },
+                }}
+              >
+                {t('auth.forgotPasswordLink')}
+              </MuiLink>
+            </Box>
 
             <Button
               type="submit"
