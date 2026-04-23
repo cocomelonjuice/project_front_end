@@ -255,7 +255,13 @@ const IssueDetail: React.FC = () => {
 
   const handleDownloadAttachment = async (attachment: Attachment) => {
     try {
-      // Download attachment from API
+      const signed = await attachmentsApi.getDownloadUrl(attachment.id);
+      if (signed.data?.downloadUrl) {
+        window.open(signed.data.downloadUrl, '_blank', 'noopener,noreferrer');
+        return;
+      }
+
+      // Legacy local files: download via authenticated API proxy
       const response = await attachmentsApi.downloadAttachment(attachment.id);
       const blob = new Blob([response.data]);
       const url = window.URL.createObjectURL(blob);

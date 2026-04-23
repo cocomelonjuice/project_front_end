@@ -11,7 +11,9 @@ export interface Attachment {
   originalFilename: string;
   mimeType: string;
   size: number; // File size in bytes
-  filePath: string;
+  filePath: string | null;
+  storageProvider?: string | null;
+  storageKey?: string | null;
   issueId: string;
   issue?: Issue;
   uploadedById: string;

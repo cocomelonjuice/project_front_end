@@ -38,6 +38,16 @@ const UploadAttachmentModal: React.FC<UploadAttachmentModalProps> = ({
   uploadedById,
   onAttachmentUploaded,
 }) => {
+  const ALLOWED_MIME_TYPES = new Set([
+    'image/jpeg',
+    'image/png',
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ]);
+
   const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const authState = useSelectorAuth((state) => state);
@@ -69,6 +79,11 @@ const UploadAttachmentModal: React.FC<UploadAttachmentModalProps> = ({
       const maxSize = 10 * 1024 * 1024; // 10MB
       if (file.size > maxSize) {
         setError(t('uploadAttachmentModal.fileTooLarge', { max: formatFileSize(maxSize) }));
+        setSelectedFile(null);
+        return;
+      }
+      if (!ALLOWED_MIME_TYPES.has(file.type)) {
+        setError('Only jpg, png, pdf, doc, docx, xls, xlsx are allowed');
         setSelectedFile(null);
         return;
       }
@@ -167,6 +182,7 @@ const UploadAttachmentModal: React.FC<UploadAttachmentModalProps> = ({
               <input
                 ref={fileInputRef}
                 type="file"
+                accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
                 hidden
                 onChange={handleFileSelect}
                 disabled={attachmentsState.uploadAttachmentLoading}

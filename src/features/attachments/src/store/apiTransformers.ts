@@ -12,7 +12,9 @@ interface BackendAttachment {
   originalFilename: string;
   mimeType: string;
   size: number;
-  filePath: string;
+  filePath: string | null;
+  storageProvider?: string | null;
+  storageKey?: string | null;
   issue: {
     id: string;
   };
@@ -36,6 +38,8 @@ export const transformAttachment = (backendAttachment: BackendAttachment): Attac
     mimeType: backendAttachment.mimeType,
     size: backendAttachment.size,
     filePath: backendAttachment.filePath,
+    storageProvider: backendAttachment.storageProvider ?? null,
+    storageKey: backendAttachment.storageKey ?? null,
     issueId: backendAttachment.issue.id,
     uploadedById: backendAttachment.uploadedBy.id,
     uploadedBy: {

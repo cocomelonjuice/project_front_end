@@ -98,6 +98,7 @@ export const API_ENDPOINTS = {
     GET_BY_ISSUE: (issueId: string) => `/issues/${issueId}/attachments`,
     GET_BY_ID: (id: string) => `/attachments/${id}`,
     DOWNLOAD: (id: string) => `/attachments/${id}/download`,
+    DOWNLOAD_URL: (id: string) => `/attachments/${id}/download-url`,
     DELETE: (id: string) => `/attachments/${id}`,
   },
   // Labels

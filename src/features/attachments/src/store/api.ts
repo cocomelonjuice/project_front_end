@@ -14,7 +14,9 @@ interface BackendAttachment {
   originalFilename: string;
   mimeType: string;
   size: number;
-  filePath: string;
+  filePath: string | null;
+  storageProvider?: string | null;
+  storageKey?: string | null;
   issue: {
     id: string;
   };
@@ -57,6 +59,11 @@ export const attachmentsApi = {
       ...response,
       data: transformAttachment(response.data),
     })),
+
+  getDownloadUrl: (id: string) =>
+    axiosInstance.get<{ downloadUrl: string | null; provider: string }>(
+      API_ENDPOINTS.ATTACHMENTS.DOWNLOAD_URL(id),
+    ),
 
   // Download attachment
   downloadAttachment: (id: string) =>
