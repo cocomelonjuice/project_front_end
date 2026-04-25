@@ -32,6 +32,7 @@ import {
   DialogActions,
   Container,
 } from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material/Select';
 import {
   ArrowBack as ArrowBackIcon,
   MoreVert as MoreVertIcon,
@@ -39,6 +40,20 @@ import {
   Delete as DeleteIcon,
   Add as AddIcon,
 } from '@mui/icons-material';
+import {
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip as RechartsTooltip,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  LineChart,
+  Line,
+} from 'recharts';
 import { CreateIssueModal, EditIssueModal, DeleteIssueDialog } from '../../features/issues/src';
 import { useSelectorReferenceData } from '../../features/reference-data/src/store';
 import type { Issue } from '../../features/issues/src/store/states';
@@ -62,14 +77,16 @@ import {
 } from '../../features/team/src';
 import { teamActions, useSelectorTeam } from '../../features/team/src/store';
 import { usersActions, useSelectorUsers } from '../../features/users/src/store';
-import type { ProjectTeamMember, Role } from '../../features/team/src/store/states';
+import type { ProjectTeamMember } from '../../features/team/src/store/states';
 import {
   ActivityFeed,
   ActivityFilter,
 } from '../../features/activity/src';
 import type { EntityTypeFilter } from '../../features/activity/src/components/ActivityFilter';
 import { useSelectorAuth } from '../../features/auth/src/store';
-import { UI_COLORS, UI_TYPOGRAPHY, UI_SPACING, UI_BORDER_RADIUS, UI_SHADOWS, UI_BUTTON_STYLES, UI_INPUT_STYLES } from '../../shared/constants/src/ui';
+import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS, UI_BUTTON_STYLES } from '../../shared/constants/src/ui';
+
+type InsightsTimeRange = 'all' | '6m' | '3m' | '1m' | '14d';
 
 const ProjectDetail: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -87,6 +104,143 @@ const ProjectDetail: React.FC = () => {
 
   // All project issues (for Issues tab)
   const allProjectIssues = issuesState.issues.filter((issue) => issue.projectId === projectId);
+  const [insightsTimeRange, setInsightsTimeRange] = useState<InsightsTimeRange>('14d');
+
+  const filteredInsightsIssues = React.useMemo(() => {
+    if (insightsTimeRange === 'all') return allProjectIssues;
+
+    const now = new Date();
+    const from = new Date(now);
+    if (insightsTimeRange === '14d') from.setDate(now.getDate() - 14);
+    else if (insightsTimeRange === '1m') from.setMonth(now.getMonth() - 1);
+    else if (insightsTimeRange === '3m') from.setMonth(now.getMonth() - 3);
+    else if (insightsTimeRange === '6m') from.setMonth(now.getMonth() - 6);
+
+    return allProjectIssues.filter((issue) => {
+      if (!issue.createdAt) return false;
+      const createdAt = new Date(issue.createdAt);
+      return createdAt >= from && createdAt <= now;
+    });
+  }, [allProjectIssues, insightsTimeRange]);
+
+  const statusInsights = React.useMemo(() => {
+    const statusById = new Map(referenceDataState.statuses.map((s) => [s.id, s]));
+    const base = {
+      todo: 0,
+      inprogress: 0,
+      done: 0,
+    };
+    for (const issue of filteredInsightsIssues) {
+      const status = statusById.get(issue.statusId || '');
+      const cat = status?.category?.toLowerCase();
+      if (cat === 'todo' || cat === 'inprogress' || cat === 'done') {
+        base[cat] += 1;
+      } else {
+        base.todo += 1;
+      }
+    }
+
+    const total = filteredInsightsIssues.length;
+    const completionRate = total > 0 ? Math.round((base.done / total) * 100) : 0;
+    return {
+      chart: [
+        { key: 'todo', label: t('projectDetail.insights.statusTodo'), value: base.todo, color: '#64748b' },
+        {
+          key: 'inprogress',
+          label: t('projectDetail.insights.statusInProgress'),
+          value: base.inprogress,
+          color: '#2563eb',
+        },
+        { key: 'done', label: t('projectDetail.insights.statusDone'), value: base.done, color: '#16a34a' },
+      ],
+      total,
+      done: base.done,
+      completionRate,
+    };
+  }, [filteredInsightsIssues, referenceDataState.statuses, t]);
+
+  const priorityInsights = React.useMemo(() => {
+    const priorityById = new Map(referenceDataState.priorities.map((p) => [p.id, p]));
+    const groups = [
+      { key: 'highest', label: t('projectDetail.insights.priorityHighest'), value: 0, color: '#b91c1c' },
+      { key: 'high', label: t('projectDetail.insights.priorityHigh'), value: 0, color: '#ef4444' },
+      { key: 'medium', label: t('projectDetail.insights.priorityMedium'), value: 0, color: '#f59e0b' },
+      { key: 'low', label: t('projectDetail.insights.priorityLow'), value: 0, color: '#22c55e' },
+    ];
+    const indexByKey = new Map(groups.map((g, i) => [g.key, i]));
+
+    for (const issue of filteredInsightsIssues) {
+      const priority = priorityById.get(issue.priorityId || '');
+      const name = (priority?.name || '').toLowerCase();
+      let key: string = 'medium';
+      if (name.includes('highest')) key = 'highest';
+      else if (name.includes('high')) key = 'high';
+      else if (name.includes('low')) key = 'low';
+      else if (name.includes('medium')) key = 'medium';
+
+      const idx = indexByKey.get(key);
+      if (idx !== undefined) groups[idx].value += 1;
+    }
+
+    const total = filteredInsightsIssues.length || 1;
+    const highRiskCount = groups[0].value + groups[1].value;
+    const highRiskShare = Math.round((highRiskCount / total) * 100);
+
+    return { chart: groups, highRiskCount, highRiskShare };
+  }, [filteredInsightsIssues, referenceDataState.priorities, t]);
+
+  const trendInsights = React.useMemo(() => {
+    const now = new Date();
+    const byDay = insightsTimeRange === '14d' || insightsTimeRange === '1m';
+    const bucketCount = insightsTimeRange === '14d' ? 14 : insightsTimeRange === '1m' ? 30 : insightsTimeRange === '3m' ? 13 : insightsTimeRange === '6m' ? 6 : 12;
+    const keys: string[] = [];
+    for (let i = bucketCount - 1; i >= 0; i -= 1) {
+      const d = new Date(now);
+      if (byDay) d.setDate(now.getDate() - i);
+      else d.setMonth(now.getMonth() - i);
+      keys.push(byDay ? d.toISOString().slice(0, 10) : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+    }
+
+    const counts = new Map(keys.map((k) => [k, 0]));
+    for (const issue of filteredInsightsIssues) {
+      if (!issue.createdAt) continue;
+      const created = new Date(issue.createdAt);
+      const key = byDay
+        ? created.toISOString().slice(0, 10)
+        : `${created.getFullYear()}-${String(created.getMonth() + 1).padStart(2, '0')}`;
+      if (counts.has(key)) counts.set(key, (counts.get(key) || 0) + 1);
+    }
+
+    const chart = keys.map((k) => {
+      const [year, month, day] = k.split('-');
+      const label = byDay ? `${day}/${month}` : `${month}/${year.slice(2)}`;
+      return { dateKey: k, label, count: counts.get(k) || 0 };
+    });
+    const totalCreated = chart.reduce((sum, d) => sum + d.count, 0);
+    const avgPerDay = Number((totalCreated / Math.max(chart.length, 1)).toFixed(1));
+    return { chart, totalCreated, avgPerDay };
+  }, [filteredInsightsIssues, insightsTimeRange]);
+
+  const insightsRangeLabel = React.useMemo(() => {
+    if (insightsTimeRange === 'all') return t('projectDetail.insights.rangeAll');
+    if (insightsTimeRange === '6m') return t('projectDetail.insights.range6m');
+    if (insightsTimeRange === '3m') return t('projectDetail.insights.range3m');
+    if (insightsTimeRange === '1m') return t('projectDetail.insights.range1m');
+    return t('projectDetail.insights.range14d');
+  }, [insightsTimeRange, t]);
+
+  const formatInsightsTooltip = React.useCallback(
+    (value: number | string, name: string) => {
+      if (name === 'count') {
+        return [value, t('projectDetail.insights.tooltipCount')];
+      }
+      if (name === 'value') {
+        return [value, t('projectDetail.insights.tooltipValue')];
+      }
+      return [value, name];
+    },
+    [t]
+  );
 
   // Generate board columns dynamically from statuses
   const boardColumns: BoardColumn[] = React.useMemo(() => {
@@ -738,6 +892,7 @@ const ProjectDetail: React.FC = () => {
         >
           <Tab label={t('projectDetail.tabBoards')} />
           <Tab label={t('projectDetail.tabIssues')} />
+          <Tab label={t('projectDetail.tabInsights')} />
           <Tab label={t('projectDetail.tabTeam')} />
           <Tab label={t('projectDetail.tabActivity')} />
         </Tabs>
@@ -1224,6 +1379,193 @@ const ProjectDetail: React.FC = () => {
               boxShadow: UI_SHADOWS.md,
             }}
           >
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                color: UI_COLORS.text.primary,
+                fontSize: UI_TYPOGRAPHY.fontSize.xl,
+                mb: 2,
+              }}
+            >
+              {t('projectDetail.insights.title', { range: insightsRangeLabel })}
+            </Typography>
+
+            {filteredInsightsIssues.length === 0 ? (
+              <Alert severity="info">{t('projectDetail.insights.empty')}</Alert>
+            ) : (
+              <>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                  <FormControl size="small" sx={{ minWidth: 220 }}>
+                    <InputLabel>{t('projectDetail.insights.timeRangeLabel')}</InputLabel>
+                    <Select
+                      value={insightsTimeRange}
+                      label={t('projectDetail.insights.timeRangeLabel')}
+                      onChange={(event: SelectChangeEvent) =>
+                        setInsightsTimeRange(event.target.value as InsightsTimeRange)
+                      }
+                    >
+                      <MenuItem value="all">{t('projectDetail.insights.rangeAll')}</MenuItem>
+                      <MenuItem value="6m">{t('projectDetail.insights.range6m')}</MenuItem>
+                      <MenuItem value="3m">{t('projectDetail.insights.range3m')}</MenuItem>
+                      <MenuItem value="1m">{t('projectDetail.insights.range1m')}</MenuItem>
+                      <MenuItem value="14d">{t('projectDetail.insights.range14d')}</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
+
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
+                    gap: 2,
+                    mb: 3,
+                  }}
+                >
+                  <Paper
+                    variant="outlined"
+                    sx={{
+                      p: 2,
+                      borderRadius: UI_BORDER_RADIUS.lg,
+                      borderColor: 'rgba(37, 99, 235, 0.45)',
+                      background: 'linear-gradient(135deg, rgba(37,99,235,0.18) 0%, rgba(37,99,235,0.06) 100%)',
+                    }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      {t('projectDetail.insights.kpiTotalIssues')}
+                    </Typography>
+                    <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                      {statusInsights.total}
+                    </Typography>
+                  </Paper>
+                  <Paper
+                    variant="outlined"
+                    sx={{
+                      p: 2,
+                      borderRadius: UI_BORDER_RADIUS.lg,
+                      borderColor: 'rgba(22, 163, 74, 0.45)',
+                      background: 'linear-gradient(135deg, rgba(22,163,74,0.18) 0%, rgba(22,163,74,0.06) 100%)',
+                    }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      {t('projectDetail.insights.kpiCompletionRate')}
+                    </Typography>
+                    <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                      {statusInsights.completionRate}%
+                    </Typography>
+                  </Paper>
+                  <Paper
+                    variant="outlined"
+                    sx={{
+                      p: 2,
+                      borderRadius: UI_BORDER_RADIUS.lg,
+                      borderColor: 'rgba(239, 68, 68, 0.45)',
+                      background: 'linear-gradient(135deg, rgba(239,68,68,0.18) 0%, rgba(239,68,68,0.06) 100%)',
+                    }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      {t('projectDetail.insights.kpiHighRiskShare')}
+                    </Typography>
+                    <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                      {priorityInsights.highRiskShare}%
+                    </Typography>
+                  </Paper>
+                </Box>
+
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' },
+                    gap: 2,
+                    mb: 2,
+                  }}
+                >
+                  <Paper variant="outlined" sx={{ p: 2, borderRadius: UI_BORDER_RADIUS.lg, height: 320 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
+                      {t('projectDetail.insights.statusTitle')}
+                    </Typography>
+                    <ResponsiveContainer width="100%" height="90%">
+                      <PieChart>
+                        <Pie
+                          data={statusInsights.chart}
+                          dataKey="value"
+                          nameKey="label"
+                          innerRadius={60}
+                          outerRadius={100}
+                          paddingAngle={3}
+                        >
+                          {statusInsights.chart.map((entry) => (
+                            <Cell key={entry.key} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <RechartsTooltip formatter={formatInsightsTooltip} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </Paper>
+
+                  <Paper variant="outlined" sx={{ p: 2, borderRadius: UI_BORDER_RADIUS.lg, height: 320 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
+                      {t('projectDetail.insights.priorityTitle')}
+                    </Typography>
+                    <ResponsiveContainer width="100%" height="90%">
+                      <BarChart data={priorityInsights.chart}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="label" interval={0} angle={-15} textAnchor="end" height={60} />
+                        <YAxis allowDecimals={false} />
+                        <RechartsTooltip formatter={formatInsightsTooltip} />
+                        <Bar dataKey="value">
+                          {priorityInsights.chart.map((entry) => (
+                            <Cell key={entry.key} fill={entry.color} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </Paper>
+                </Box>
+
+                <Paper variant="outlined" sx={{ p: 2, borderRadius: UI_BORDER_RADIUS.lg, height: 340 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                      {t('projectDetail.insights.trendTitle')}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {t('projectDetail.insights.trendSummary', {
+                        total: trendInsights.totalCreated,
+                        avg: trendInsights.avgPerDay,
+                      })}
+                    </Typography>
+                  </Box>
+                  <ResponsiveContainer width="100%" height="88%">
+                    <LineChart data={trendInsights.chart}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="label" />
+                      <YAxis allowDecimals={false} />
+                      <RechartsTooltip formatter={formatInsightsTooltip} />
+                      <Line
+                        type="monotone"
+                        dataKey="count"
+                        stroke={UI_COLORS.primary.main}
+                        strokeWidth={2}
+                        dot={{ r: 3 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </Paper>
+              </>
+            )}
+          </Paper>
+        </Box>
+      )}
+
+      {tabValue === 3 && (
+        <Box>
+          <Paper
+            sx={{
+              p: 3,
+              borderRadius: UI_BORDER_RADIUS.xl,
+              boxShadow: UI_SHADOWS.md,
+            }}
+          >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
               <Typography
                 variant="h6"
@@ -1263,7 +1605,7 @@ const ProjectDetail: React.FC = () => {
         </Box>
       )}
 
-      {tabValue === 3 && (
+      {tabValue === 4 && (
         <Box>
           <Paper
             sx={{
