@@ -44,14 +44,14 @@ const EditStatusModal: React.FC<EditStatusModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
   const [category, setCategory] = useState('todo');
-  const [color, setColor] = useState('#808080');
+  const [color, setColor] = useState('#475569');
 
   useEffect(() => {
     if (open && status) {
       setError(null);
       setName(status.name || '');
       setCategory(status.category || 'todo');
-      setColor(status.color || '#808080');
+      setColor(status.color || '#475569');
     }
   }, [open, status]);
 

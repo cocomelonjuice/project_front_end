@@ -75,12 +75,12 @@ const WorkflowsList: React.FC = () => {
 
   const handleMenuClose = () => {
     setMenuAnchor(null);
-    setSelectedWorkflow(null);
   };
 
   const handleView = (workflow: Workflow) => {
     navigate(`/workflows/${workflow.id}`);
     handleMenuClose();
+    setSelectedWorkflow(null);
   };
 
   const handleEdit = () => {
@@ -424,15 +424,24 @@ const WorkflowsList: React.FC = () => {
       />
       <EditWorkflowModal
         open={editModalOpen}
-        onClose={() => setEditModalOpen(false)}
+        onClose={() => {
+          setEditModalOpen(false);
+          setSelectedWorkflow(null);
+        }}
         workflow={selectedWorkflow}
         onWorkflowUpdated={handleWorkflowUpdated}
       />
       <DeleteWorkflowDialog
         open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
+        onClose={() => {
+          setDeleteDialogOpen(false);
+          setSelectedWorkflow(null);
+        }}
         workflow={selectedWorkflow}
-        onWorkflowDeleted={handleWorkflowDeleted}
+        onWorkflowDeleted={(workflowId: string) => {
+          handleWorkflowDeleted(workflowId);
+          setSelectedWorkflow(null);
+        }}
       />
     </Box>
   );

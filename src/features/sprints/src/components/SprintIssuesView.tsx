@@ -28,6 +28,28 @@ interface SprintIssuesViewProps {
 const SprintIssuesView: React.FC<SprintIssuesViewProps> = ({ sprint, issues, onBack }) => {
   const { t } = useTranslation();
 
+  const getPriorityChipColor = (priorityInput?: { name?: string; color?: string }) => {
+    const name = (priorityInput?.name || '').toLowerCase();
+    if (name.includes('highest')) return '#991B1B';
+    if (name.includes('high')) return '#DC2626';
+    if (name.includes('low')) return '#16A34A';
+    if (name.includes('medium')) return '#D97706';
+    return priorityInput?.color || '#64748B';
+  };
+
+  const getStatusChipStyle = (statusInput?: { category?: string; name?: string; color?: string }) => {
+    const category = (statusInput?.category || '').toLowerCase();
+    if (category === 'todo') return { bg: '#DCE4EC', text: '#334155', border: '#BFCBDA' };
+    if (category === 'inprogress') return { bg: '#DCEAFF', text: '#1D4ED8', border: '#B6CCF8' };
+    if (category === 'done') return { bg: '#D3EEDB', text: '#166534', border: '#A7D7B5' };
+
+    const name = (statusInput?.name || '').toLowerCase();
+    if (name.includes('to do') || name.includes('todo')) return { bg: '#DCE4EC', text: '#334155', border: '#BFCBDA' };
+    if (name.includes('progress')) return { bg: '#DCEAFF', text: '#1D4ED8', border: '#B6CCF8' };
+    if (name.includes('done')) return { bg: '#D3EEDB', text: '#166534', border: '#A7D7B5' };
+    return { bg: statusInput?.color || '#DCE4EC', text: '#334155', border: '#BFCBDA' };
+  };
+
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
@@ -84,7 +106,7 @@ const SprintIssuesView: React.FC<SprintIssuesViewProps> = ({ sprint, issues, onB
                             label={type.name}
                             size="small"
                             sx={{
-                              bgcolor: type.color || '#ccc',
+                              bgcolor: type.color || '#64748B',
                               color: 'white',
                             }}
                           />
@@ -96,7 +118,7 @@ const SprintIssuesView: React.FC<SprintIssuesViewProps> = ({ sprint, issues, onB
                             label={priority.name}
                             size="small"
                             sx={{
-                              bgcolor: priority.color || '#ccc',
+                              bgcolor: getPriorityChipColor(priority),
                               color: 'white',
                             }}
                           />
@@ -107,10 +129,14 @@ const SprintIssuesView: React.FC<SprintIssuesViewProps> = ({ sprint, issues, onB
                           <Chip
                             label={status.name}
                             size="small"
-                            sx={{
-                              bgcolor: status.color || '#ccc',
-                              color: 'white',
-                            }}
+                            sx={(() => {
+                              const statusStyle = getStatusChipStyle(status);
+                              return {
+                                bgcolor: statusStyle.bg,
+                                color: statusStyle.text,
+                                border: `1px solid ${statusStyle.border}`,
+                              };
+                            })()}
                           />
                         )}
                       </TableCell>

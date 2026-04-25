@@ -92,7 +92,6 @@ const SystemSettingsManagement: React.FC = () => {
 
   const handleMenuClose = () => {
     setMenuAnchor(null);
-    setSelectedSetting(null);
   };
 
   const handleEdit = () => {
@@ -150,6 +149,7 @@ const SystemSettingsManagement: React.FC = () => {
       );
 
       handleMenuClose();
+      setSelectedSetting(null);
     } catch (error: any) {
       const errorMessage =
         error?.response?.data?.message || error?.message || t('adminSettings.deleteFailed');
@@ -160,6 +160,20 @@ const SystemSettingsManagement: React.FC = () => {
   // Filter settings by type using Redux state data
   const getSettingsByType = (type: SystemSetting['type']) => {
     return systemSettings.filter((s) => s.type === type);
+  };
+
+  const getStatusCategoryChipStyle = (category?: string) => {
+    const normalized = (category || '').toLowerCase();
+    if (normalized === 'todo') {
+      return { bg: '#DCE4EC', text: '#334155', border: '#BFCBDA', label: 'To Do' };
+    }
+    if (normalized === 'inprogress') {
+      return { bg: '#DCEAFF', text: '#1D4ED8', border: '#B6CCF8', label: 'In Progress' };
+    }
+    if (normalized === 'done') {
+      return { bg: '#D3EEDB', text: '#166534', border: '#A7D7B5', label: 'Done' };
+    }
+    return { bg: '#DCE4EC', text: '#334155', border: '#BFCBDA', label: category || '-' };
   };
 
   const renderTable = (typeSettings: SystemSetting[]) => {
@@ -200,7 +214,15 @@ const SystemSettingsManagement: React.FC = () => {
                 )}
                 {tabValue === 2 && (
                   <TableCell>
-                    <Chip label={setting.category || '-'} size="small" />
+                    <Chip
+                      label={getStatusCategoryChipStyle(setting.category).label}
+                      size="small"
+                      sx={{
+                        bgcolor: getStatusCategoryChipStyle(setting.category).bg,
+                        color: getStatusCategoryChipStyle(setting.category).text,
+                        border: `1px solid ${getStatusCategoryChipStyle(setting.category).border}`,
+                      }}
+                    />
                   </TableCell>
                 )}
                 {tabValue === 3 && (
@@ -295,7 +317,10 @@ const SystemSettingsManagement: React.FC = () => {
       {tabValue === 0 && (
         <EditIssueTypeModal
           open={editModalOpen && selectedSetting?.type === 'issue_type'}
-          onClose={() => setEditModalOpen(false)}
+          onClose={() => {
+            setEditModalOpen(false);
+            setSelectedSetting(null);
+          }}
           issueType={selectedSetting?.type === 'issue_type' ? selectedSetting : null}
           onIssueTypeUpdated={handleRefreshSettings}
         />
@@ -303,7 +328,10 @@ const SystemSettingsManagement: React.FC = () => {
       {tabValue === 1 && (
         <EditPriorityModal
           open={editModalOpen && selectedSetting?.type === 'priority'}
-          onClose={() => setEditModalOpen(false)}
+          onClose={() => {
+            setEditModalOpen(false);
+            setSelectedSetting(null);
+          }}
           priority={selectedSetting?.type === 'priority' ? selectedSetting : null}
           onPriorityUpdated={handleRefreshSettings}
         />
@@ -311,7 +339,10 @@ const SystemSettingsManagement: React.FC = () => {
       {tabValue === 2 && (
         <EditStatusModal
           open={editModalOpen && selectedSetting?.type === 'status'}
-          onClose={() => setEditModalOpen(false)}
+          onClose={() => {
+            setEditModalOpen(false);
+            setSelectedSetting(null);
+          }}
           status={selectedSetting?.type === 'status' ? selectedSetting : null}
           onStatusUpdated={handleRefreshSettings}
         />
@@ -319,7 +350,10 @@ const SystemSettingsManagement: React.FC = () => {
       {tabValue === 3 && (
         <EditLabelModal
           open={editModalOpen && selectedSetting?.type === 'label'}
-          onClose={() => setEditModalOpen(false)}
+          onClose={() => {
+            setEditModalOpen(false);
+            setSelectedSetting(null);
+          }}
           label={
             selectedSetting?.type === 'label'
               ? {
@@ -333,6 +367,7 @@ const SystemSettingsManagement: React.FC = () => {
           onLabelUpdated={() => {
             handleRefreshSettings();
             setEditModalOpen(false);
+            setSelectedSetting(null);
           }}
           existingLabels={getSettingsByType('label').map((s) => ({
             id: s.id,

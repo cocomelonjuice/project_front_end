@@ -21,13 +21,12 @@ import {
   MenuItem,
   CircularProgress,
   Container,
+  TableSortLabel,
 } from '@mui/material';
 import {
   Search as SearchIcon,
   Add as AddIcon,
   MoreVert as MoreVertIcon,
-  Star as StarIcon,
-  StarBorder as StarBorderIcon,
 } from '@mui/icons-material';
 import { CreateProjectModal, EditProjectModal, DeleteProjectDialog } from '../features/projects/src/components';
 import { projectsActions, useSelectorProjects } from '../features/projects/src/store';
@@ -39,7 +38,7 @@ const Home = () => {
   const dispatch = useDispatch();
   const projectsState = useSelectorProjects((state) => state);
   const [searchQuery, setSearchQuery] = useState('');
-  const [starredProjects, setStarredProjects] = useState<Set<string>>(new Set());
+  const [projectSortOrder, setProjectSortOrder] = useState<'asc' | 'desc'>('desc');
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -80,18 +79,6 @@ const Home = () => {
     if (selectedProject) {
       navigate(`/projects/${selectedProject}`);
     }
-  };
-
-  const handleStarToggle = (projectId: string) => {
-    setStarredProjects((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(projectId)) {
-        newSet.delete(projectId);
-      } else {
-        newSet.add(projectId);
-      }
-      return newSet;
-    });
   };
 
   const handleProjectCreated = () => {
@@ -171,6 +158,30 @@ const Home = () => {
     );
   });
 
+  const sortedProjects = React.useMemo(() => {
+    const projects = [...filteredProjects];
+    projects.sort((a, b) => {
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return projectSortOrder === 'asc' ? timeA - timeB : timeB - timeA;
+    });
+    return projects;
+  }, [filteredProjects, projectSortOrder]);
+
+  const handleProjectCreatedAtSort = () => {
+    setProjectSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+  };
+
+  const formatDateDDMMYYYY = (value?: string) => {
+    if (!value) return '-';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '-';
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       {/* Header */}
@@ -236,10 +247,11 @@ const Home = () => {
         sx={{
           borderRadius: UI_BORDER_RADIUS.lg,
           boxShadow: UI_SHADOWS.md,
-          overflow: 'hidden',
+          overflow: 'auto',
+          maxHeight: { xs: 420, md: 560 },
         }}
       >
-        <Table>
+        <Table stickyHeader>
           <TableHead>
             <TableRow
               sx={{
@@ -274,6 +286,21 @@ const Home = () => {
                 {t('home.colType')}
               </TableCell>
               <TableCell
+                sx={{
+                  fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                  color: UI_COLORS.text.primary,
+                  fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                }}
+              >
+                <TableSortLabel
+                  active
+                  direction={projectSortOrder}
+                  onClick={handleProjectCreatedAtSort}
+                >
+                  {t('home.colCreatedAt')}
+                </TableSortLabel>
+              </TableCell>
+              <TableCell
                 width={50}
                 sx={{
                   fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
@@ -286,20 +313,20 @@ const Home = () => {
           <TableBody>
             {projectsState.getProjectsLoading ? (
               <TableRow>
-                <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
+                <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
                   <CircularProgress size={24} />
                 </TableCell>
               </TableRow>
-            ) : filteredProjects.length === 0 ? (
+            ) : sortedProjects.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
+                <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
                   <Typography variant="body2" color="text.secondary">
                     {searchQuery ? t('home.emptySearch') : t('home.empty')}
                   </Typography>
                 </TableCell>
               </TableRow>
             ) : (
-              filteredProjects.map((project) => (
+              sortedProjects.map((project) => (
                 <TableRow
                   key={project.id}
                   hover
@@ -312,25 +339,6 @@ const Home = () => {
                 >
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleStarToggle(project.id)}
-                        sx={{
-                          p: 0.5,
-                          color: starredProjects.has(project.id)
-                            ? UI_COLORS.warning.main
-                            : UI_COLORS.text.secondary,
-                          '&:hover': {
-                            backgroundColor: UI_COLORS.background.hover,
-                          },
-                        }}
-                      >
-                        {starredProjects.has(project.id) ? (
-                          <StarIcon fontSize="small" />
-                        ) : (
-                          <StarBorderIcon fontSize="small" />
-                        )}
-                      </IconButton>
                       <Box
                         sx={{
                           width: 36,
@@ -384,6 +392,15 @@ const Home = () => {
                     }}
                   >
                     {projectTypeLabel(project.type)}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      color: UI_COLORS.text.secondary,
+                      fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {formatDateDDMMYYYY(project.createdAt)}
                   </TableCell>
                   <TableCell>
                     <IconButton

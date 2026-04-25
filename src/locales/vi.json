@@ -23,13 +23,51 @@
   },
   "nav": {
     "projects": "Dự án",
+     "dashboard": "Dashboard",
     "workflows": "Quy trình",
     "admin": "Quản trị",
     "about": "Giới thiệu"
   },
   "layout": {
+    "dashboard": "Dashboard",
     "profile": "Hồ sơ",
     "logout": "Đăng xuất"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Tổng quan công việc của bạn, {{name}}",
+    "defaultUser": "Người dùng",
+    "search": "Tìm kiếm nhanh",
+    "openProjects": "Mở dự án",
+    "loadFailed": "Không tải được dashboard",
+    "unread": "Chưa đọc",
+    "projectIssueCount": "{{count}} công việc",
+    "kpi": {
+      "myOpenIssues": "Công việc mở của tôi",
+      "highPriority": "Cần chú ý",
+      "completedThisWeek": "Hoàn thành tuần này",
+      "unreadNotifications": "Thông báo chưa đọc"
+    },
+    "sections": {
+      "myOpenIssues": "Công việc mở của tôi",
+      "needsAttention": "Cần chú ý",
+      "recentActivity": "Hoạt động gần đây",
+      "myProjects": "Dự án của tôi",
+      "statusOverview": "Tổng quan trạng thái công việc",
+      "trend14d": "Xu hướng tạo công việc"
+    },
+    "empty": {
+      "noAssigned": "Bạn chưa có công việc mở nào được giao.",
+      "noHighPriority": "Không có công việc ưu tiên cao. Tuyệt vời!",
+      "noActivity": "Chưa có hoạt động gần đây.",
+      "noProjects": "Chưa có dự án nào."
+    },
+    "charts": {
+      "appliesToBoth": "Khoảng thời gian biểu đồ (áp dụng cho cả 2 biểu đồ):",
+      "statusTodo": "To Do",
+      "statusInProgress": "In Progress",
+      "statusDone": "Done"
+    }
   },
   "auth": {
     "loginTitle": "Chào mừng trở lại",
@@ -85,6 +123,7 @@
     "colName": "Tên",
     "colKey": "Mã",
     "colType": "Loại",
+    "colCreatedAt": "Ngày tạo",
     "emptySearch": "Không có dự án nào khớp với tìm kiếm.",
     "empty": "Chưa có dự án nào.",
     "view": "Xem",
@@ -220,9 +259,12 @@
     "colKey": "Mã",
     "colSummary": "Tóm tắt",
     "colType": "Loại",
-    "colPriority": "Ưu tiên",
-    "colStatus": "Trạng thái",
+    "colPriority": "Priority",
+    "colStatus": "Status",
     "colAssignee": "Người phụ trách",
+    "colCreatedAt": "Ngày tạo",
+    "colUpdatedAt": "Ngày cập nhật",
+    "showingIssues": "Hiển thị {{current}} / {{total}} công việc",
     "emptyIssues": "Chưa có công việc. Tạo công việc đầu tiên để bắt đầu.",
     "unassigned": "Chưa giao",
     "unknown": "Không rõ",
@@ -234,9 +276,9 @@
     "removeMemberConfirm": "Bạn có chắc muốn gỡ {{user}} ({{role}}) khỏi nhóm dự án này?",
     "removing": "Đang gỡ...",
     "remove": "Gỡ",
-    "columnTodo": "Cần làm",
-    "columnInProgress": "Đang làm",
-    "columnDone": "Hoàn thành",
+    "columnTodo": "To Do",
+    "columnInProgress": "In Progress",
+    "columnDone": "Done",
     "sprintStart": "Bắt đầu",
     "sprintComplete": "Hoàn thành",
     "sprintViewIssues": "Xem công việc",
@@ -267,7 +309,7 @@
     "relativeDaysAgo": "{{count}} ngày trước",
     "invalidDate": "Ngày không hợp lệ",
     "insights": {
-      "title": "Phân tích dự án ({{range}})",
+      "title": "Project Insights ({{range}})",
       "empty": "Chưa đủ dữ liệu. Hãy tạo thêm công việc để xem phân tích.",
       "timeRangeLabel": "Khoảng thời gian",
       "rangeAll": "Tổng",
@@ -278,19 +320,19 @@
       "kpiTotalIssues": "Tổng công việc",
       "kpiCompletionRate": "Tỉ lệ hoàn thành",
       "kpiHighRiskShare": "Tỉ lệ rủi ro cao",
-      "statusTitle": "Tiến độ bàn giao",
-      "priorityTitle": "Khối lượng rủi ro theo ưu tiên",
+      "statusTitle": "Delivery Progress",
+      "priorityTitle": "Risk Load by Priority",
       "trendTitle": "Xu hướng issue mới",
       "trendSummary": "{{total}} issue mới, trung bình {{avg}}/ngày",
       "tooltipCount": "Tổng",
       "tooltipValue": "Giá trị",
-      "statusTodo": "Cần làm",
-      "statusInProgress": "Đang làm",
-      "statusDone": "Hoàn thành",
-      "priorityHighest": "Cao nhất",
-      "priorityHigh": "Cao",
-      "priorityMedium": "Trung bình",
-      "priorityLow": "Thấp"
+      "statusTodo": "To Do",
+      "statusInProgress": "In Progress",
+      "statusDone": "Done",
+      "priorityHighest": "Highest",
+      "priorityHigh": "High",
+      "priorityMedium": "Medium",
+      "priorityLow": "Low"
     }
   },
   "sprintModal": {
@@ -359,8 +401,8 @@
     "descriptionLabel": "Mô tả",
     "descriptionHelper": "Mô tả chi tiết (tùy chọn)",
     "type": "Loại",
-    "priority": "Ưu tiên",
-    "status": "Trạng thái",
+    "priority": "Priority",
+    "status": "Status",
     "assignee": "Người phụ trách",
     "loadingTypes": "Đang tải loại...",
     "loadingPriorities": "Đang tải mức ưu tiên...",
@@ -429,8 +471,8 @@
     "commentsHeading": "Bình luận ({{count}})",
     "addComment": "Thêm bình luận",
     "fieldType": "Loại",
-    "fieldPriority": "Ưu tiên",
-    "fieldStatus": "Trạng thái",
+    "fieldPriority": "Priority",
+    "fieldStatus": "Status",
     "change": "Đổi",
     "fieldAssignee": "Người phụ trách",
     "assign": "Giao",
@@ -513,11 +555,11 @@
     "assign": "Giao"
   },
   "transitionStatusModal": {
-    "title": "Đổi trạng thái",
-    "current": "(Hiện tại)",
-    "category": "Danh mục: {{category}}",
-    "changing": "Đang đổi...",
-    "changeStatus": "Đổi trạng thái"
+    "title": "Change Status",
+    "current": "(Current)",
+    "category": "Category: {{category}}",
+    "changing": "Changing...",
+    "changeStatus": "Change Status"
   },
   "workflowList": {
     "title": "Quy trình (workflow)",
@@ -526,7 +568,7 @@
     "colName": "Tên",
     "colDescription": "Mô tả",
     "colProject": "Dự án",
-    "colStatus": "Trạng thái",
+    "colStatus": "Status",
     "colTransitions": "Chuyển trạng thái",
     "colActions": "Thao tác",
     "transitionCount": "{{count}} chuyển trạng thái",
@@ -549,7 +591,7 @@
     "transitionsEmpty": "Chưa có chuyển trạng thái. Thêm để xác định các thay đổi trạng thái hợp lệ.",
     "unknownStatus": "Không rõ",
     "fieldProject": "Dự án",
-    "fieldStatus": "Trạng thái",
+    "fieldStatus": "Status",
     "transitionsCount": "Số chuyển trạng thái",
     "globalAllProjects": "Toàn cục (mọi dự án)",
     "unknown": "Không rõ",
@@ -583,11 +625,11 @@
   },
   "addTransitionModal": {
     "title": "Thêm chuyển trạng thái",
-    "fromStatus": "Trạng thái nguồn",
-    "toStatus": "Trạng thái đích",
-    "fromRequired": "Vui lòng chọn trạng thái nguồn",
-    "toRequired": "Vui lòng chọn trạng thái đích",
-    "sameStatus": "Trạng thái nguồn và đích phải khác nhau",
+    "fromStatus": "From Status",
+    "toStatus": "To Status",
+    "fromRequired": "From status is required",
+    "toRequired": "To status is required",
+    "sameStatus": "From and To status must be different",
     "duplicate": "Chuyển trạng thái này đã tồn tại",
     "addFailed": "Thêm chuyển trạng thái thất bại",
     "adding": "Đang thêm...",
@@ -605,7 +647,7 @@
     "colUser": "Người dùng",
     "colEmail": "Email",
     "colRoles": "Vai trò",
-    "colStatus": "Trạng thái",
+    "colStatus": "Status",
     "colCreated": "Ngày tạo",
     "colActions": "Thao tác",
     "statusActive": "Đang hoạt động",
@@ -625,14 +667,14 @@
     "title": "Cài đặt hệ thống",
     "addItem": "Thêm mục",
     "tabIssueTypes": "Loại issue",
-    "tabPriorities": "Độ ưu tiên",
-    "tabStatuses": "Trạng thái",
+    "tabPriorities": "Priorities",
+    "tabStatuses": "Statuses",
     "tabLabels": "Nhãn",
     "empty": "Chưa có mục nào. Thêm mục đầu tiên để bắt đầu.",
     "colName": "Tên",
     "colDescription": "Mô tả",
     "colOrder": "Thứ tự",
-    "colCategory": "Danh mục",
+    "colCategory": "Category",
     "colColor": "Màu",
     "colActions": "Thao tác",
     "menuEdit": "Sửa",
@@ -687,8 +729,8 @@
     "orderLabel": "Số thứ tự",
     "orderMin": "Thứ tự phải ít nhất là 1",
     "orderHelper": "Số nhỏ hơn hiển thị trước",
-    "categoryLabel": "Danh mục",
-    "categoryRequired": "Vui lòng chọn danh mục",
+    "categoryLabel": "Category",
+    "categoryRequired": "Category is required",
     "hexColor": "Màu hex"
   },
   "adminIssueTypeModal": {
@@ -700,29 +742,42 @@
     "duplicate": "Đã có loại issue với tên này"
   },
   "adminPriorityModal": {
-    "addTitle": "Thêm độ ưu tiên",
-    "editTitle": "Sửa độ ưu tiên",
-    "create": "Tạo độ ưu tiên",
-    "createFailed": "Tạo độ ưu tiên thất bại",
-    "updateFailed": "Cập nhật độ ưu tiên thất bại",
-    "duplicate": "Đã có độ ưu tiên với tên này"
+    "addTitle": "Add Priority",
+    "editTitle": "Edit Priority",
+    "create": "Create Priority",
+    "createFailed": "Failed to create priority",
+    "updateFailed": "Failed to update priority",
+    "duplicate": "A priority with this name already exists"
   },
   "adminStatusModal": {
-    "addTitle": "Thêm trạng thái",
-    "editTitle": "Sửa trạng thái",
-    "create": "Tạo trạng thái",
-    "createFailed": "Tạo trạng thái thất bại",
-    "updateFailed": "Cập nhật trạng thái thất bại",
-    "duplicate": "Đã có trạng thái với tên này",
-    "catTodo": "Cần làm",
-    "catInProgress": "Đang làm",
-    "catDone": "Hoàn thành"
+    "addTitle": "Add Status",
+    "editTitle": "Edit Status",
+    "create": "Create Status",
+    "createFailed": "Failed to create status",
+    "updateFailed": "Failed to update status",
+    "duplicate": "A status with this name already exists",
+    "catTodo": "To Do",
+    "catInProgress": "In Progress",
+    "catDone": "Done"
   },
   "notificationsDropdown": {
     "title": "Thông báo",
     "markAllRead": "Đánh dấu đã đọc",
     "marking": "Đang đánh dấu...",
-    "empty": "Không có thông báo"
+    "empty": "Không có thông báo",
+    "type": {
+      "issueAssigned": "Công việc được giao cho bạn",
+      "commentAdded": "Có bình luận mới trên công việc",
+      "statusChanged": "Trạng thái đã thay đổi",
+      "attachmentAdded": "Có tệp đính kèm mới",
+      "issueUpdated": "Công việc đã được cập nhật"
+    },
+    "message": {
+      "issueAssigned": "Công việc \"{{issue}}\" đã được giao cho bạn",
+      "statusChanged": "Công việc \"{{issue}}\" đã đổi trạng thái thành \"{{status}}\"",
+      "commentAdded": "{{actor}} đã bình luận vào công việc \"{{issue}}\"",
+      "attachmentAdded": "{{actor}} đã tải lên \"{{file}}\" vào công việc \"{{issue}}\""
+    }
   },
   "searchModal": {
     "placeholder": "Tìm dự án, issue, người dùng...",

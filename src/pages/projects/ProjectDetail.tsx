@@ -17,6 +17,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TableSortLabel,
   IconButton,
   Menu,
   MenuItem,
@@ -88,6 +89,19 @@ import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS, UI_BUTTON_STYLE
 
 type InsightsTimeRange = 'all' | '6m' | '3m' | '1m' | '14d';
 
+const PRIORITY_COLOR_MAP = {
+  highest: '#991B1B',
+  high: '#DC2626',
+  medium: '#D97706',
+  low: '#16A34A',
+} as const;
+
+const STATUS_COLOR_MAP = {
+  todo: { bg: '#DCE4EC', text: '#334155', border: '#BFCBDA' },
+  inprogress: { bg: '#DCEAFF', text: '#1D4ED8', border: '#B6CCF8' },
+  done: { bg: '#D3EEDB', text: '#166534', border: '#A7D7B5' },
+} as const;
+
 const ProjectDetail: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { id: projectId } = useParams<{ id: string }>();
@@ -104,6 +118,26 @@ const ProjectDetail: React.FC = () => {
 
   // All project issues (for Issues tab)
   const allProjectIssues = issuesState.issues.filter((issue) => issue.projectId === projectId);
+  const [issueSortBy, setIssueSortBy] = useState<'createdAt' | 'updatedAt' | 'assignee'>('updatedAt');
+  const [issueSortOrder, setIssueSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  const sortedProjectIssues = React.useMemo(() => {
+    const issues = [...allProjectIssues];
+    issues.sort((a, b) => {
+      if (issueSortBy === 'createdAt' || issueSortBy === 'updatedAt') {
+        const timeA = a[issueSortBy] ? new Date(a[issueSortBy]).getTime() : 0;
+        const timeB = b[issueSortBy] ? new Date(b[issueSortBy]).getTime() : 0;
+        return issueSortOrder === 'asc' ? timeA - timeB : timeB - timeA;
+      }
+
+      const nameA = (a.assignee?.displayName || '').toLowerCase();
+      const nameB = (b.assignee?.displayName || '').toLowerCase();
+      if (nameA < nameB) return issueSortOrder === 'asc' ? -1 : 1;
+      if (nameA > nameB) return issueSortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return issues;
+  }, [allProjectIssues, issueSortBy, issueSortOrder]);
   const [insightsTimeRange, setInsightsTimeRange] = useState<InsightsTimeRange>('14d');
 
   const filteredInsightsIssues = React.useMemo(() => {
@@ -144,14 +178,14 @@ const ProjectDetail: React.FC = () => {
     const completionRate = total > 0 ? Math.round((base.done / total) * 100) : 0;
     return {
       chart: [
-        { key: 'todo', label: t('projectDetail.insights.statusTodo'), value: base.todo, color: '#64748b' },
+        { key: 'todo', label: t('projectDetail.insights.statusTodo'), value: base.todo, color: '#475569' },
         {
           key: 'inprogress',
           label: t('projectDetail.insights.statusInProgress'),
           value: base.inprogress,
-          color: '#2563eb',
+          color: '#1d4ed8',
         },
-        { key: 'done', label: t('projectDetail.insights.statusDone'), value: base.done, color: '#16a34a' },
+        { key: 'done', label: t('projectDetail.insights.statusDone'), value: base.done, color: '#15803d' },
       ],
       total,
       done: base.done,
@@ -162,10 +196,10 @@ const ProjectDetail: React.FC = () => {
   const priorityInsights = React.useMemo(() => {
     const priorityById = new Map(referenceDataState.priorities.map((p) => [p.id, p]));
     const groups = [
-      { key: 'highest', label: t('projectDetail.insights.priorityHighest'), value: 0, color: '#b91c1c' },
-      { key: 'high', label: t('projectDetail.insights.priorityHigh'), value: 0, color: '#ef4444' },
-      { key: 'medium', label: t('projectDetail.insights.priorityMedium'), value: 0, color: '#f59e0b' },
-      { key: 'low', label: t('projectDetail.insights.priorityLow'), value: 0, color: '#22c55e' },
+      { key: 'highest', label: t('projectDetail.insights.priorityHighest'), value: 0, color: '#991b1b' },
+      { key: 'high', label: t('projectDetail.insights.priorityHigh'), value: 0, color: '#dc2626' },
+      { key: 'medium', label: t('projectDetail.insights.priorityMedium'), value: 0, color: '#d97706' },
+      { key: 'low', label: t('projectDetail.insights.priorityLow'), value: 0, color: '#16a34a' },
     ];
     const indexByKey = new Map(groups.map((g, i) => [g.key, i]));
 
@@ -230,14 +264,25 @@ const ProjectDetail: React.FC = () => {
   }, [insightsTimeRange, t]);
 
   const formatInsightsTooltip = React.useCallback(
-    (value: number | string, name: string) => {
-      if (name === 'count') {
-        return [value, t('projectDetail.insights.tooltipCount')];
+    (
+      value: string | number | ReadonlyArray<string | number> | undefined,
+      name: string | number | undefined
+    ): [string | number, string] => {
+      const safeName = typeof name === 'string' ? name : String(name ?? '');
+      const safeValue =
+        typeof value === 'number' || typeof value === 'string'
+          ? value
+          : Array.isArray(value)
+          ? value.join(', ')
+          : '';
+
+      if (safeName === 'count') {
+        return [safeValue, t('projectDetail.insights.tooltipCount')];
       }
-      if (name === 'value') {
-        return [value, t('projectDetail.insights.tooltipValue')];
+      if (safeName === 'value') {
+        return [safeValue, t('projectDetail.insights.tooltipValue')];
       }
-      return [value, name];
+      return [safeValue, safeName];
     },
     [t]
   );
@@ -259,7 +304,7 @@ const ProjectDetail: React.FC = () => {
         id: 'todo',
         name: t('projectDetail.columnTodo'),
         statusIds: todoStatuses.map((s) => s.id),
-        color: '#42526E',
+        color: '#475569',
       });
     }
 
@@ -268,7 +313,7 @@ const ProjectDetail: React.FC = () => {
         id: 'inprogress',
         name: t('projectDetail.columnInProgress'),
         statusIds: inProgressStatuses.map((s) => s.id),
-        color: '#0052CC',
+        color: '#1D4ED8',
       });
     }
 
@@ -277,7 +322,7 @@ const ProjectDetail: React.FC = () => {
         id: 'done',
         name: t('projectDetail.columnDone'),
         statusIds: doneStatuses.map((s) => s.id),
-        color: '#36B37E',
+        color: '#15803D',
       });
     }
 
@@ -287,7 +332,7 @@ const ProjectDetail: React.FC = () => {
         id: `column-${index}`,
         name: status.name,
         statusIds: [status.id],
-        color: status.color || '#ccc',
+        color: status.color || '#64748B',
       }));
     }
 
@@ -474,14 +519,54 @@ const ProjectDetail: React.FC = () => {
     setTabValue(newValue);
   };
 
+  const handleIssueSort = (sortBy: 'createdAt' | 'updatedAt' | 'assignee') => {
+    if (issueSortBy === sortBy) {
+      setIssueSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+      return;
+    }
+    setIssueSortBy(sortBy);
+    setIssueSortOrder('asc');
+  };
+
+  const formatDateDDMMYYYY = (value?: string) => {
+    if (!value) return '-';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '-';
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const getPriorityChipColor = (priority?: { name?: string; color?: string }) => {
+    const name = (priority?.name || '').toLowerCase();
+    if (name.includes('highest')) return PRIORITY_COLOR_MAP.highest;
+    if (name.includes('high')) return PRIORITY_COLOR_MAP.high;
+    if (name.includes('low')) return PRIORITY_COLOR_MAP.low;
+    if (name.includes('medium')) return PRIORITY_COLOR_MAP.medium;
+    return priority?.color || '#64748B';
+  };
+
+  const getStatusChipStyle = (status?: { category?: string; name?: string; color?: string }) => {
+    const category = (status?.category || '').toLowerCase();
+    if (category === 'todo') return STATUS_COLOR_MAP.todo;
+    if (category === 'inprogress') return STATUS_COLOR_MAP.inprogress;
+    if (category === 'done') return STATUS_COLOR_MAP.done;
+
+    const name = (status?.name || '').toLowerCase();
+    if (name.includes('to do') || name.includes('todo')) return STATUS_COLOR_MAP.todo;
+    if (name.includes('progress')) return STATUS_COLOR_MAP.inprogress;
+    if (name.includes('done')) return STATUS_COLOR_MAP.done;
+    return { bg: status?.color || '#DCE4EC', text: '#334155', border: '#BFCBDA' };
+  };
+
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, issue: Issue) => {
-    setMenuAnchor(event.currentTarget);
     setSelectedIssue(issue);
+    setMenuAnchor(event.currentTarget);
   };
 
   const handleMenuClose = () => {
     setMenuAnchor(null);
-    setSelectedIssue(null);
   };
 
   const handleView = () => {
@@ -1179,10 +1264,11 @@ const ProjectDetail: React.FC = () => {
             sx={{
               borderRadius: UI_BORDER_RADIUS.lg,
               boxShadow: UI_SHADOWS.md,
-              overflow: 'hidden',
+              overflow: 'auto',
+              maxHeight: { xs: 460, md: 620 },
             }}
           >
-              <Table>
+              <Table stickyHeader>
                 <TableHead>
                   <TableRow
                     sx={{
@@ -1241,7 +1327,45 @@ const ProjectDetail: React.FC = () => {
                         fontSize: UI_TYPOGRAPHY.fontSize.sm,
                       }}
                     >
-                      {t('projectDetail.colAssignee')}
+                      <TableSortLabel
+                        active={issueSortBy === 'assignee'}
+                        direction={issueSortBy === 'assignee' ? issueSortOrder : 'asc'}
+                        onClick={() => handleIssueSort('assignee')}
+                      >
+                        {t('projectDetail.colAssignee')}
+                      </TableSortLabel>
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                        color: UI_COLORS.text.primary,
+                        fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      <TableSortLabel
+                        active={issueSortBy === 'createdAt'}
+                        direction={issueSortBy === 'createdAt' ? issueSortOrder : 'asc'}
+                        onClick={() => handleIssueSort('createdAt')}
+                      >
+                        {t('projectDetail.colCreatedAt')}
+                      </TableSortLabel>
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                        color: UI_COLORS.text.primary,
+                        fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      <TableSortLabel
+                        active={issueSortBy === 'updatedAt'}
+                        direction={issueSortBy === 'updatedAt' ? issueSortOrder : 'asc'}
+                        onClick={() => handleIssueSort('updatedAt')}
+                      >
+                        {t('projectDetail.colUpdatedAt')}
+                      </TableSortLabel>
                     </TableCell>
                     <TableCell
                       width={50}
@@ -1254,16 +1378,16 @@ const ProjectDetail: React.FC = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {allProjectIssues.length === 0 ? (
+                  {sortedProjectIssues.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                      <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
                         <Typography variant="body2" color="text.secondary">
                           {t('projectDetail.emptyIssues')}
                         </Typography>
                       </TableCell>
                     </TableRow>
                   ) : (
-                    allProjectIssues.map((issue) => {
+                    sortedProjectIssues.map((issue) => {
                       const type = issue.type || referenceDataState.issueTypes.find((t) => t.id === issue.typeId);
                       const priority = issue.priority || referenceDataState.priorities.find((p) => p.id === issue.priorityId);
                       const status = issue.status || referenceDataState.statuses.find((s) => s.id === issue.statusId);
@@ -1301,7 +1425,7 @@ const ProjectDetail: React.FC = () => {
                               label={type?.name || t('projectDetail.unknown')}
                               size="small"
                               sx={{
-                                bgcolor: type?.color || '#ccc',
+                                bgcolor: type?.color || '#64748B',
                                 color: 'white',
                               }}
                             />
@@ -1311,7 +1435,7 @@ const ProjectDetail: React.FC = () => {
                               label={priority?.name || t('projectDetail.unknown')}
                               size="small"
                               sx={{
-                                bgcolor: priority?.color || '#ccc',
+                                bgcolor: getPriorityChipColor(priority),
                                 color: 'white',
                               }}
                             />
@@ -1320,10 +1444,14 @@ const ProjectDetail: React.FC = () => {
                             <Chip
                               label={status?.name || t('projectDetail.unknown')}
                               size="small"
-                              sx={{
-                                bgcolor: status?.color || '#ccc',
-                                color: 'white',
-                              }}
+                              sx={(() => {
+                                const statusStyle = getStatusChipStyle(status);
+                                return {
+                                  bgcolor: statusStyle.bg,
+                                  color: statusStyle.text,
+                                  border: `1px solid ${statusStyle.border}`,
+                                };
+                              })()}
                             />
                           </TableCell>
                           <TableCell>
@@ -1339,6 +1467,12 @@ const ProjectDetail: React.FC = () => {
                                 {t('projectDetail.unassigned')}
                               </Typography>
                             )}
+                          </TableCell>
+                          <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                            {formatDateDDMMYYYY(issue.createdAt)}
+                          </TableCell>
+                          <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                            {formatDateDDMMYYYY(issue.updatedAt)}
                           </TableCell>
                           <TableCell>
                             <IconButton size="small" onClick={(e) => handleMenuOpen(e, issue)}>
@@ -1367,6 +1501,20 @@ const ProjectDetail: React.FC = () => {
                 </TableBody>
               </Table>
             </TableContainer>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: UI_COLORS.text.secondary,
+                  fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                }}
+              >
+                {t('projectDetail.showingIssues', {
+                  current: sortedProjectIssues.length,
+                  total: allProjectIssues.length,
+                })}
+              </Typography>
+            </Box>
         </Box>
       )}
 
@@ -1651,13 +1799,19 @@ const ProjectDetail: React.FC = () => {
         <>
           <EditIssueModal
             open={editModalOpen}
-            onClose={() => setEditModalOpen(false)}
+            onClose={() => {
+              setEditModalOpen(false);
+              setSelectedIssue(null);
+            }}
             issue={selectedIssue}
             onIssueUpdated={handleIssueUpdated}
           />
           <DeleteIssueDialog
             open={deleteDialogOpen}
-            onClose={() => setDeleteDialogOpen(false)}
+            onClose={() => {
+              setDeleteDialogOpen(false);
+              setSelectedIssue(null);
+            }}
             issue={selectedIssue}
             onIssueDeleted={handleIssueDeleted}
           />

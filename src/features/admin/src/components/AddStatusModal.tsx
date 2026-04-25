@@ -45,14 +45,14 @@ const AddStatusModal: React.FC<AddStatusModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
   const [category, setCategory] = useState('todo');
-  const [color, setColor] = useState('#808080');
+  const [color, setColor] = useState('#475569');
 
   useEffect(() => {
     if (open) {
       setError(null);
       setName('');
       setCategory('todo');
-      setColor('#808080');
+      setColor('#475569');
     }
   }, [open]);
 

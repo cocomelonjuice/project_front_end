@@ -44,6 +44,19 @@ const TransitionStatusModal: React.FC<TransitionStatusModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedStatusId, setSelectedStatusId] = useState<string>(currentStatusId);
 
+  const getStatusChipStyle = (statusInput?: { category?: string; name?: string; color?: string }) => {
+    const category = (statusInput?.category || '').toLowerCase();
+    if (category === 'todo') return { bg: '#DCE4EC', text: '#334155', border: '#BFCBDA' };
+    if (category === 'inprogress') return { bg: '#DCEAFF', text: '#1D4ED8', border: '#B6CCF8' };
+    if (category === 'done') return { bg: '#D3EEDB', text: '#166534', border: '#A7D7B5' };
+
+    const name = (statusInput?.name || '').toLowerCase();
+    if (name.includes('to do') || name.includes('todo')) return { bg: '#DCE4EC', text: '#334155', border: '#BFCBDA' };
+    if (name.includes('progress')) return { bg: '#DCEAFF', text: '#1D4ED8', border: '#B6CCF8' };
+    if (name.includes('done')) return { bg: '#D3EEDB', text: '#166534', border: '#A7D7B5' };
+    return { bg: statusInput?.color || '#DCE4EC', text: '#334155', border: '#BFCBDA' };
+  };
+
   // Use provided statuses or fetch from API
   const statuses = availableStatuses || referenceDataState.statuses.map((s) => ({
     id: s.id,
@@ -129,11 +142,15 @@ const TransitionStatusModal: React.FC<TransitionStatusModalProps> = ({
                         <Chip
                           label={status.name}
                           size="small"
-                          sx={{
-                            bgcolor: status.color || '#ccc',
-                            color: 'white',
-                            fontWeight: status.id === currentStatusId ? 600 : 400,
-                          }}
+                          sx={(() => {
+                            const statusStyle = getStatusChipStyle(status);
+                            return {
+                              bgcolor: statusStyle.bg,
+                              color: statusStyle.text,
+                              border: `1px solid ${statusStyle.border}`,
+                              fontWeight: status.id === currentStatusId ? 600 : 400,
+                            };
+                          })()}
                         />
                         {status.id === currentStatusId && (
                           <Typography variant="caption" color="text.secondary">

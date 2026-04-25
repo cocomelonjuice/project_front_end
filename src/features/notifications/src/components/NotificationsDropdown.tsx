@@ -117,6 +117,79 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
     }
   };
 
+  const getNotificationTitle = useCallback(
+    (notification: Notification): string => {
+      switch (notification.type) {
+        case 'issue_assigned':
+          return t('notificationsDropdown.type.issueAssigned');
+        case 'comment_added':
+          return t('notificationsDropdown.type.commentAdded');
+        case 'status_changed':
+          return t('notificationsDropdown.type.statusChanged');
+        case 'attachment_added':
+          return t('notificationsDropdown.type.attachmentAdded');
+        case 'issue_updated':
+          return t('notificationsDropdown.type.issueUpdated');
+        default:
+          return notification.title;
+      }
+    },
+    [t],
+  );
+
+  const getNotificationMessage = useCallback(
+    (notification: Notification): string => {
+      const message = notification.message ?? '';
+      if (!message) return '';
+
+      switch (notification.type) {
+        case 'issue_assigned': {
+          const match = message.match(/^Issue "(.+)" has been assigned to you$/);
+          if (match) {
+            return t('notificationsDropdown.message.issueAssigned', {
+              issue: match[1],
+            });
+          }
+          return message;
+        }
+        case 'status_changed': {
+          const match = message.match(/^Issue "(.+)" status changed to "(.+)"$/);
+          if (match) {
+            return t('notificationsDropdown.message.statusChanged', {
+              issue: match[1],
+              status: match[2],
+            });
+          }
+          return message;
+        }
+        case 'comment_added': {
+          const match = message.match(/^(.+) commented on issue "(.+)"$/);
+          if (match) {
+            return t('notificationsDropdown.message.commentAdded', {
+              actor: match[1],
+              issue: match[2],
+            });
+          }
+          return message;
+        }
+        case 'attachment_added': {
+          const match = message.match(/^(.+) uploaded "(.+)" to issue "(.+)"$/);
+          if (match) {
+            return t('notificationsDropdown.message.attachmentAdded', {
+              actor: match[1],
+              file: match[2],
+              issue: match[3],
+            });
+          }
+          return message;
+        }
+        default:
+          return message;
+      }
+    },
+    [t],
+  );
+
   const formatTimestamp = useCallback(
     (timestamp: string): string => {
       try {
@@ -172,7 +245,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
         open={open}
         onClose={handleClose}
         PaperProps={{
-          sx: { width: 400, maxHeight: 600, mt: 1.5 },
+          sx: { width: 400, maxHeight: 600, mt: 1.5, overflowX: 'hidden' },
         }}
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
@@ -193,7 +266,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
           </Box>
         </Box>
         <Divider />
-        <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
+        <Box sx={{ maxHeight: 400, overflowY: 'auto', overflowX: 'hidden' }}>
           {getNotificationsLoading && notifications.length === 0 ? (
             <Box sx={{ p: 3, textAlign: 'center' }}>
               <CircularProgress size={24} />
@@ -214,11 +287,20 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
                     onClick={() => handleNotificationClick(notification)}
                     sx={{
                       bgcolor: notification.isRead ? 'transparent' : 'action.hover',
+                      alignItems: 'flex-start',
+                      minWidth: 0,
                       py: 1.5,
                       px: 2,
                     }}
                   >
-                    <ListItemIcon>
+                    <ListItemIcon
+                      sx={{
+                        minWidth: 40,
+                        mt: 0.25,
+                        mr: 1,
+                        alignSelf: 'flex-start',
+                      }}
+                    >
                       <Avatar
                         sx={{
                           width: 32,
@@ -231,15 +313,18 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
                       </Avatar>
                     </ListItemIcon>
                     <ListItemText
+                      sx={{ minWidth: 0 }}
                       primary={
                         <Typography
                           variant="body2"
                           sx={{
                             fontWeight: notification.isRead ? 400 : 600,
                             wordBreak: 'break-word',
+                            overflowWrap: 'anywhere',
+                            whiteSpace: 'normal',
                           }}
                         >
-                          {notification.title}
+                          {getNotificationTitle(notification)}
                         </Typography>
                       }
                       secondary={
@@ -247,9 +332,9 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
                           <Typography
                             variant="caption"
                             color="text.secondary"
-                            sx={{ display: 'block', wordBreak: 'break-word' }}
+                            sx={{ display: 'block', wordBreak: 'break-word', overflowWrap: 'anywhere', whiteSpace: 'normal' }}
                           >
-                            {notification.message}
+                            {getNotificationMessage(notification)}
                           </Typography>
                           <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
                             {formatTimestamp(notification.createdAt)}

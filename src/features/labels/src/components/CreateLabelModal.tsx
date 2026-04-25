@@ -36,7 +36,7 @@ const CreateLabelModal: React.FC<CreateLabelModalProps> = ({
   const labelsState = useSelectorLabels((state) => state);
   const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState('');
-  const [color, setColor] = useState('#FF5733');
+  const [color, setColor] = useState('#7C3AED');
   const [description, setDescription] = useState('');
 
   useEffect(() => {

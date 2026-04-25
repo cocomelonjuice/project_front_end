@@ -17,7 +17,7 @@ const LabelChip: React.FC<LabelChipProps> = ({
   clickable = false,
   onClick,
 }) => {
-  const backgroundColor = label.color || '#ccc';
+  const backgroundColor = label.color || '#64748B';
   const textColor = getContrastColor(backgroundColor);
 
   const handleClick = () => {

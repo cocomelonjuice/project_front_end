@@ -23,6 +23,15 @@ const BoardView: React.FC<BoardViewProps> = ({ issues, columns, onIssueMove }) =
   const [draggedIssue, setDraggedIssue] = useState<Issue | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
 
+  const getPriorityChipColor = (priorityInput?: { name?: string; color?: string }) => {
+    const name = (priorityInput?.name || '').toLowerCase();
+    if (name.includes('highest')) return '#991B1B';
+    if (name.includes('high')) return '#DC2626';
+    if (name.includes('low')) return '#16A34A';
+    if (name.includes('medium')) return '#D97706';
+    return priorityInput?.color || '#64748B';
+  };
+
   // Group issues by status (column)
   const getIssuesForColumn = (column: BoardColumn): Issue[] => {
     const filtered = issues.filter((issue) => column.statusIds.includes(issue.statusId));
@@ -102,7 +111,7 @@ const BoardView: React.FC<BoardViewProps> = ({ issues, columns, onIssueMove }) =
                     width: 12,
                     height: 12,
                     borderRadius: '50%',
-                    bgcolor: column.color || '#ccc',
+                    bgcolor: column.color || '#64748B',
                   }}
                 />
                 <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
@@ -157,7 +166,7 @@ const BoardView: React.FC<BoardViewProps> = ({ issues, columns, onIssueMove }) =
                             label={type?.name || 'Unknown'}
                             size="small"
                             sx={{
-                              bgcolor: type?.color || '#ccc',
+                              bgcolor: type?.color || '#64748B',
                               color: 'white',
                               fontSize: '0.7rem',
                               height: 20,
@@ -167,7 +176,7 @@ const BoardView: React.FC<BoardViewProps> = ({ issues, columns, onIssueMove }) =
                             label={priority?.name || t('projectDetail.unknown')}
                             size="small"
                             sx={{
-                              bgcolor: priority?.color || '#ccc',
+                              bgcolor: getPriorityChipColor(priority),
                               color: 'white',
                               fontSize: '0.7rem',
                               height: 20,

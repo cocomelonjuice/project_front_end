@@ -411,6 +411,28 @@ const IssueDetail: React.FC = () => {
   const assignee = issue.assignee || null;
   const reporter = issue.reporter || null;
 
+  const getPriorityChipColor = (priorityInput?: { name?: string; color?: string }) => {
+    const name = (priorityInput?.name || '').toLowerCase();
+    if (name.includes('highest')) return '#991B1B';
+    if (name.includes('high')) return '#DC2626';
+    if (name.includes('low')) return '#16A34A';
+    if (name.includes('medium')) return '#D97706';
+    return priorityInput?.color || '#64748B';
+  };
+
+  const getStatusChipStyle = (statusInput?: { category?: string; name?: string; color?: string }) => {
+    const category = (statusInput?.category || '').toLowerCase();
+    if (category === 'todo') return { bg: '#DCE4EC', text: '#334155', border: '#BFCBDA' };
+    if (category === 'inprogress') return { bg: '#DCEAFF', text: '#1D4ED8', border: '#B6CCF8' };
+    if (category === 'done') return { bg: '#D3EEDB', text: '#166534', border: '#A7D7B5' };
+
+    const name = (statusInput?.name || '').toLowerCase();
+    if (name.includes('to do') || name.includes('todo')) return { bg: '#DCE4EC', text: '#334155', border: '#BFCBDA' };
+    if (name.includes('progress')) return { bg: '#DCEAFF', text: '#1D4ED8', border: '#B6CCF8' };
+    if (name.includes('done')) return { bg: '#D3EEDB', text: '#166534', border: '#A7D7B5' };
+    return { bg: statusInput?.color || '#DCE4EC', text: '#334155', border: '#BFCBDA' };
+  };
+
   return (
     <Box sx={{ py: 4, width: '100%' }}>
       {/* Header */}
@@ -472,14 +494,18 @@ const IssueDetail: React.FC = () => {
                   <Chip
                     label={status.name}
                     size="small"
-                    sx={{
-                      bgcolor: status.color || UI_COLORS.primary.main,
-                      color: 'white',
-                      fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
-                      fontSize: UI_TYPOGRAPHY.fontSize.xs,
-                      height: 24,
-                      boxShadow: UI_SHADOWS.sm,
-                    }}
+                    sx={(() => {
+                      const statusStyle = getStatusChipStyle(status);
+                      return {
+                        bgcolor: statusStyle.bg,
+                        color: statusStyle.text,
+                        border: `1px solid ${statusStyle.border}`,
+                        fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                        fontSize: UI_TYPOGRAPHY.fontSize.xs,
+                        height: 24,
+                        boxShadow: UI_SHADOWS.sm,
+                      };
+                    })()}
                   />
                 )}
               </Box>
@@ -955,7 +981,7 @@ const IssueDetail: React.FC = () => {
                 label={priority?.name || t('issueDetailPage.unknown')}
                 size="medium"
                 sx={{
-                  bgcolor: priority?.color || UI_COLORS.text.secondary,
+                  bgcolor: getPriorityChipColor(priority),
                   color: 'white',
                   mb: 3,
                   fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
@@ -1013,15 +1039,19 @@ const IssueDetail: React.FC = () => {
               <Chip
                 label={status?.name || t('issueDetailPage.unknown')}
                 size="medium"
-                sx={{
-                  bgcolor: status?.color || UI_COLORS.text.secondary,
-                  color: 'white',
-                  mb: 3,
-                  fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
-                  fontSize: UI_TYPOGRAPHY.fontSize.sm,
-                  height: 32,
-                  boxShadow: UI_SHADOWS.sm,
-                }}
+                sx={(() => {
+                  const statusStyle = getStatusChipStyle(status);
+                  return {
+                    bgcolor: statusStyle.bg,
+                    color: statusStyle.text,
+                    border: `1px solid ${statusStyle.border}`,
+                    mb: 3,
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                    fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                    height: 32,
+                    boxShadow: UI_SHADOWS.sm,
+                  };
+                })()}
               />
             </CardContent>
           </Card>

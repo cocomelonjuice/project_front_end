@@ -37,7 +37,7 @@ const EditLabelModal: React.FC<EditLabelModalProps> = ({
   const labelsState = useSelectorLabels((state) => state);
   const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState('');
-  const [color, setColor] = useState('#FF5733');
+  const [color, setColor] = useState('#7C3AED');
   const [description, setDescription] = useState('');
 
   useEffect(() => {
@@ -45,7 +45,7 @@ const EditLabelModal: React.FC<EditLabelModalProps> = ({
       // Populate form with label data
       setError(null);
       setName(label.name);
-      setColor(label.color || '#FF5733');
+      setColor(label.color || '#7C3AED');
       setDescription(label.description || '');
     }
   }, [open, label]);

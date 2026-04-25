@@ -24,6 +24,7 @@ import { useAuth } from '../../auth/src';
 import { SearchModal } from '../../../features/search/src';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 export interface GlobalHeaderProps {
   /**
@@ -165,6 +166,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
 }) => {
   const { t } = useTranslation();
   const { auth } = useAuth();
+  const navigate = useNavigate();
   const resolvedSearchPlaceholder = searchPlaceholder ?? t('header.searchPlaceholder');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchModalOpen, setSearchModalOpen] = useState(false);
@@ -299,7 +301,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
               },
               transition: 'all 0.2s ease',
             }}
-            onClick={() => window.location.href = '/'}
+            onClick={() => navigate('/')}
           >
             {appName}
           </Typography>

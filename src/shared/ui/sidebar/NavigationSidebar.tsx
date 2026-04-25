@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Home as HomeIcon,
+  Dashboard as DashboardIcon,
   AccountTree as WorkflowIcon,
   AdminPanelSettings as AdminIcon,
   Info as AboutIcon,
@@ -58,6 +59,13 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
       icon: <HomeIcon />,
       path: '/',
       active: location.pathname === '/' || location.pathname.startsWith('/projects'),
+    },
+    {
+      id: 'dashboard',
+      label: t('nav.dashboard'),
+      icon: <DashboardIcon />,
+      path: '/dashboard',
+      active: location.pathname === '/dashboard',
     },
     {
       id: 'workflows',

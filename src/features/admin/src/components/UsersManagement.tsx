@@ -77,7 +77,6 @@ const UsersManagement: React.FC = () => {
 
   const handleMenuClose = () => {
     setMenuAnchor(null);
-    setSelectedUser(null);
   };
 
   const handleToggleActive = () => {
@@ -92,6 +91,7 @@ const UsersManagement: React.FC = () => {
             onSuccess: () => {
               setSnackbar({ open: true, message: t('adminUsers.snackbarUpdateSuccess'), severity: 'success' });
               handleMenuClose();
+              setSelectedUser(null);
             },
             onError: (error: any) => {
               setSnackbar({ open: true, message: 'Failed to update user', severity: 'error' });
@@ -259,11 +259,15 @@ const UsersManagement: React.FC = () => {
       {/* Edit User Modal */}
       <EditUserModal
         open={editModalOpen}
-        onClose={() => setEditModalOpen(false)}
+        onClose={() => {
+          setEditModalOpen(false);
+          setSelectedUser(null);
+        }}
         user={selectedUser}
         onUserUpdated={() => {
           handleRefreshUsers();
           setSnackbar({ open: true, message: t('adminUsers.snackbarUpdateSuccess'), severity: 'success' });
+          setSelectedUser(null);
         }}
       />
 
@@ -282,11 +286,15 @@ const UsersManagement: React.FC = () => {
       {/* Delete User Dialog */}
       <DeleteUserDialog
         open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
+        onClose={() => {
+          setDeleteDialogOpen(false);
+          setSelectedUser(null);
+        }}
         user={selectedUser}
         onUserDeleted={() => {
           handleRefreshUsers();
           setSnackbar({ open: true, message: t('adminUsers.snackbarDeleteSuccess'), severity: 'success' });
+          setSelectedUser(null);
         }}
       />
 

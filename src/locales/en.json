@@ -23,13 +23,51 @@
   },
   "nav": {
     "projects": "Projects",
+    "dashboard": "Dashboard",
     "workflows": "Workflows",
     "admin": "Admin",
     "about": "About"
   },
   "layout": {
+    "dashboard": "Dashboard",
     "profile": "Profile",
     "logout": "Logout"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Overview of your work, {{name}}",
+    "defaultUser": "User",
+    "search": "Search anything",
+    "openProjects": "Open Projects",
+    "loadFailed": "Failed to load dashboard",
+    "unread": "Unread",
+    "projectIssueCount": "{{count}} issues",
+    "kpi": {
+      "myOpenIssues": "My Open Issues",
+      "highPriority": "Needs Attention",
+      "completedThisWeek": "Completed This Week",
+      "unreadNotifications": "Unread Notifications"
+    },
+    "sections": {
+      "myOpenIssues": "My Open Issues",
+      "needsAttention": "Needs Attention",
+      "recentActivity": "Recent Activity",
+      "myProjects": "My Projects",
+      "statusOverview": "Issue Status Overview",
+      "trend14d": "Issue Intake Trend"
+    },
+    "empty": {
+      "noAssigned": "No assigned open issues yet.",
+      "noHighPriority": "No high-priority issues. Great work!",
+      "noActivity": "No recent activity.",
+      "noProjects": "No projects found."
+    },
+    "charts": {
+      "appliesToBoth": "Chart time range (applies to both charts):",
+      "statusTodo": "To Do",
+      "statusInProgress": "In Progress",
+      "statusDone": "Done"
+    }
   },
   "auth": {
     "loginTitle": "Welcome Back",
@@ -85,6 +123,7 @@
     "colName": "Name",
     "colKey": "Key",
     "colType": "Type",
+    "colCreatedAt": "Created Date",
     "emptySearch": "No projects match your search.",
     "empty": "No projects found.",
     "view": "View",
@@ -223,6 +262,9 @@
     "colPriority": "Priority",
     "colStatus": "Status",
     "colAssignee": "Assignee",
+    "colCreatedAt": "Created Date",
+    "colUpdatedAt": "Updated Date",
+    "showingIssues": "Showing {{current}} / {{total}} issues",
     "emptyIssues": "No issues found. Create your first issue to get started.",
     "unassigned": "Unassigned",
     "unknown": "Unknown",
@@ -722,7 +764,20 @@
     "title": "Notifications",
     "markAllRead": "Mark all read",
     "marking": "Marking...",
-    "empty": "No notifications"
+    "empty": "No notifications",
+    "type": {
+      "issueAssigned": "Issue assigned to you",
+      "commentAdded": "New comment on issue",
+      "statusChanged": "Status changed",
+      "attachmentAdded": "New attachment",
+      "issueUpdated": "Issue updated"
+    },
+    "message": {
+      "issueAssigned": "Issue \"{{issue}}\" has been assigned to you",
+      "statusChanged": "Issue \"{{issue}}\" status changed to \"{{status}}\"",
+      "commentAdded": "{{actor}} commented on issue \"{{issue}}\"",
+      "attachmentAdded": "{{actor}} uploaded \"{{file}}\" to issue \"{{issue}}\""
+    }
   },
   "searchModal": {
     "placeholder": "Search projects, issues, users...",

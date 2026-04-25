@@ -7,16 +7,16 @@ import type { Label } from './states';
 
 // Default color palette for labels
 const defaultColors = [
-  '#FF5733', // Red
-  '#33FF57', // Green
-  '#3357FF', // Blue
-  '#FF33F5', // Magenta
-  '#F5FF33', // Yellow
-  '#33FFF5', // Cyan
-  '#FF8C33', // Orange
-  '#8C33FF', // Purple
-  '#33FF8C', // Light Green
-  '#FF338C', // Pink
+  '#7C3AED', // Purple
+  '#1D4ED8', // Blue
+  '#15803D', // Green
+  '#0F766E', // Teal
+  '#D97706', // Amber
+  '#DC2626', // Red
+  '#475569', // Slate
+  '#0369A1', // Sky
+  '#6D28D9', // Violet
+  '#BE185D', // Rose
 ];
 
 // Mock labels
@@ -24,49 +24,49 @@ export const mockLabels: Label[] = [
   {
     id: '1',
     name: 'bug',
-    color: '#FF5733',
+    color: '#DC2626',
     description: 'Something is not working',
   },
   {
     id: '2',
     name: 'feature',
-    color: '#33FF57',
+    color: '#1D4ED8',
     description: 'New feature or enhancement',
   },
   {
     id: '3',
     name: 'documentation',
-    color: '#3357FF',
+    color: '#0369A1',
     description: 'Documentation related',
   },
   {
     id: '4',
     name: 'urgent',
-    color: '#FF33F5',
+    color: '#991B1B',
     description: 'Requires immediate attention',
   },
   {
     id: '5',
     name: 'backend',
-    color: '#F5FF33',
+    color: '#0F766E',
     description: 'Backend related work',
   },
   {
     id: '6',
     name: 'frontend',
-    color: '#33FFF5',
+    color: '#6D28D9',
     description: 'Frontend related work',
   },
   {
     id: '7',
     name: 'testing',
-    color: '#FF8C33',
+    color: '#D97706',
     description: 'Testing related',
   },
   {
     id: '8',
     name: 'refactor',
-    color: '#8C33FF',
+    color: '#475569',
     description: 'Code refactoring',
   },
 ];

@@ -6,7 +6,11 @@ import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { GlobalHeader } from '../shared/ui/header';
 import { NavigationSidebar } from '../shared/ui/sidebar';
-import { Logout as LogoutIcon, Person as PersonIcon } from '@mui/icons-material';
+import {
+  Logout as LogoutIcon,
+  Person as PersonIcon,
+  Dashboard as DashboardIcon,
+} from '@mui/icons-material';
 import { APP_CONFIG } from '../shared/constants/src/config';
 import {
   NotificationsDropdown,
@@ -67,6 +71,13 @@ const Layout = ({ children }: LayoutProps) => {
   };
 
   const userMenuItems = [
+    {
+      label: t('layout.dashboard'),
+      onClick: () => {
+        navigate('/dashboard');
+      },
+      icon: <DashboardIcon fontSize="small" />,
+    },
     {
       label: t('layout.profile'),
       onClick: () => {
