@@ -36,6 +36,7 @@ import { keyframes } from '@mui/material/styles';
 import { AxiosError } from 'axios';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { chatApi, type ChatConversation, type ChatMessage } from '../api';
 
 const assistantIconPulse = keyframes`
@@ -184,6 +185,7 @@ type ChatErrorKind =
 
 export const ChatPanel: React.FC = () => {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [conversations, setConversations] = useState<ChatConversation[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -226,6 +228,44 @@ export const ChatPanel: React.FC = () => {
     const ok = await copyTextToClipboard(content);
     if (ok) setCopySnackbarOpen(true);
   }, []);
+
+  const pathRegex = /(\/projects\/[^\s)]+|\/users\/[^\s)]+)/g;
+  const isRoutePath = (value: string) =>
+    value.startsWith('/projects/') || value.startsWith('/users/');
+  const renderMessageWithLinks = useCallback(
+    (content: string) => {
+      const lines = content.split('\n');
+      return lines.map((line, lineIdx) => {
+        const parts = line.split(pathRegex);
+        return (
+          <React.Fragment key={`line-${lineIdx}`}>
+            {parts.map((part, idx) => {
+              if (isRoutePath(part)) {
+                return (
+                  <Typography
+                    key={`part-${lineIdx}-${idx}`}
+                    component="span"
+                    sx={{
+                      color: 'primary.main',
+                      textDecoration: 'underline',
+                      cursor: 'pointer',
+                      fontWeight: 500,
+                    }}
+                    onClick={() => navigate(part)}
+                  >
+                    {part}
+                  </Typography>
+                );
+              }
+              return <React.Fragment key={`part-${lineIdx}-${idx}`}>{part}</React.Fragment>;
+            })}
+            {lineIdx < lines.length - 1 ? <br /> : null}
+          </React.Fragment>
+        );
+      });
+    },
+    [navigate],
+  );
 
   useEffect(() => {
     scrollToBottom();
@@ -827,7 +867,7 @@ export const ChatPanel: React.FC = () => {
                           </IconButton>
                         </Tooltip>
                       </Box>
-                      <Typography variant="body2">{m.content}</Typography>
+                      <Typography variant="body2">{renderMessageWithLinks(m.content)}</Typography>
                     </Box>
                   </Box>
                 ))}
