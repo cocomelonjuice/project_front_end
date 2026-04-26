@@ -10,15 +10,27 @@ const sagas = {
   // #region - search
   *searchWorker({ payload }: any) {
     try {
-      const { query, type, limit, callback } = payload;
-      
-      if (!query || query.trim().length < 1) {
+      const { query, type, limit, filters, callback } = payload;
+      const hasQuery = typeof query === 'string' && query.trim().length > 0;
+      const hasFilters =
+        !!filters &&
+        Object.values(filters).some(
+          (value) => Array.isArray(value) && value.length > 0,
+        );
+
+      if (!hasQuery && !hasFilters) {
         yield put(actions.searchSuccess({ data: { projects: [], issues: [], users: [], total: 0 } }));
         callback?.onSuccess?.({ projects: [], issues: [], users: [], total: 0 });
         return;
       }
 
-      const response = yield call(searchApi.search, query.trim(), type, limit);
+      const response = yield call(
+        searchApi.search,
+        hasQuery ? query.trim() : '',
+        type,
+        limit,
+        filters,
+      );
       yield put(actions.searchSuccess({ data: response }));
       callback?.onSuccess?.(response);
     } catch (error: any) {

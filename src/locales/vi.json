@@ -780,15 +780,29 @@
     }
   },
   "searchModal": {
+    "title": "Tìm kiếm tổng quát",
     "placeholder": "Tìm dự án, issue, người dùng...",
-    "hint": "Gõ để tìm dự án, issue và người dùng",
+    "hint": "Nhập để tìm dự án, issue và người dùng",
+    "showFilters": "Hiện bộ lọc",
+    "hideFilters": "Ẩn bộ lọc",
+    "clearFilters": "Xóa tất cả bộ lọc",
+    "searchNow": "Tìm kiếm",
+    "topResultsHint": "Hiển thị tối đa 20 kết quả",
     "noResults": "Không có kết quả cho \"{{query}}\"",
     "sectionProjects": "📁 Dự án ({{count}})",
     "sectionIssues": "🐛 Issue ({{count}})",
     "sectionUsers": "👤 Người dùng ({{count}})",
     "failed": "Tìm kiếm thất bại. Vui lòng thử lại.",
     "unknownProject": "Dự án không xác định",
-    "assignedTo": "Giao cho {{name}}"
+    "assignedTo": "Giao cho {{name}}",
+    "filters": {
+      "issueKey": "Mã issue",
+      "projectKey": "Mã dự án",
+      "projectType": "Loại dự án",
+      "issueStatus": "Trạng thái issue",
+      "issuePriority": "Độ ưu tiên issue",
+      "assignee": "Người phụ trách"
+    }
   },
   "chat": {
     "title": "Trợ lý",

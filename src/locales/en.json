@@ -780,15 +780,29 @@
     }
   },
   "searchModal": {
+    "title": "Global search",
     "placeholder": "Search projects, issues, users...",
     "hint": "Start typing to search projects, issues, and users",
+    "showFilters": "Show filters",
+    "hideFilters": "Hide filters",
+    "clearFilters": "Clear all filters",
+    "searchNow": "Search",
+    "topResultsHint": "Showing top 20 results",
     "noResults": "No results found for \"{{query}}\"",
     "sectionProjects": "📁 Projects ({{count}})",
     "sectionIssues": "🐛 Issues ({{count}})",
     "sectionUsers": "👤 Users ({{count}})",
     "failed": "Search failed. Please try again.",
     "unknownProject": "Unknown Project",
-    "assignedTo": "Assigned to {{name}}"
+    "assignedTo": "Assigned to {{name}}",
+    "filters": {
+      "issueKey": "Issue key",
+      "projectKey": "Project key",
+      "projectType": "Project type",
+      "issueStatus": "Issue status",
+      "issuePriority": "Issue priority",
+      "assignee": "Assignee"
+    }
   },
   "chat": {
     "title": "Assistant",

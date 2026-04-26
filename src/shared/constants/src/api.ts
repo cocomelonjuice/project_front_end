@@ -134,10 +134,29 @@ export const API_ENDPOINTS = {
   },
   // Search
   SEARCH: {
-    SEARCH: (query: string, type?: string, limit?: number) => {
-      const params = new URLSearchParams({ q: query });
+    SEARCH: (
+      query: string,
+      type?: string,
+      limit?: number,
+      filters?: {
+        projectKeys?: string[];
+        projectTypes?: string[];
+        issueStatusIds?: string[];
+        issuePriorityIds?: string[];
+        assigneeIds?: string[];
+        issueKeys?: string[];
+      },
+    ) => {
+      const params = new URLSearchParams();
+      if (query?.trim()) params.append('q', query.trim());
       if (type) params.append('type', type);
       if (limit) params.append('limit', limit.toString());
+      filters?.projectKeys?.forEach((value) => params.append('projectKeys', value));
+      filters?.projectTypes?.forEach((value) => params.append('projectTypes', value));
+      filters?.issueStatusIds?.forEach((value) => params.append('issueStatusIds', value));
+      filters?.issuePriorityIds?.forEach((value) => params.append('issuePriorityIds', value));
+      filters?.assigneeIds?.forEach((value) => params.append('assigneeIds', value));
+      filters?.issueKeys?.forEach((value) => params.append('issueKeys', value));
       return `/search?${params.toString()}`;
     },
   },
