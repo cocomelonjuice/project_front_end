@@ -31,6 +31,8 @@ interface EditProjectModalProps {
 
 const PROJECT_TYPE_VALUES = ['software', 'business', 'marketing', 'operations'] as const;
 
+const formatProjectTypeLabel = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
+
 const EditProjectModal: React.FC<EditProjectModalProps> = ({
   open,
   onClose,
@@ -67,14 +69,6 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
     setFormData((prev) => ({
       ...prev,
       [field]: event.target.value,
-    }));
-  };
-
-  const handleKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value.toUpperCase().slice(0, 20);
-    setFormData((prev) => ({
-      ...prev,
-      key: value,
     }));
   };
 
@@ -217,8 +211,7 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
             required
             fullWidth
             value={formData.key}
-            onChange={handleKeyChange}
-            disabled={projectsState.updateProjectLoading}
+            disabled
             helperText={t('projects.helperKey')}
             inputProps={{ maxLength: 20 }}
             sx={UI_INPUT_STYLES.default}
@@ -268,7 +261,7 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
             >
               {PROJECT_TYPE_VALUES.map((typeValue) => (
                 <MenuItem key={typeValue} value={typeValue}>
-                  {t(`projects.types.${typeValue}`)}
+                  {formatProjectTypeLabel(typeValue)}
                 </MenuItem>
               ))}
             </Select>

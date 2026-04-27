@@ -56,13 +56,6 @@ const Layout = ({ children }: LayoutProps) => {
     // For now, could navigate to an about/help page
     navigate('/about');
   };
-
-  const handleSettings = () => {
-    // Settings functionality - could navigate to settings page
-    // For now, navigate to admin if user has permissions, or show message
-    navigate('/admin');
-  };
-
   const handleLogout = () => {
     // Dispatch logout action to clear Redux state
     dispatch(authActions.logout());
@@ -120,7 +113,6 @@ const Layout = ({ children }: LayoutProps) => {
         // }}
         notificationComponent={<NotificationsDropdown />}
         onHelpClick={handleHelp}
-        onSettingsClick={handleSettings}
         userMenuItems={userMenuItems}
         showAppLauncher={false}
         onAppLauncherClick={() => {

@@ -27,6 +27,7 @@ import {
   CheckCircle as CheckCircleIcon,
   Notifications as NotificationsIcon,
   ArrowForward as ArrowForwardIcon,
+  Folder as FolderIcon,
 } from '@mui/icons-material';
 import {
   CartesianGrid,
@@ -51,10 +52,30 @@ import type { Project } from '../features/projects/src/store/states';
 const STATUS_COLORS = ['#475569', '#1d4ed8', '#15803d'];
 const PRIORITY_HIGH = ['highest', 'high'];
 const KPI_STYLE = {
-  open: { bg: 'rgba(29,78,216,0.08)', iconBg: 'rgba(29,78,216,0.16)', iconColor: '#1d4ed8', border: 'rgba(29,78,216,0.24)' },
-  attention: { bg: 'rgba(217,119,6,0.08)', iconBg: 'rgba(217,119,6,0.16)', iconColor: '#d97706', border: 'rgba(217,119,6,0.24)' },
-  done: { bg: 'rgba(21,128,61,0.08)', iconBg: 'rgba(21,128,61,0.16)', iconColor: '#15803d', border: 'rgba(21,128,61,0.24)' },
-  notif: { bg: 'rgba(71,85,105,0.08)', iconBg: 'rgba(71,85,105,0.16)', iconColor: '#475569', border: 'rgba(71,85,105,0.24)' },
+  open: {
+    bg: 'rgba(59,130,246,0.14)',
+    iconBg: 'rgba(59,130,246,0.24)',
+    iconColor: '#2563eb',
+    border: 'rgba(59,130,246,0.34)',
+  },
+  attention: {
+    bg: 'rgba(245,158,11,0.16)',
+    iconBg: 'rgba(245,158,11,0.28)',
+    iconColor: '#d97706',
+    border: 'rgba(245,158,11,0.36)',
+  },
+  done: {
+    bg: 'rgba(34,197,94,0.14)',
+    iconBg: 'rgba(34,197,94,0.24)',
+    iconColor: '#15803d',
+    border: 'rgba(34,197,94,0.34)',
+  },
+  notif: {
+    bg: 'rgba(148,163,184,0.2)',
+    iconBg: 'rgba(148,163,184,0.34)',
+    iconColor: '#475569',
+    border: 'rgba(148,163,184,0.44)',
+  },
 } as const;
 
 type DashboardDataState = {
@@ -401,10 +422,13 @@ const Dashboard: React.FC = () => {
               >
                 <Stack
                   direction="row"
-                  justifyContent="space-between"
+                  justifyContent="flex-start"
                   alignItems="center"
+                  spacing={1}
+                  flexWrap="wrap"
                   sx={{ mb: 1.5 }}
                 >
+                  <AssignmentIcon fontSize="small" sx={{ color: '#1d4ed8' }} />
                   <Typography
                     variant="h6"
                     sx={{
@@ -415,11 +439,9 @@ const Dashboard: React.FC = () => {
                   >
                     {t('dashboard.sections.myOpenIssues')}
                   </Typography>
-                  <Chip
-                    size="small"
-                    label={t('dashboard.projectIssueCount', { count: recentMyIssues.length })}
-                    variant="outlined"
-                  />
+                  <Typography variant="subtitle1" sx={{ lineHeight: 1.1, fontWeight: 600, color: '#334155' }}>
+                    ({myOpenIssues.length})
+                  </Typography>
                 </Stack>
                 {recentMyIssues.length === 0 ? (
                   <Typography variant="body2" color="text.secondary">
@@ -461,18 +483,21 @@ const Dashboard: React.FC = () => {
                   border: '1px solid rgba(148,163,184,0.2)',
                 }}
               >
-                <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      pl: 1.2,
-                      borderLeft: '4px solid #d97706',
-                      lineHeight: 1.1,
-                    }}
-                  >
-                    {t('dashboard.sections.needsAttention')}
-                  </Typography>
+                <Stack direction="row" alignItems="center" justifyContent="flex-start" spacing={1} flexWrap="wrap" sx={{ mb: 1.5 }}>
                   <WarningAmberIcon fontSize="small" sx={{ color: '#d97706' }} />
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        pl: 1.2,
+                        borderLeft: '4px solid #d97706',
+                        lineHeight: 1.1,
+                      }}
+                    >
+                      {t('dashboard.sections.needsAttention')}
+                    </Typography>
+                    <Typography variant="subtitle1" sx={{ lineHeight: 1.1, fontWeight: 600, color: '#334155' }}>
+                      ({myHighPriorityIssues.length})
+                    </Typography>
                 </Stack>
                 {myHighPriorityIssues.length === 0 ? (
                   <Typography variant="body2" color="text.secondary">
@@ -515,17 +540,22 @@ const Dashboard: React.FC = () => {
                   border: '1px solid rgba(148,163,184,0.2)',
                 }}
               >
-                <Typography
-                  variant="h6"
-                  sx={{
-                    mb: 1.5,
-                    pl: 1.2,
-                    borderLeft: '4px solid #475569',
-                    lineHeight: 1.1,
-                  }}
-                >
-                  {t('dashboard.sections.recentActivity')}
-                </Typography>
+                <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap" sx={{ mb: 1.5 }}>
+                  <NotificationsIcon fontSize="small" sx={{ color: '#475569' }} />
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      pl: 1.2,
+                      borderLeft: '4px solid #475569',
+                      lineHeight: 1.1,
+                    }}
+                  >
+                    {t('dashboard.sections.recentActivity')}
+                  </Typography>
+                  <Typography variant="subtitle1" sx={{ lineHeight: 1.1, fontWeight: 600, color: '#334155' }}>
+                    ({recentActivity.length})
+                  </Typography>
+                </Stack>
                 {recentActivity.length === 0 ? (
                   <Typography variant="body2" color="text.secondary">
                     {t('dashboard.empty.noActivity')}
@@ -581,17 +611,22 @@ const Dashboard: React.FC = () => {
                   border: '1px solid rgba(148,163,184,0.2)',
                 }}
               >
-                <Typography
-                  variant="h6"
-                  sx={{
-                    mb: 1.5,
-                    pl: 1.2,
-                    borderLeft: '4px solid #1d4ed8',
-                    lineHeight: 1.1,
-                  }}
-                >
-                  {t('dashboard.sections.myProjects')}
-                </Typography>
+                <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap" sx={{ mb: 1.5 }}>
+                  <FolderIcon fontSize="small" sx={{ color: '#1d4ed8' }} />
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      pl: 1.2,
+                      borderLeft: '4px solid #1d4ed8',
+                      lineHeight: 1.1,
+                    }}
+                  >
+                    {t('dashboard.sections.myProjects')}
+                  </Typography>
+                  <Typography variant="subtitle1" sx={{ lineHeight: 1.1, fontWeight: 600, color: '#334155' }}>
+                    ({projectSnapshots.length})
+                  </Typography>
+                </Stack>
                 {projectSnapshots.length === 0 ? (
                   <Typography variant="body2" color="text.secondary">
                     {t('dashboard.empty.noProjects')}

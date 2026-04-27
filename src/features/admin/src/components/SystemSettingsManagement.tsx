@@ -41,6 +41,7 @@ import AddPriorityModal from './AddPriorityModal';
 import EditStatusModal from './EditStatusModal';
 import AddStatusModal from './AddStatusModal';
 import { CreateLabelModal, EditLabelModal } from '../../../labels/src/components';
+import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS, UI_BUTTON_STYLES } from '../../../../shared/constants/src/ui';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -182,21 +183,36 @@ const SystemSettingsManagement: React.FC = () => {
     }
 
     return (
-      <TableContainer component={Paper}>
+      <TableContainer
+        component={Paper}
+        sx={{
+          borderRadius: UI_BORDER_RADIUS.lg,
+          border: `1px solid ${UI_COLORS.border.light}`,
+          boxShadow: 'none',
+          overflow: 'hidden',
+        }}
+      >
         <Table>
           <TableHead>
-            <TableRow>
-              <TableCell>{t('adminSettings.colName')}</TableCell>
-              <TableCell>{t('adminSettings.colDescription')}</TableCell>
-              {tabValue === 1 && <TableCell>{t('adminSettings.colOrder')}</TableCell>}
-              {tabValue === 2 && <TableCell>{t('adminSettings.colCategory')}</TableCell>}
-              {tabValue === 3 && <TableCell>{t('adminSettings.colColor')}</TableCell>}
-              <TableCell align="right">{t('adminSettings.colActions')}</TableCell>
+            <TableRow sx={{ backgroundColor: UI_COLORS.background.subtle }}>
+              <TableCell sx={{ fontWeight: UI_TYPOGRAPHY.fontWeight.semibold }}>{t('adminSettings.colName')}</TableCell>
+              <TableCell sx={{ fontWeight: UI_TYPOGRAPHY.fontWeight.semibold }}>{t('adminSettings.colDescription')}</TableCell>
+              {tabValue === 1 && <TableCell sx={{ fontWeight: UI_TYPOGRAPHY.fontWeight.semibold }}>{t('adminSettings.colOrder')}</TableCell>}
+              {tabValue === 2 && <TableCell sx={{ fontWeight: UI_TYPOGRAPHY.fontWeight.semibold }}>{t('adminSettings.colCategory')}</TableCell>}
+              {tabValue === 3 && <TableCell sx={{ fontWeight: UI_TYPOGRAPHY.fontWeight.semibold }}>{t('adminSettings.colColor')}</TableCell>}
+              <TableCell align="right" sx={{ fontWeight: UI_TYPOGRAPHY.fontWeight.semibold }}>{t('adminSettings.colActions')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {typeSettings.map((setting) => (
-              <TableRow key={setting.id} hover>
+              <TableRow
+                key={setting.id}
+                hover
+                sx={{
+                  '&:hover': { backgroundColor: UI_COLORS.background.hover },
+                  transition: 'background-color 0.2s ease-in-out',
+                }}
+              >
                 <TableCell>
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
                     {setting.name}
@@ -261,22 +277,67 @@ const SystemSettingsManagement: React.FC = () => {
 
   if (getSystemSettingsLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-        <CircularProgress />
-      </Box>
+      <Paper
+        sx={{
+          p: 6,
+          borderRadius: UI_BORDER_RADIUS.xl,
+          boxShadow: UI_SHADOWS.md,
+          border: `1px solid ${UI_COLORS.border.light}`,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: 320,
+        }}
+      >
+        <CircularProgress sx={{ color: UI_COLORS.primary.main }} />
+      </Paper>
     );
   }
 
   return (
-    <Box>
+    <Paper
+      sx={{
+        p: 3,
+        borderRadius: UI_BORDER_RADIUS.xl,
+        boxShadow: UI_SHADOWS.md,
+        border: `1px solid ${UI_COLORS.border.light}`,
+      }}
+    >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h6">{t('adminSettings.title')}</Typography>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={handleAdd}>
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+            color: UI_COLORS.text.primary,
+          }}
+        >
+          {t('adminSettings.title')}
+        </Typography>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={handleAdd}
+          sx={{
+            ...UI_BUTTON_STYLES.primary,
+            borderRadius: UI_BORDER_RADIUS.md,
+            textTransform: 'none',
+            fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+            boxShadow: UI_SHADOWS.md,
+          }}
+        >
           {t('adminSettings.addItem')}
         </Button>
       </Box>
 
-      <Paper sx={{ mb: 2 }}>
+      <Paper
+        sx={{
+          mb: 2,
+          borderRadius: UI_BORDER_RADIUS.lg,
+          border: `1px solid ${UI_COLORS.border.light}`,
+          boxShadow: 'none',
+          overflow: 'hidden',
+        }}
+      >
         <Tabs value={tabValue} onChange={handleTabChange}>
           <Tab icon={<BugReportIcon />} iconPosition="start" label={t('adminSettings.tabIssueTypes')} />
           <Tab icon={<LowPriorityIcon />} iconPosition="start" label={t('adminSettings.tabPriorities')} />
@@ -419,7 +480,7 @@ const SystemSettingsManagement: React.FC = () => {
           }))}
         />
       )}
-    </Box>
+    </Paper>
   );
 };
 

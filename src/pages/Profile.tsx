@@ -10,6 +10,7 @@ import {
   Alert,
   CircularProgress,
   Container,
+  Grid,
 } from '@mui/material';
 import {
   Email as EmailIcon,
@@ -116,6 +117,7 @@ const Profile = () => {
           p: { xs: 3, md: 4 },
           borderRadius: UI_BORDER_RADIUS.xl,
           boxShadow: UI_SHADOWS.lg,
+          border: `1px solid ${UI_COLORS.border.light}`,
         }}
       >
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -195,38 +197,63 @@ const Profile = () => {
             >
               {t('profile.personalInfo')}
             </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <EmailIcon sx={{ color: UI_COLORS.text.secondary }} />
-                <Typography
-                  variant="body1"
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Box
                   sx={{
-                    fontSize: UI_TYPOGRAPHY.fontSize.base,
-                    color: UI_COLORS.text.primary,
+                    p: 2,
+                    borderRadius: UI_BORDER_RADIUS.lg,
+                    border: `1px solid ${UI_COLORS.border.light}`,
+                    backgroundColor: UI_COLORS.background.subtle,
                   }}
                 >
-                  <Box component="span" sx={{ fontWeight: UI_TYPOGRAPHY.fontWeight.medium }}>
-                    {t('profile.emailLabel')}
-                  </Box>{' '}
-                  {displayUser.email}
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Briefcase sx={{ color: UI_COLORS.text.secondary }} />
-                <Typography
-                  variant="body1"
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                    <EmailIcon sx={{ color: UI_COLORS.text.secondary }} />
+                    <Typography variant="body2" sx={{ color: UI_COLORS.text.secondary }}>
+                      {t('profile.emailLabel')}
+                    </Typography>
+                  </Box>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      fontSize: UI_TYPOGRAPHY.fontSize.base,
+                      color: UI_COLORS.text.primary,
+                      fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                      wordBreak: 'break-word',
+                    }}
+                  >
+                    {displayUser.email}
+                  </Typography>
+                </Box>
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Box
                   sx={{
-                    fontSize: UI_TYPOGRAPHY.fontSize.base,
-                    color: UI_COLORS.text.primary,
+                    p: 2,
+                    borderRadius: UI_BORDER_RADIUS.lg,
+                    border: `1px solid ${UI_COLORS.border.light}`,
+                    backgroundColor: UI_COLORS.background.subtle,
                   }}
                 >
-                  <Box component="span" sx={{ fontWeight: UI_TYPOGRAPHY.fontWeight.medium }}>
-                    Username:
-                  </Box>{' '}
-                  {displayUser.username}
-                </Typography>
-              </Box>
-            </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                    <Briefcase sx={{ color: UI_COLORS.text.secondary }} />
+                    <Typography variant="body2" sx={{ color: UI_COLORS.text.secondary }}>
+                      Username
+                    </Typography>
+                  </Box>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      fontSize: UI_TYPOGRAPHY.fontSize.base,
+                      color: UI_COLORS.text.primary,
+                      fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                    }}
+                  >
+                    {displayUser.username}
+                  </Typography>
+                </Box>
+              </Grid>
+            </Grid>
           </Box>
 
           <Divider sx={{ borderColor: UI_COLORS.border.light }} />

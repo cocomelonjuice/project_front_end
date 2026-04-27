@@ -124,6 +124,7 @@
     "colKey": "Key",
     "colType": "Type",
     "colCreatedAt": "Created Date",
+    "colIssueCount": "Issue Count",
     "emptySearch": "No projects match your search.",
     "empty": "No projects found.",
     "view": "View",

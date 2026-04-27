@@ -18,6 +18,7 @@ import {
   MenuItem,
   Alert,
   CircularProgress,
+  Container,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -125,14 +126,30 @@ const WorkflowsList: React.FC = () => {
 
   const getProjectName = (projectId: string | null | undefined): string => {
     if (!projectId) {
-      return t('workflowList.global');
+      return 'Global';
     }
     const project = projectsState.projects.find((p) => p.id === projectId);
-    return project ? project.name : t('workflowList.unknown');
+    return project ? project.name : 'Unknown';
   };
 
+  const getWorkflowProjectChipStyle = (isGlobal: boolean) => ({
+    bgcolor: isGlobal ? 'rgba(148,163,184,0.16)' : 'rgba(59,130,246,0.14)',
+    color: isGlobal ? '#334155' : '#1D4ED8',
+    border: `1px solid ${isGlobal ? 'rgba(148,163,184,0.32)' : 'rgba(59,130,246,0.3)'}`,
+    fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+    fontSize: UI_TYPOGRAPHY.fontSize.xs,
+  });
+
+  const getWorkflowStatusChipStyle = (isActive: boolean) => ({
+    bgcolor: isActive ? 'rgba(34,197,94,0.14)' : 'rgba(148,163,184,0.16)',
+    color: isActive ? '#166534' : '#334155',
+    border: `1px solid ${isActive ? 'rgba(34,197,94,0.32)' : 'rgba(148,163,184,0.32)'}`,
+    fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+    fontSize: UI_TYPOGRAPHY.fontSize.xs,
+  });
+
   return (
-    <Box sx={{ p: 4, maxWidth: '1400px', mx: 'auto' }}>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Typography
           variant="h4"
@@ -170,9 +187,18 @@ const WorkflowsList: React.FC = () => {
       </Box>
 
       {workflowsState.getWorkflowsLoading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+        <Paper
+          sx={{
+            p: 6,
+            borderRadius: UI_BORDER_RADIUS.xl,
+            border: `1px solid ${UI_COLORS.border.light}`,
+            boxShadow: UI_SHADOWS.md,
+            display: 'flex',
+            justifyContent: 'center',
+          }}
+        >
           <CircularProgress sx={{ color: UI_COLORS.primary.main }} />
-        </Box>
+        </Paper>
       ) : workflows.length === 0 ? (
         <Alert
           severity="info"
@@ -263,7 +289,6 @@ const WorkflowsList: React.FC = () => {
                     letterSpacing: '0.5px',
                   }}
                 >
-                  {t('workflowList.colActions')}
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -306,25 +331,14 @@ const WorkflowsList: React.FC = () => {
                     <Chip
                       label={getProjectName(workflow.projectId)}
                       size="small"
-                      color={workflow.projectId ? 'primary' : 'default'}
-                      variant={workflow.projectId ? 'filled' : 'outlined'}
-                      sx={{
-                        fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
-                        fontSize: UI_TYPOGRAPHY.fontSize.xs,
-                        boxShadow: UI_SHADOWS.sm,
-                      }}
+                      sx={getWorkflowProjectChipStyle(!workflow.projectId)}
                     />
                   </TableCell>
                   <TableCell>
                     <Chip
-                      label={workflow.isActive ? t('workflowDetail.active') : t('workflowDetail.inactive')}
+                      label={workflow.isActive ? 'Active' : 'Inactive'}
                       size="small"
-                      color={workflow.isActive ? 'success' : 'default'}
-                      sx={{
-                        fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
-                        fontSize: UI_TYPOGRAPHY.fontSize.xs,
-                        boxShadow: UI_SHADOWS.sm,
-                      }}
+                      sx={getWorkflowStatusChipStyle(workflow.isActive)}
                     />
                   </TableCell>
                   <TableCell>
@@ -336,7 +350,7 @@ const WorkflowsList: React.FC = () => {
                         fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
                       }}
                     >
-                      {t('workflowList.transitionCount', { count: workflow.transitions?.length || 0 })}
+                      {(workflow.transitions?.length || 0) + ' transitions'}
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
@@ -443,7 +457,7 @@ const WorkflowsList: React.FC = () => {
           setSelectedWorkflow(null);
         }}
       />
-    </Box>
+    </Container>
   );
 };
 

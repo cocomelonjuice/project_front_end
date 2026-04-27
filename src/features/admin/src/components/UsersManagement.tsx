@@ -35,6 +35,7 @@ import { useAuth } from '../../../../shared/auth/src';
 import EditUserModal from './EditUserModal';
 import AddUserModal from './AddUserModal';
 import DeleteUserDialog from './DeleteUserDialog';
+import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS, UI_BUTTON_STYLES } from '../../../../shared/constants/src/ui';
 
 const UsersManagement: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -129,100 +130,216 @@ const UsersManagement: React.FC = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
+  const formatDateDDMMYYYY = (value?: string) => {
+    if (!value) return '-';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '-';
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const getRoleChipStyle = () => ({
+    bgcolor: 'rgba(59,130,246,0.12)',
+    color: '#1D4ED8',
+    border: '1px solid rgba(59,130,246,0.28)',
+    fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+    fontSize: UI_TYPOGRAPHY.fontSize.xs,
+  });
+
+  const getStatusChipStyle = (isActive: boolean) => ({
+    bgcolor: isActive ? 'rgba(34,197,94,0.14)' : 'rgba(148,163,184,0.16)',
+    color: isActive ? '#166534' : '#334155',
+    border: `1px solid ${isActive ? 'rgba(34,197,94,0.32)' : 'rgba(148,163,184,0.32)'}`,
+    fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+    fontSize: UI_TYPOGRAPHY.fontSize.xs,
+  });
+
   if (getUsersLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-        <CircularProgress />
-      </Box>
+      <Paper
+        sx={{
+          p: 6,
+          borderRadius: UI_BORDER_RADIUS.xl,
+          boxShadow: UI_SHADOWS.md,
+          border: `1px solid ${UI_COLORS.border.light}`,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: 320,
+        }}
+      >
+        <CircularProgress sx={{ color: UI_COLORS.primary.main }} />
+      </Paper>
+    );
+  }
+
+  if (users.length === 0) {
+    return (
+      <Paper
+        sx={{
+          p: 4,
+          borderRadius: UI_BORDER_RADIUS.xl,
+          boxShadow: UI_SHADOWS.md,
+          border: `1px solid ${UI_COLORS.border.light}`,
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+              color: UI_COLORS.text.primary,
+            }}
+          >
+            {t('adminUsers.title')}
+          </Typography>
+          {isAdmin && (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setAddModalOpen(true)}
+              sx={{
+                ...UI_BUTTON_STYLES.primary,
+                borderRadius: UI_BORDER_RADIUS.md,
+                textTransform: 'none',
+                fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+              }}
+            >
+              {t('adminUsers.addUser')}
+            </Button>
+          )}
+        </Box>
+        <Alert
+          severity="info"
+          sx={{
+            borderRadius: UI_BORDER_RADIUS.md,
+            border: `1px solid ${UI_COLORS.info.light}`,
+            backgroundColor: UI_COLORS.info.bg,
+          }}
+        >
+          No users found.
+        </Alert>
+      </Paper>
     );
   }
 
   return (
-    <Box>
+    <Paper
+      sx={{
+        p: 3,
+        borderRadius: UI_BORDER_RADIUS.xl,
+        boxShadow: UI_SHADOWS.md,
+        border: `1px solid ${UI_COLORS.border.light}`,
+      }}
+    >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h6">{t('adminUsers.title')}</Typography>
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+            color: UI_COLORS.text.primary,
+          }}
+        >
+          {t('adminUsers.title')}
+        </Typography>
         {isAdmin && (
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setAddModalOpen(true)}>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setAddModalOpen(true)}
+            sx={{
+              ...UI_BUTTON_STYLES.primary,
+              borderRadius: UI_BORDER_RADIUS.md,
+              textTransform: 'none',
+              fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+              boxShadow: UI_SHADOWS.md,
+            }}
+          >
             {t('adminUsers.addUser')}
           </Button>
         )}
       </Box>
-
-      {users.length === 0 ? (
-        <Alert severity="info">No users found.</Alert>
-      ) : (
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>{t('adminUsers.colUser')}</TableCell>
-                <TableCell>{t('adminUsers.colEmail')}</TableCell>
-                <TableCell>{t('adminUsers.colRoles')}</TableCell>
-                <TableCell>{t('adminUsers.colStatus')}</TableCell>
-                <TableCell>{t('adminUsers.colCreated')}</TableCell>
-                <TableCell align="right">{t('adminUsers.colActions')}</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.id} hover>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
-                        {user.displayName.charAt(0)}
-                      </Avatar>
-                      <Box>
-                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                          {user.displayName}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          @{user.username}
-                        </Typography>
-                      </Box>
+      <TableContainer
+        component={Paper}
+        sx={{
+          borderRadius: UI_BORDER_RADIUS.lg,
+          border: `1px solid ${UI_COLORS.border.light}`,
+          boxShadow: 'none',
+          overflow: 'hidden',
+        }}
+      >
+        <Table>
+          <TableHead>
+            <TableRow sx={{ backgroundColor: UI_COLORS.background.subtle }}>
+              <TableCell sx={{ fontWeight: UI_TYPOGRAPHY.fontWeight.semibold }}>{t('adminUsers.colUser')}</TableCell>
+              <TableCell sx={{ fontWeight: UI_TYPOGRAPHY.fontWeight.semibold }}>{t('adminUsers.colEmail')}</TableCell>
+              <TableCell sx={{ fontWeight: UI_TYPOGRAPHY.fontWeight.semibold }}>{t('adminUsers.colRoles')}</TableCell>
+              <TableCell sx={{ fontWeight: UI_TYPOGRAPHY.fontWeight.semibold }}>{t('adminUsers.colStatus')}</TableCell>
+              <TableCell sx={{ fontWeight: UI_TYPOGRAPHY.fontWeight.semibold }}>{t('adminUsers.colCreated')}</TableCell>
+              <TableCell align="right" sx={{ fontWeight: UI_TYPOGRAPHY.fontWeight.semibold }}>{t('adminUsers.colActions')}</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {users.map((user) => (
+              <TableRow
+                key={user.id}
+                hover
+                sx={{
+                  '&:hover': { backgroundColor: UI_COLORS.background.hover },
+                  transition: 'background-color 0.2s ease-in-out',
+                }}
+              >
+                <TableCell>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Avatar sx={{ width: 32, height: 32, bgcolor: UI_COLORS.primary.main }}>
+                      {user.displayName.charAt(0)}
+                    </Avatar>
+                    <Box>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        {user.displayName}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        @{user.username}
+                      </Typography>
                     </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">{user.email}</Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                      {user.roles?.map((role) => (
-                        <Chip
-                          key={role.id}
-                          label={role.name}
-                          size="small"
-                          variant="outlined"
-                        />
-                      ))}
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Chip
+                  </Box>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2">{user.email}</Typography>
+                </TableCell>
+                <TableCell>
+                  <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                    {user.roles?.map((role) => (
+                        <Chip key={role.id} label={role.name} size="small" sx={getRoleChipStyle()} />
+                    ))}
+                  </Box>
+                </TableCell>
+                <TableCell>
+                  <Chip
                       label={user.isActive ? 'Active' : 'Inactive'}
-                      size="small"
-                      color={user.isActive ? 'success' : 'default'}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2" color="text.secondary">
-                      {new Date(user.createdAt).toLocaleDateString(
-                        i18n.language?.startsWith('vi') ? 'vi-VN' : 'en-US',
-                      )}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="right">
-                    {isAdmin && (
-                      <IconButton size="small" onClick={(e) => handleMenuOpen(e, user)}>
-                        <MoreVertIcon />
-                      </IconButton>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+                    size="small"
+                      sx={getStatusChipStyle(user.isActive)}
+                  />
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2" color="text.secondary">
+                      {formatDateDDMMYYYY(user.createdAt)}
+                  </Typography>
+                </TableCell>
+                <TableCell align="right">
+                  {isAdmin && (
+                    <IconButton size="small" onClick={(e) => handleMenuOpen(e, user)}>
+                      <MoreVertIcon />
+                    </IconButton>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
       {/* Context Menu */}
       <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleMenuClose}>
@@ -305,7 +422,7 @@ const UsersManagement: React.FC = () => {
         onClose={handleCloseSnackbar}
         message={snackbar.message}
       />
-    </Box>
+    </Paper>
   );
 };
 

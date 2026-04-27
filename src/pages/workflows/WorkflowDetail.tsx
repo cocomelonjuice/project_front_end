@@ -17,6 +17,7 @@ import {
   ListItemSecondaryAction,
   Alert,
   CircularProgress,
+  Container,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -136,17 +137,17 @@ const WorkflowDetail: React.FC = () => {
 
   if (workflowsState.getWorkflowLoading && !workflow) {
     return (
-      <Box sx={{ py: 4, width: '100%' }}>
+      <Container maxWidth="xl" sx={{ py: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
           <CircularProgress sx={{ color: UI_COLORS.primary.main }} />
         </Box>
-      </Box>
+      </Container>
     );
   }
 
   if (!workflowsState.getWorkflowLoading && !workflow) {
     return (
-      <Box sx={{ py: 4, width: '100%' }}>
+      <Container maxWidth="xl" sx={{ py: 4 }}>
         <Alert
           severity="error"
           sx={{
@@ -170,7 +171,7 @@ const WorkflowDetail: React.FC = () => {
         >
           {t('workflowDetail.backToList')}
         </Button>
-      </Box>
+      </Container>
     );
   }
 
@@ -179,7 +180,7 @@ const WorkflowDetail: React.FC = () => {
   }
 
   return (
-    <Box sx={{ py: 4, width: '100%' }}>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
       {/* Header */}
       <Paper
         sx={{
@@ -673,7 +674,7 @@ const WorkflowDetail: React.FC = () => {
         existingTransitions={workflow.transitions}
         onTransitionAdded={handleTransitionAdded}
       />
-    </Box>
+    </Container>
   );
 };
 

@@ -1,13 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import {
-  Box,
-  Typography,
-  Tabs,
-  Tab,
-  Paper,
-} from '@mui/material';
+import { Box, Typography, Tabs, Tab, Paper, Container } from '@mui/material';
 import {
   People as PeopleIcon,
   Settings as SettingsIcon,
@@ -58,7 +52,7 @@ const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <Box sx={{ p: 4, maxWidth: '1400px', mx: 'auto' }}>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
       <Typography
         variant="h4"
         component="h1"
@@ -128,7 +122,7 @@ const AdminDashboard: React.FC = () => {
       <TabPanel value={tabValue} index={1}>
         <SystemSettingsManagement />
       </TabPanel>
-    </Box>
+    </Container>
   );
 };
 

@@ -16,6 +16,7 @@ import {
   MenuItem,
   Alert,
   CircularProgress,
+  Container,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -365,18 +366,18 @@ const IssueDetail: React.FC = () => {
   // Show loading state while fetching issue
   if (issuesState.getIssueByIdLoading) {
     return (
-      <Box sx={{ py: 4, width: '100%' }}>
+      <Container maxWidth="xl" sx={{ py: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
           <CircularProgress sx={{ color: UI_COLORS.primary.main }} />
         </Box>
-      </Box>
+      </Container>
     );
   }
 
   // Show error if issue not found
   if (!issue) {
     return (
-      <Box sx={{ py: 4, width: '100%' }}>
+      <Container maxWidth="xl" sx={{ py: 4 }}>
         <Alert
           severity="error"
           sx={{
@@ -400,7 +401,7 @@ const IssueDetail: React.FC = () => {
           <ArrowBackIcon sx={{ mr: 1 }} />
           {t('issueDetailPage.backToProject')}
         </Button>
-      </Box>
+      </Container>
     );
   }
 
@@ -434,7 +435,7 @@ const IssueDetail: React.FC = () => {
   };
 
   return (
-    <Box sx={{ py: 4, width: '100%' }}>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
       {/* Header */}
       <Paper
         sx={{
@@ -1493,7 +1494,7 @@ const IssueDetail: React.FC = () => {
         currentStatusId={issue?.statusId || ''}
         onStatusTransitioned={handleStatusTransitioned}
       />
-    </Box>
+    </Container>
   );
 };
 

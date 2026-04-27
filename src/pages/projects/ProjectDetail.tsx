@@ -870,9 +870,20 @@ const ProjectDetail: React.FC = () => {
   if (!project) {
     return (
       <Container maxWidth="xl" sx={{ py: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <Paper
+          sx={{
+            p: 6,
+            borderRadius: UI_BORDER_RADIUS.xl,
+            boxShadow: UI_SHADOWS.md,
+            border: `1px solid ${UI_COLORS.border.light}`,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: 320,
+          }}
+        >
           <CircularProgress sx={{ color: UI_COLORS.primary.main }} />
-        </Box>
+        </Paper>
       </Container>
     );
   }
@@ -955,6 +966,7 @@ const ProjectDetail: React.FC = () => {
           mb: 3,
           borderRadius: UI_BORDER_RADIUS.lg,
           boxShadow: UI_SHADOWS.md,
+          border: `1px solid ${UI_COLORS.border.light}`,
         }}
       >
         <Tabs
@@ -1058,6 +1070,13 @@ const ProjectDetail: React.FC = () => {
                               setEditBoardModalOpen(true);
                             }
                           }}
+                          sx={{
+                            ...UI_BUTTON_STYLES.secondary,
+                            borderRadius: UI_BORDER_RADIUS.md,
+                            textTransform: 'none',
+                            fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                            fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                          }}
                         >
                           {t('projectDetail.editBoard')}
                         </Button>
@@ -1071,6 +1090,12 @@ const ProjectDetail: React.FC = () => {
                               setSelectedBoard(board);
                               setDeleteBoardDialogOpen(true);
                             }
+                          }}
+                          sx={{
+                            borderRadius: UI_BORDER_RADIUS.md,
+                            textTransform: 'none',
+                            fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                            fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
                           }}
                         >
                           {t('projectDetail.deleteBoard')}
@@ -1152,10 +1177,26 @@ const ProjectDetail: React.FC = () => {
               </Paper>
 
               {/* Board Section */}
-              <Box>
+              <Paper
+                sx={{
+                  p: 3,
+                  borderRadius: UI_BORDER_RADIUS.xl,
+                  boxShadow: UI_SHADOWS.md,
+                  border: `1px solid ${UI_COLORS.border.light}`,
+                }}
+              >
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Typography variant="h6">{t('projectDetail.boardView')}</Typography>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                        color: UI_COLORS.text.primary,
+                        fontSize: UI_TYPOGRAPHY.fontSize.xl,
+                      }}
+                    >
+                      {t('projectDetail.boardView')}
+                    </Typography>
                     {boardsState.boards.length > 1 ? (
                       <FormControl size="small" sx={{ minWidth: 200 }}>
                         <InputLabel>{t('projectDetail.selectBoard')}</InputLabel>
@@ -1196,6 +1237,13 @@ const ProjectDetail: React.FC = () => {
                               setEditBoardModalOpen(true);
                             }
                           }}
+                          sx={{
+                            ...UI_BUTTON_STYLES.secondary,
+                            borderRadius: UI_BORDER_RADIUS.md,
+                            textTransform: 'none',
+                            fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                            fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                          }}
                         >
                           {t('projectDetail.editBoard')}
                         </Button>
@@ -1210,6 +1258,12 @@ const ProjectDetail: React.FC = () => {
                               setDeleteBoardDialogOpen(true);
                             }
                           }}
+                          sx={{
+                            borderRadius: UI_BORDER_RADIUS.md,
+                            textTransform: 'none',
+                            fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                            fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                          }}
                         >
                           {t('projectDetail.deleteBoard')}
                         </Button>
@@ -1221,6 +1275,13 @@ const ProjectDetail: React.FC = () => {
                       onClick={handleCreateIssue}
                       size="small"
                       disabled={!currentBoardId}
+                      sx={{
+                        ...UI_BUTTON_STYLES.primary,
+                        borderRadius: UI_BORDER_RADIUS.md,
+                        textTransform: 'none',
+                        fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                        fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                      }}
                     >
                       {t('projectDetail.createIssue')}
                     </Button>
@@ -1231,7 +1292,7 @@ const ProjectDetail: React.FC = () => {
                   columns={boardColumns}
                   onIssueMove={handleIssueMove}
                 />
-              </Box>
+              </Paper>
             </>
           )}
         </Box>
@@ -1482,13 +1543,43 @@ const ProjectDetail: React.FC = () => {
                               anchorEl={menuAnchor}
                               open={Boolean(menuAnchor) && selectedIssue?.id === issue.id}
                               onClose={handleMenuClose}
+                              PaperProps={{
+                                sx: {
+                                  borderRadius: UI_BORDER_RADIUS.md,
+                                  boxShadow: UI_SHADOWS.lg,
+                                  border: `1px solid ${UI_COLORS.border.light}`,
+                                  mt: 1,
+                                  minWidth: 150,
+                                },
+                              }}
                             >
-                              <MenuItem onClick={handleView}>{t('home.view')}</MenuItem>
-                              <MenuItem onClick={handleEdit}>
+                              <MenuItem
+                                onClick={handleView}
+                                sx={{
+                                  fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                                  '&:hover': { backgroundColor: UI_COLORS.background.hover },
+                                }}
+                              >
+                                {t('home.view')}
+                              </MenuItem>
+                              <MenuItem
+                                onClick={handleEdit}
+                                sx={{
+                                  fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                                  '&:hover': { backgroundColor: UI_COLORS.background.hover },
+                                }}
+                              >
                                 <EditIcon sx={{ mr: 1, fontSize: 18 }} />
                                 {t('home.edit')}
                               </MenuItem>
-                              <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
+                              <MenuItem
+                                onClick={handleDelete}
+                                sx={{
+                                  fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                                  color: UI_COLORS.error.main,
+                                  '&:hover': { backgroundColor: UI_COLORS.error.bg },
+                                }}
+                              >
                                 <DeleteIcon sx={{ mr: 1, fontSize: 18 }} />
                                 {t('home.delete')}
                               </MenuItem>

@@ -15,22 +15,26 @@ import {
   Button,
   TextField,
   InputAdornment,
-  Chip,
   IconButton,
   Menu,
   MenuItem,
   CircularProgress,
   Container,
   TableSortLabel,
+  Tooltip,
 } from '@mui/material';
 import {
   Search as SearchIcon,
   Add as AddIcon,
   MoreVert as MoreVertIcon,
+  ContentCopy as ContentCopyIcon,
+  Visibility as VisibilityIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
 } from '@mui/icons-material';
 import { CreateProjectModal, EditProjectModal, DeleteProjectDialog } from '../features/projects/src/components';
 import { projectsActions, useSelectorProjects } from '../features/projects/src/store';
-import { UI_COLORS, UI_TYPOGRAPHY, UI_SPACING, UI_BORDER_RADIUS, UI_SHADOWS, UI_BUTTON_STYLES, UI_INPUT_STYLES } from '../shared/constants/src/ui';
+import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS, UI_BUTTON_STYLES, UI_INPUT_STYLES } from '../shared/constants/src/ui';
 
 const Home = () => {
   const { t } = useTranslation();
@@ -136,17 +140,12 @@ const Home = () => {
 
   const existingKeys = projectsState.projects.map((p) => p.key.toUpperCase());
 
+  const [copiedProjectKey, setCopiedProjectKey] = useState<string | null>(null);
+
   const projectTypeLabel = (type: string) => {
-    const key = String(type).toLowerCase();
-    if (
-      key === 'software' ||
-      key === 'business' ||
-      key === 'marketing' ||
-      key === 'operations'
-    ) {
-      return t(`projects.types.${key}`);
-    }
-    return type;
+    const normalized = String(type || '').toLowerCase();
+    if (!normalized) return '-';
+    return normalized.charAt(0).toUpperCase() + normalized.slice(1);
   };
 
   const filteredProjects = projectsState.projects.filter((project) => {
@@ -180,6 +179,18 @@ const Home = () => {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
+  };
+
+  const handleCopyProjectKey = async (projectKey: string) => {
+    try {
+      await navigator.clipboard.writeText(projectKey);
+      setCopiedProjectKey(projectKey);
+      setTimeout(() => {
+        setCopiedProjectKey((prev) => (prev === projectKey ? null : prev));
+      }, 1200);
+    } catch (error) {
+      console.error('Failed to copy project key:', error);
+    }
   };
 
   return (
@@ -247,6 +258,7 @@ const Home = () => {
         sx={{
           borderRadius: UI_BORDER_RADIUS.lg,
           boxShadow: UI_SHADOWS.md,
+          border: `1px solid ${UI_COLORS.border.light}`,
           overflow: 'auto',
           maxHeight: { xs: 420, md: 560 },
         }}
@@ -300,21 +312,14 @@ const Home = () => {
                   {t('home.colCreatedAt')}
                 </TableSortLabel>
               </TableCell>
-              <TableCell
-                width={50}
-                sx={{
-                  fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
-                  color: UI_COLORS.text.primary,
-                  fontSize: UI_TYPOGRAPHY.fontSize.sm,
-                }}
-              ></TableCell>
+              <TableCell width={50} sx={{ fontWeight: UI_TYPOGRAPHY.fontWeight.semibold, color: UI_COLORS.text.primary, fontSize: UI_TYPOGRAPHY.fontSize.sm }}></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {projectsState.getProjectsLoading ? (
               <TableRow>
                 <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
-                  <CircularProgress size={24} />
+                  <CircularProgress size={24} sx={{ color: UI_COLORS.primary.main }} />
                 </TableCell>
               </TableRow>
             ) : sortedProjects.length === 0 ? (
@@ -373,17 +378,33 @@ const Home = () => {
                     </Box>
                   </TableCell>
                   <TableCell>
-                    <Chip
-                      label={project.key}
-                      size="small"
-                      variant="outlined"
-                      sx={{
-                        borderColor: UI_COLORS.border.medium,
-                        color: UI_COLORS.text.primary,
-                        fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
-                        fontSize: UI_TYPOGRAPHY.fontSize.xs,
-                      }}
-                    />
+                    <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: UI_COLORS.text.secondary,
+                          fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                          fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                        }}
+                      >
+                        {project.key}
+                      </Typography>
+                      <Tooltip title={copiedProjectKey === project.key ? 'Copied' : 'Copy key'}>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleCopyProjectKey(project.key)}
+                          sx={{
+                            color: UI_COLORS.text.secondary,
+                            '&:hover': {
+                              color: UI_COLORS.primary.main,
+                              backgroundColor: UI_COLORS.background.hover,
+                            },
+                          }}
+                        >
+                          <ContentCopyIcon sx={{ fontSize: 14 }} />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
                   </TableCell>
                   <TableCell
                     sx={{
@@ -438,6 +459,7 @@ const Home = () => {
                           },
                         }}
                       >
+                        <VisibilityIcon fontSize="small" sx={{ mr: 1 }} />
                         {t('home.view')}
                       </MenuItem>
                       <MenuItem
@@ -449,6 +471,7 @@ const Home = () => {
                           },
                         }}
                       >
+                        <EditIcon fontSize="small" sx={{ mr: 1 }} />
                         {t('home.edit')}
                       </MenuItem>
                       <MenuItem
@@ -461,6 +484,7 @@ const Home = () => {
                           },
                         }}
                       >
+                        <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
                         {t('home.delete')}
                       </MenuItem>
                     </Menu>
@@ -473,7 +497,7 @@ const Home = () => {
       </TableContainer>
 
       {/* Pagination placeholder */}
-      {!searchQuery && filteredProjects.length > 0 && (
+      {projectsState.projects.length > 0 && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
           <Typography
             variant="body2"
