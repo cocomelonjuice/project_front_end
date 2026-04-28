@@ -35,14 +35,17 @@ import {
 import type { Workflow, WorkflowTransition } from '../../features/workflows/src/store/states';
 import { useSelectorProjects } from '../../features/projects/src/store';
 import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS, UI_BUTTON_STYLES } from '../../shared/constants/src/ui';
+import { useAuth } from '../../shared/auth/src';
 
 const WorkflowDetail: React.FC = () => {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { checkRole } = useAuth();
   const projectsState = useSelectorProjects((state) => state);
   const workflowsState = useSelectorWorkflows((state) => state);
+  const canManageWorkflows = checkRole(['admin', 'manager']);
   const workflow = workflowsState.currentWorkflow;
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -102,6 +105,7 @@ const WorkflowDetail: React.FC = () => {
   };
 
   const handleTransitionDeleted = (transitionId: string) => {
+    if (!canManageWorkflows) return;
     if (id) {
       dispatch(
         workflowsActions.deleteTransitionRequest({
@@ -262,57 +266,59 @@ const WorkflowDetail: React.FC = () => {
               </Typography>
             </Box>
           </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-            <Button
-              variant="outlined"
-              startIcon={<EditIcon />}
-              onClick={() => setEditModalOpen(true)}
-              sx={{
-                ...UI_BUTTON_STYLES.secondary,
-                borderRadius: UI_BORDER_RADIUS.md,
-                textTransform: 'none',
-                fontSize: UI_TYPOGRAPHY.fontSize.sm,
-                fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
-                px: 2.5,
-                py: 1,
-                borderWidth: 2,
-                '&:hover': {
+          {canManageWorkflows && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+              <Button
+                variant="outlined"
+                startIcon={<EditIcon />}
+                onClick={() => setEditModalOpen(true)}
+                sx={{
+                  ...UI_BUTTON_STYLES.secondary,
+                  borderRadius: UI_BORDER_RADIUS.md,
+                  textTransform: 'none',
+                  fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                  fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                  px: 2.5,
+                  py: 1,
                   borderWidth: 2,
-                  transform: 'translateY(-2px)',
-                  boxShadow: UI_SHADOWS.md,
-                },
-                transition: 'all 0.2s ease-in-out',
-              }}
-            >
-              Edit
-            </Button>
-            <Button
-              variant="outlined"
-              color="error"
-              startIcon={<DeleteIcon />}
-              onClick={() => setDeleteDialogOpen(true)}
-              sx={{
-                borderRadius: UI_BORDER_RADIUS.md,
-                textTransform: 'none',
-                fontSize: UI_TYPOGRAPHY.fontSize.sm,
-                fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
-                borderColor: UI_COLORS.error.main,
-                color: UI_COLORS.error.main,
-                px: 2.5,
-                py: 1,
-                borderWidth: 2,
-                '&:hover': {
-                  borderColor: UI_COLORS.error.dark,
-                  backgroundColor: UI_COLORS.error.bg,
-                  transform: 'translateY(-2px)',
-                  boxShadow: UI_SHADOWS.md,
-                },
-                transition: 'all 0.2s ease-in-out',
-              }}
-            >
-              {t('workflowDetail.delete')}
-            </Button>
-          </Box>
+                  '&:hover': {
+                    borderWidth: 2,
+                    transform: 'translateY(-2px)',
+                    boxShadow: UI_SHADOWS.md,
+                  },
+                  transition: 'all 0.2s ease-in-out',
+                }}
+              >
+                Edit
+              </Button>
+              <Button
+                variant="outlined"
+                color="error"
+                startIcon={<DeleteIcon />}
+                onClick={() => setDeleteDialogOpen(true)}
+                sx={{
+                  borderRadius: UI_BORDER_RADIUS.md,
+                  textTransform: 'none',
+                  fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                  fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                  borderColor: UI_COLORS.error.main,
+                  color: UI_COLORS.error.main,
+                  px: 2.5,
+                  py: 1,
+                  borderWidth: 2,
+                  '&:hover': {
+                    borderColor: UI_COLORS.error.dark,
+                    backgroundColor: UI_COLORS.error.bg,
+                    transform: 'translateY(-2px)',
+                    boxShadow: UI_SHADOWS.md,
+                  },
+                  transition: 'all 0.2s ease-in-out',
+                }}
+              >
+                {t('workflowDetail.delete')}
+              </Button>
+            </Box>
+          )}
         </Box>
       </Paper>
 
@@ -363,29 +369,31 @@ const WorkflowDetail: React.FC = () => {
                     Transitions
                   </Typography>
                 </Box>
-                <Button
-                  variant="contained"
-                  size="small"
-                  startIcon={<AddIcon />}
-                  onClick={() => setAddTransitionModalOpen(true)}
-                  sx={{
-                    ...UI_BUTTON_STYLES.primary,
-                    borderRadius: UI_BORDER_RADIUS.md,
-                    textTransform: 'none',
-                    fontSize: UI_TYPOGRAPHY.fontSize.sm,
-                    fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
-                    px: 2.5,
-                    py: 1,
-                    boxShadow: UI_SHADOWS.md,
-                    '&:hover': {
-                      transform: 'translateY(-2px)',
-                      boxShadow: UI_SHADOWS.lg,
-                    },
-                    transition: 'all 0.2s ease-in-out',
-                  }}
-                >
-                  {t('workflowDetail.addTransition')}
-                </Button>
+                {canManageWorkflows && (
+                  <Button
+                    variant="contained"
+                    size="small"
+                    startIcon={<AddIcon />}
+                    onClick={() => setAddTransitionModalOpen(true)}
+                    sx={{
+                      ...UI_BUTTON_STYLES.primary,
+                      borderRadius: UI_BORDER_RADIUS.md,
+                      textTransform: 'none',
+                      fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                      fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                      px: 2.5,
+                      py: 1,
+                      boxShadow: UI_SHADOWS.md,
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        boxShadow: UI_SHADOWS.lg,
+                      },
+                      transition: 'all 0.2s ease-in-out',
+                    }}
+                  >
+                    {t('workflowDetail.addTransition')}
+                  </Button>
+                )}
               </Box>
 
               {!workflow.transitions || workflow.transitions.length === 0 ? (
@@ -472,28 +480,30 @@ const WorkflowDetail: React.FC = () => {
                             </Box>
                           }
                         />
-                        <ListItemSecondaryAction>
-                          <IconButton
-                            edge="end"
-                            size="medium"
-                            onClick={() => handleTransitionDeleted(transition.id)}
-                            disabled={workflowsState.deleteTransitionLoading}
-                            sx={{
-                              color: UI_COLORS.error.main,
-                              border: `1px solid ${UI_COLORS.border.light}`,
-                              '&:hover': {
-                                backgroundColor: UI_COLORS.error.main,
-                                color: 'white',
-                                borderColor: UI_COLORS.error.main,
-                                transform: 'scale(1.1)',
-                                boxShadow: UI_SHADOWS.md,
-                              },
-                              transition: 'all 0.2s ease-in-out',
-                            }}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </ListItemSecondaryAction>
+                        {canManageWorkflows && (
+                          <ListItemSecondaryAction>
+                            <IconButton
+                              edge="end"
+                              size="medium"
+                              onClick={() => handleTransitionDeleted(transition.id)}
+                              disabled={workflowsState.deleteTransitionLoading}
+                              sx={{
+                                color: UI_COLORS.error.main,
+                                border: `1px solid ${UI_COLORS.border.light}`,
+                                '&:hover': {
+                                  backgroundColor: UI_COLORS.error.main,
+                                  color: 'white',
+                                  borderColor: UI_COLORS.error.main,
+                                  transform: 'scale(1.1)',
+                                  boxShadow: UI_SHADOWS.md,
+                                },
+                                transition: 'all 0.2s ease-in-out',
+                              }}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </ListItemSecondaryAction>
+                        )}
                       </ListItem>
                       {index < workflow.transitions!.length - 1 && (
                         <Box sx={{ height: 8 }} />
@@ -655,25 +665,31 @@ const WorkflowDetail: React.FC = () => {
       </Box>
 
       {/* Modals */}
-      <EditWorkflowModal
-        open={editModalOpen}
-        onClose={() => setEditModalOpen(false)}
-        workflow={workflow}
-        onWorkflowUpdated={handleWorkflowUpdated}
-      />
-      <DeleteWorkflowDialog
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-        workflow={workflow}
-        onWorkflowDeleted={handleWorkflowDeleted}
-      />
-      <AddTransitionModal
-        open={addTransitionModalOpen}
-        onClose={() => setAddTransitionModalOpen(false)}
-        workflowId={workflow.id}
-        existingTransitions={workflow.transitions}
-        onTransitionAdded={handleTransitionAdded}
-      />
+      {canManageWorkflows && (
+        <EditWorkflowModal
+          open={editModalOpen}
+          onClose={() => setEditModalOpen(false)}
+          workflow={workflow}
+          onWorkflowUpdated={handleWorkflowUpdated}
+        />
+      )}
+      {canManageWorkflows && (
+        <DeleteWorkflowDialog
+          open={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+          workflow={workflow}
+          onWorkflowDeleted={handleWorkflowDeleted}
+        />
+      )}
+      {canManageWorkflows && (
+        <AddTransitionModal
+          open={addTransitionModalOpen}
+          onClose={() => setAddTransitionModalOpen(false)}
+          workflowId={workflow.id}
+          existingTransitions={workflow.transitions}
+          onTransitionAdded={handleTransitionAdded}
+        />
+      )}
     </Container>
   );
 };

@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Box } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { Box, LinearProgress } from '@mui/material';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { GlobalHeader } from '../shared/ui/header';
@@ -19,22 +19,25 @@ import {
 import { authActions } from '../features/auth/src/store';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { ChatPanel } from '../features/chat/src';
+import type { SidebarNavItem } from '../shared/ui/sidebar';
 interface LayoutProps {
   children: ReactNode;
 }
 
 const Layout = ({ children }: LayoutProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
-  const handleSidebarToggle = () => {
+  const handleSidebarToggle = useCallback(() => {
     setSidebarCollapsed(!sidebarCollapsed);
     // Add your sidebar toggle logic here
-  };
+  }, [sidebarCollapsed]);
 
-  const handleSearch = (query: string) => {
+  const handleSearch = useCallback((query: string) => {
     // Search functionality - to be implemented
     // For now, if on home page, could filter projects
     // Could navigate to search results page in the future
@@ -42,48 +45,68 @@ const Layout = ({ children }: LayoutProps) => {
       // Future: Implement global search
       console.log('Search query:', query);
     }
-  };
+  }, []);
 
-  const handleCreate = () => {
+  const handleCreate = useCallback(() => {
     // Create functionality - navigate to home where create project button is available
     // Future: Could show a menu with options (Create Project, Create Issue, etc.)
     navigate('/');
-  };
+  }, [navigate]);
 
 
-  const handleHelp = () => {
+  const handleHelp = useCallback(() => {
     // Help functionality - could open help documentation or support page
     // For now, could navigate to an about/help page
     navigate('/about');
-  };
-  const handleLogout = () => {
+  }, [navigate]);
+  const handleLogout = useCallback(() => {
     // Dispatch logout action to clear Redux state
     dispatch(authActions.logout());
     // Redirect to login page
     navigate('/login');
-  };
+  }, [dispatch, navigate]);
 
-  const userMenuItems = [
-    {
-      label: t('layout.dashboard'),
-      onClick: () => {
-        navigate('/dashboard');
+  const userMenuItems = useMemo(
+    () => [
+      {
+        label: t('layout.dashboard'),
+        onClick: () => {
+          navigate('/dashboard');
+        },
+        icon: <DashboardIcon fontSize="small" />,
       },
-      icon: <DashboardIcon fontSize="small" />,
-    },
-    {
-      label: t('layout.profile'),
-      onClick: () => {
-        navigate('/profile');
+      {
+        label: t('layout.profile'),
+        onClick: () => {
+          navigate('/profile');
+        },
+        icon: <PersonIcon fontSize="small" />,
       },
-      icon: <PersonIcon fontSize="small" />,
+      {
+        label: t('layout.logout'),
+        onClick: handleLogout,
+        icon: <LogoutIcon fontSize="small" />,
+      },
+    ],
+    [handleLogout, navigate, t]
+  );
+
+  const handleSidebarItemClick = useCallback(
+    (item: SidebarNavItem) => {
+      if (item.path && !item.external && item.path !== location.pathname) {
+        setIsNavigating(true);
+      }
     },
-    {
-      label: t('layout.logout'),
-      onClick: handleLogout,
-      icon: <LogoutIcon fontSize="small" />,
-    },
-  ];
+    [location.pathname]
+  );
+
+  useEffect(() => {
+    if (!isNavigating) return;
+    const timer = setTimeout(() => {
+      setIsNavigating(false);
+    }, 220);
+    return () => clearTimeout(timer);
+  }, [isNavigating, location.pathname]);
 
   return (
     <Box
@@ -127,7 +150,7 @@ const Layout = ({ children }: LayoutProps) => {
           minHeight: 0, // Important for flex children to respect overflow
         }}
       >
-        <NavigationSidebar collapsed={sidebarCollapsed} />
+        <NavigationSidebar collapsed={sidebarCollapsed} onItemClick={handleSidebarItemClick} />
         <Box
           component="main"
           sx={{
@@ -153,6 +176,11 @@ const Layout = ({ children }: LayoutProps) => {
             },
           }}
         >
+          {isNavigating && (
+            <Box sx={{ mb: 1 }}>
+              <LinearProgress />
+            </Box>
+          )}
           {children}
         </Box>
       </Box>

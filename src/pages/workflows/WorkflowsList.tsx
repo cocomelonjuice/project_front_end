@@ -38,13 +38,16 @@ import {
 import type { Workflow } from '../../features/workflows/src/store/states';
 import { useSelectorProjects } from '../../features/projects/src/store';
 import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS, UI_BUTTON_STYLES } from '../../shared/constants/src/ui';
+import { useAuth } from '../../shared/auth/src';
 
 const WorkflowsList: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { checkRole } = useAuth();
   const projectsState = useSelectorProjects((state) => state);
   const workflowsState = useSelectorWorkflows((state) => state);
+  const canManageWorkflows = checkRole(['admin', 'manager']);
   const workflows = workflowsState.workflows;
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
@@ -85,6 +88,7 @@ const WorkflowsList: React.FC = () => {
   };
 
   const handleEdit = () => {
+    if (!canManageWorkflows) return;
     if (selectedWorkflow) {
       setEditModalOpen(true);
       handleMenuClose();
@@ -92,6 +96,7 @@ const WorkflowsList: React.FC = () => {
   };
 
   const handleDelete = () => {
+    if (!canManageWorkflows) return;
     if (selectedWorkflow) {
       setDeleteDialogOpen(true);
       handleMenuClose();
@@ -162,28 +167,30 @@ const WorkflowsList: React.FC = () => {
         >
           {t('workflowList.title')}
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setCreateModalOpen(true)}
-          sx={{
-            ...UI_BUTTON_STYLES.primary,
-            borderRadius: UI_BORDER_RADIUS.md,
-            textTransform: 'none',
-            fontSize: UI_TYPOGRAPHY.fontSize.sm,
-            fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
-            px: 2.5,
-            py: 1,
-            boxShadow: UI_SHADOWS.md,
-            '&:hover': {
-              transform: 'translateY(-2px)',
-              boxShadow: UI_SHADOWS.lg,
-            },
-            transition: 'all 0.2s ease-in-out',
-          }}
-        >
-          {t('workflowList.createWorkflow')}
-        </Button>
+        {canManageWorkflows && (
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setCreateModalOpen(true)}
+            sx={{
+              ...UI_BUTTON_STYLES.primary,
+              borderRadius: UI_BORDER_RADIUS.md,
+              textTransform: 'none',
+              fontSize: UI_TYPOGRAPHY.fontSize.sm,
+              fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+              px: 2.5,
+              py: 1,
+              boxShadow: UI_SHADOWS.md,
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: UI_SHADOWS.lg,
+              },
+              transition: 'all 0.2s ease-in-out',
+            }}
+          >
+            {t('workflowList.createWorkflow')}
+          </Button>
+        )}
       </Box>
 
       {workflowsState.getWorkflowsLoading ? (
@@ -403,60 +410,70 @@ const WorkflowsList: React.FC = () => {
           <VisibilityIcon fontSize="small" sx={{ mr: 1 }} />
           {t('workflowList.viewDetails')}
         </MenuItem>
-        <MenuItem
-          onClick={handleEdit}
-          sx={{
-            fontSize: UI_TYPOGRAPHY.fontSize.sm,
-            '&:hover': {
-              backgroundColor: UI_COLORS.background.hover,
-            },
-          }}
-        >
-          <EditIcon fontSize="small" sx={{ mr: 1 }} />
-          {t('workflowList.menuEdit')}
-        </MenuItem>
-        <MenuItem
-          onClick={handleDelete}
-          sx={{
-            fontSize: UI_TYPOGRAPHY.fontSize.sm,
-            color: UI_COLORS.error.main,
-            '&:hover': {
-              backgroundColor: UI_COLORS.error.bg,
-            },
-          }}
-        >
-          <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
-          {t('workflowList.menuDelete')}
-        </MenuItem>
+        {canManageWorkflows && (
+          <MenuItem
+            onClick={handleEdit}
+            sx={{
+              fontSize: UI_TYPOGRAPHY.fontSize.sm,
+              '&:hover': {
+                backgroundColor: UI_COLORS.background.hover,
+              },
+            }}
+          >
+            <EditIcon fontSize="small" sx={{ mr: 1 }} />
+            {t('workflowList.menuEdit')}
+          </MenuItem>
+        )}
+        {canManageWorkflows && (
+          <MenuItem
+            onClick={handleDelete}
+            sx={{
+              fontSize: UI_TYPOGRAPHY.fontSize.sm,
+              color: UI_COLORS.error.main,
+              '&:hover': {
+                backgroundColor: UI_COLORS.error.bg,
+              },
+            }}
+          >
+            <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
+            {t('workflowList.menuDelete')}
+          </MenuItem>
+        )}
       </Menu>
 
       {/* Modals */}
-      <CreateWorkflowModal
-        open={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-        onWorkflowCreated={handleWorkflowCreated}
-      />
-      <EditWorkflowModal
-        open={editModalOpen}
-        onClose={() => {
-          setEditModalOpen(false);
-          setSelectedWorkflow(null);
-        }}
-        workflow={selectedWorkflow}
-        onWorkflowUpdated={handleWorkflowUpdated}
-      />
-      <DeleteWorkflowDialog
-        open={deleteDialogOpen}
-        onClose={() => {
-          setDeleteDialogOpen(false);
-          setSelectedWorkflow(null);
-        }}
-        workflow={selectedWorkflow}
-        onWorkflowDeleted={(workflowId: string) => {
-          handleWorkflowDeleted(workflowId);
-          setSelectedWorkflow(null);
-        }}
-      />
+      {canManageWorkflows && (
+        <CreateWorkflowModal
+          open={createModalOpen}
+          onClose={() => setCreateModalOpen(false)}
+          onWorkflowCreated={handleWorkflowCreated}
+        />
+      )}
+      {canManageWorkflows && (
+        <EditWorkflowModal
+          open={editModalOpen}
+          onClose={() => {
+            setEditModalOpen(false);
+            setSelectedWorkflow(null);
+          }}
+          workflow={selectedWorkflow}
+          onWorkflowUpdated={handleWorkflowUpdated}
+        />
+      )}
+      {canManageWorkflows && (
+        <DeleteWorkflowDialog
+          open={deleteDialogOpen}
+          onClose={() => {
+            setDeleteDialogOpen(false);
+            setSelectedWorkflow(null);
+          }}
+          workflow={selectedWorkflow}
+          onWorkflowDeleted={(workflowId: string) => {
+            handleWorkflowDeleted(workflowId);
+            setSelectedWorkflow(null);
+          }}
+        />
+      )}
     </Container>
   );
 };

@@ -47,98 +47,117 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   const location = useLocation();
   const { t } = useTranslation();
   const { checkRole } = useAuth();
+  const [optimisticPath, setOptimisticPath] = React.useState<string | null>(null);
   
   // Check if user has admin role
   const isAdmin = checkRole('admin');
+  const currentPath = optimisticPath ?? location.pathname;
+
+  React.useEffect(() => {
+    setOptimisticPath(null);
+  }, [location.pathname]);
 
   // Primary navigation items - main features
-  const primaryNavItems: SidebarNavItem[] = [
-    {
-      id: 'home',
-      label: t('nav.projects'),
-      icon: <HomeIcon />,
-      path: '/',
-      active: location.pathname === '/' || location.pathname.startsWith('/projects'),
-    },
-    {
-      id: 'dashboard',
-      label: t('nav.dashboard'),
-      icon: <DashboardIcon />,
-      path: '/dashboard',
-      active: location.pathname === '/dashboard',
-    },
-    {
-      id: 'workflows',
-      label: t('nav.workflows'),
-      icon: <WorkflowIcon />,
-      path: '/workflows',
-      active: location.pathname.startsWith('/workflows'),
-    },
-  ];
+  const primaryNavItems: SidebarNavItem[] = React.useMemo(
+    () => [
+      {
+        id: 'home',
+        label: t('nav.projects'),
+        icon: <HomeIcon />,
+        path: '/',
+        active: currentPath === '/' || currentPath.startsWith('/projects'),
+      },
+      {
+        id: 'dashboard',
+        label: t('nav.dashboard'),
+        icon: <DashboardIcon />,
+        path: '/dashboard',
+        active: currentPath === '/dashboard',
+      },
+      {
+        id: 'workflows',
+        label: t('nav.workflows'),
+        icon: <WorkflowIcon />,
+        path: '/workflows',
+        active: currentPath.startsWith('/workflows'),
+      },
+    ],
+    [currentPath, t]
+  );
 
   // Secondary navigation items - admin and info
-  const secondaryNavItems: SidebarNavItem[] = [
-    // Only show Admin menu item if user has admin role
-    ...(isAdmin
-      ? [
-          {
-            id: 'admin',
-            label: t('nav.admin'),
-            icon: <AdminIcon />,
-            path: '/admin',
-            active: location.pathname.startsWith('/admin'),
-          },
-        ]
-      : []),
-    {
-      id: 'about',
-      label: t('nav.about'),
-      icon: <AboutIcon />,
-      path: '/about',
-      active: location.pathname === '/about',
-    },
-  ];
+  const secondaryNavItems: SidebarNavItem[] = React.useMemo(
+    () => [
+      // Only show Admin menu item if user has admin role
+      ...(isAdmin
+        ? [
+            {
+              id: 'admin',
+              label: t('nav.admin'),
+              icon: <AdminIcon />,
+              path: '/admin',
+              active: currentPath.startsWith('/admin'),
+            },
+          ]
+        : []),
+      {
+        id: 'about',
+        label: t('nav.about'),
+        icon: <AboutIcon />,
+        path: '/about',
+        active: currentPath === '/about',
+      },
+    ],
+    [currentPath, isAdmin, t]
+  );
 
-  const handleItemClick = (item: SidebarNavItem) => {
+  const handleItemClick = React.useCallback((item: SidebarNavItem) => {
+    if (item.path && !item.external) {
+      setOptimisticPath(item.path);
+    }
+
+    if (onItemClick) {
+      onItemClick(item);
+    }
+
     if (item.path && !item.external) {
       navigate(item.path);
     } else if (item.path && item.external) {
       // Handle external links
       window.open(item.path, '_blank');
     }
+  }, [navigate, onItemClick]);
 
-    if (onItemClick) {
-      onItemClick(item);
-    }
-  };
-
-  const sidebarGroups: SidebarGroup[] = [
-    {
-      id: 'primary',
-      sections: [
-        {
-          id: 'primary-nav',
-          items: primaryNavItems,
-        },
-      ],
-    },
-    {
-      id: 'secondary',
-      sections: [
-        {
-          id: 'secondary-nav',
-          items: secondaryNavItems,
-        },
-      ],
-    },
-  ];
+  const sidebarGroups: SidebarGroup[] = React.useMemo(
+    () => [
+      {
+        id: 'primary',
+        sections: [
+          {
+            id: 'primary-nav',
+            items: primaryNavItems,
+          },
+        ],
+      },
+      {
+        id: 'secondary',
+        sections: [
+          {
+            id: 'secondary-nav',
+            items: secondaryNavItems,
+          },
+        ],
+      },
+    ],
+    [primaryNavItems, secondaryNavItems]
+  );
 
   return (
     <BaseSidebar
       collapsed={collapsed}
       groups={sidebarGroups}
       onItemClick={handleItemClick}
-      activeItemId={location.pathname}
+      activeItemId={currentPath}
     />
   );
 };

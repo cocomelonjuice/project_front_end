@@ -35,12 +35,15 @@ import {
 import { CreateProjectModal, EditProjectModal, DeleteProjectDialog } from '../features/projects/src/components';
 import { projectsActions, useSelectorProjects } from '../features/projects/src/store';
 import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS, UI_BUTTON_STYLES, UI_INPUT_STYLES } from '../shared/constants/src/ui';
+import { useAuth } from '../shared/auth/src';
 
 const Home = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { checkRole } = useAuth();
   const projectsState = useSelectorProjects((state) => state);
+  const canManageProjects = checkRole(['admin', 'manager']);
   const [searchQuery, setSearchQuery] = useState('');
   const [projectSortOrder, setProjectSortOrder] = useState<'asc' | 'desc'>('desc');
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -99,6 +102,7 @@ const Home = () => {
   };
 
   const handleEdit = () => {
+    if (!canManageProjects) return;
     handleMenuClose();
     if (selectedProject) {
       const project = projectsState.projects.find((p) => p.id === selectedProject);
@@ -123,6 +127,7 @@ const Home = () => {
   };
 
   const handleDelete = () => {
+    if (!canManageProjects) return;
     handleMenuClose();
     if (selectedProject) {
       const project = projectsState.projects.find((p) => p.id === selectedProject);
@@ -215,23 +220,25 @@ const Home = () => {
         >
           {t('home.title')}
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setCreateModalOpen(true)}
-          sx={{
-            ...UI_BUTTON_STYLES.primary,
-            borderRadius: UI_BORDER_RADIUS.md,
-            px: 3,
-            py: 1.5,
-            fontSize: UI_TYPOGRAPHY.fontSize.base,
-            fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
-            textTransform: 'none',
-            boxShadow: UI_SHADOWS.md,
-          }}
-        >
-          {t('home.createProject')}
-        </Button>
+        {canManageProjects && (
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setCreateModalOpen(true)}
+            sx={{
+              ...UI_BUTTON_STYLES.primary,
+              borderRadius: UI_BORDER_RADIUS.md,
+              px: 3,
+              py: 1.5,
+              fontSize: UI_TYPOGRAPHY.fontSize.base,
+              fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+              textTransform: 'none',
+              boxShadow: UI_SHADOWS.md,
+            }}
+          >
+            {t('home.createProject')}
+          </Button>
+        )}
       </Box>
 
       {/* Search */}
@@ -462,31 +469,35 @@ const Home = () => {
                         <VisibilityIcon fontSize="small" sx={{ mr: 1 }} />
                         {t('home.view')}
                       </MenuItem>
-                      <MenuItem
-                        onClick={handleEdit}
-                        sx={{
-                          fontSize: UI_TYPOGRAPHY.fontSize.sm,
-                          '&:hover': {
-                            backgroundColor: UI_COLORS.background.hover,
-                          },
-                        }}
-                      >
-                        <EditIcon fontSize="small" sx={{ mr: 1 }} />
-                        {t('home.edit')}
-                      </MenuItem>
-                      <MenuItem
-                        onClick={handleDelete}
-                        sx={{
-                          fontSize: UI_TYPOGRAPHY.fontSize.sm,
-                          color: UI_COLORS.error.main,
-                          '&:hover': {
-                            backgroundColor: UI_COLORS.error.bg,
-                          },
-                        }}
-                      >
-                        <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
-                        {t('home.delete')}
-                      </MenuItem>
+                      {canManageProjects && (
+                        <MenuItem
+                          onClick={handleEdit}
+                          sx={{
+                            fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                            '&:hover': {
+                              backgroundColor: UI_COLORS.background.hover,
+                            },
+                          }}
+                        >
+                          <EditIcon fontSize="small" sx={{ mr: 1 }} />
+                          {t('home.edit')}
+                        </MenuItem>
+                      )}
+                      {canManageProjects && (
+                        <MenuItem
+                          onClick={handleDelete}
+                          sx={{
+                            fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                            color: UI_COLORS.error.main,
+                            '&:hover': {
+                              backgroundColor: UI_COLORS.error.bg,
+                            },
+                          }}
+                        >
+                          <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
+                          {t('home.delete')}
+                        </MenuItem>
+                      )}
                     </Menu>
                   </TableCell>
                 </TableRow>
@@ -515,35 +526,41 @@ const Home = () => {
       )}
 
       {/* Create Project Modal */}
-      <CreateProjectModal
-        open={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-        onProjectCreated={handleProjectCreated}
-        existingKeys={existingKeys}
-      />
+      {canManageProjects && (
+        <CreateProjectModal
+          open={createModalOpen}
+          onClose={() => setCreateModalOpen(false)}
+          onProjectCreated={handleProjectCreated}
+          existingKeys={existingKeys}
+        />
+      )}
 
       {/* Edit Project Modal */}
-      <EditProjectModal
-        open={editModalOpen}
-        onClose={() => {
-          setEditModalOpen(false);
-          setProjectToEdit(null);
-        }}
-        project={projectToEdit}
-        onProjectUpdated={handleProjectUpdated}
-        existingKeys={existingKeys}
-      />
+      {canManageProjects && (
+        <EditProjectModal
+          open={editModalOpen}
+          onClose={() => {
+            setEditModalOpen(false);
+            setProjectToEdit(null);
+          }}
+          project={projectToEdit}
+          onProjectUpdated={handleProjectUpdated}
+          existingKeys={existingKeys}
+        />
+      )}
 
       {/* Delete Project Dialog */}
-      <DeleteProjectDialog
-        open={deleteDialogOpen}
-        onClose={() => {
-          setDeleteDialogOpen(false);
-          setProjectToDelete(null);
-        }}
-        project={projectToDelete}
-        onProjectDeleted={handleProjectDeleted}
-      />
+      {canManageProjects && (
+        <DeleteProjectDialog
+          open={deleteDialogOpen}
+          onClose={() => {
+            setDeleteDialogOpen(false);
+            setProjectToDelete(null);
+          }}
+          project={projectToDelete}
+          onProjectDeleted={handleProjectDeleted}
+        />
+      )}
     </Container>
   );
 };
