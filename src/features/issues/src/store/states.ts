@@ -60,6 +60,7 @@ export interface CreateIssueData {
   priorityId: string;
   statusId: string;
   assigneeId?: string;
+  sprintId?: string;
   reporterId: string;
   projectId: string;
 }
@@ -71,6 +72,7 @@ export interface UpdateIssueData {
   priorityId?: string;
   statusId?: string;
   assigneeId?: string;
+  sprintId?: string;
 }
 
 export interface AssignIssueData {

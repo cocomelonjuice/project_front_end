@@ -143,8 +143,6 @@ const Home = () => {
     // No need to manually refresh
   };
 
-  const existingKeys = projectsState.projects.map((p) => p.key.toUpperCase());
-
   const [copiedProjectKey, setCopiedProjectKey] = useState<string | null>(null);
 
   const projectTypeLabel = (type: string) => {
@@ -185,6 +183,8 @@ const Home = () => {
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
   };
+
+  const displayProjectKey = (projectKey?: string) => (projectKey || '').slice(0, 7);
 
   const handleCopyProjectKey = async (projectKey: string) => {
     try {
@@ -366,7 +366,7 @@ const Home = () => {
                           boxShadow: UI_SHADOWS.sm,
                         }}
                       >
-                        {project.key.charAt(0)}
+                        {displayProjectKey(project.key).charAt(0)}
                       </Box>
                       <Typography
                         variant="body2"
@@ -394,12 +394,12 @@ const Home = () => {
                           fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
                         }}
                       >
-                        {project.key}
+                        {displayProjectKey(project.key)}
                       </Typography>
-                      <Tooltip title={copiedProjectKey === project.key ? 'Copied' : 'Copy key'}>
+                      <Tooltip title={copiedProjectKey === displayProjectKey(project.key) ? 'Copied' : 'Copy key'}>
                         <IconButton
                           size="small"
-                          onClick={() => handleCopyProjectKey(project.key)}
+                          onClick={() => handleCopyProjectKey(displayProjectKey(project.key))}
                           sx={{
                             color: UI_COLORS.text.secondary,
                             '&:hover': {
@@ -531,7 +531,6 @@ const Home = () => {
           open={createModalOpen}
           onClose={() => setCreateModalOpen(false)}
           onProjectCreated={handleProjectCreated}
-          existingKeys={existingKeys}
         />
       )}
 
@@ -545,7 +544,6 @@ const Home = () => {
           }}
           project={projectToEdit}
           onProjectUpdated={handleProjectUpdated}
-          existingKeys={existingKeys}
         />
       )}
 

@@ -30,10 +30,22 @@ interface CreateIssueModalProps {
   onClose: () => void;
   projectId: string;
   reporterId?: string;
+  sprintOptions?: Array<{ id: string; name: string }>;
+  defaultSprintId?: string;
+  showSprintField?: boolean;
   onIssueCreated?: (issue: Issue) => void;
 }
 
-const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, projectId, reporterId, onIssueCreated }) => {
+const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
+  open,
+  onClose,
+  projectId,
+  reporterId,
+  sprintOptions = [],
+  defaultSprintId,
+  showSprintField = false,
+  onIssueCreated,
+}) => {
   const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const usersState = useSelectorUsers((state) => state);
@@ -53,6 +65,7 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, proj
     priorityId: '',
     statusId: '',
     assigneeId: '',
+    sprintId: '',
   });
 
   // Fetch users when modal opens
@@ -136,9 +149,10 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, proj
         priorityId: mediumPriority?.id || '',
         statusId: todoStatus?.id || '',
         assigneeId: '',
+        sprintId: defaultSprintId || '',
       });
     }
-  }, [open, referenceDataState.issueTypes, referenceDataState.priorities, referenceDataState.statuses]);
+  }, [open, referenceDataState.issueTypes, referenceDataState.priorities, referenceDataState.statuses, defaultSprintId]);
 
   const handleChange = (field: string) => (event: any) => {
     setFormData((prev) => ({
@@ -171,6 +185,7 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, proj
           priorityId: formData.priorityId || undefined,
           statusId: formData.statusId || undefined,
           assigneeId: formData.assigneeId || undefined,
+          sprintId: showSprintField ? formData.sprintId || undefined : undefined,
           reporterId: currentReporterId || undefined,
         },
         callback: {
@@ -350,6 +365,20 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({ open, onClose, proj
               </Select>
             </FormControl>
           </Box>
+
+          {showSprintField && (
+            <FormControl fullWidth disabled={issuesState.createIssueLoading}>
+              <InputLabel>{t('projectDetail.sprints')}</InputLabel>
+              <Select value={formData.sprintId} onChange={handleChange('sprintId')} label={t('projectDetail.sprints')}>
+                <MenuItem value="">{t('issueModal.unassigned')}</MenuItem>
+                {sprintOptions.map((sprint) => (
+                  <MenuItem key={sprint.id} value={sprint.id}>
+                    {sprint.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
         </Box>
       </DialogContent>
       <DialogActions>

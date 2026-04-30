@@ -107,6 +107,7 @@ const sagas = {
           reporterId: data.reporterId,
           reporter: mockUsers.find((u) => u.id === data.reporterId),
           projectId: data.projectId,
+          sprintId: data.sprintId,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };

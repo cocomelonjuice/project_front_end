@@ -19,6 +19,11 @@ import {
   Alert,
   CircularProgress,
   Container,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -26,6 +31,7 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Visibility as VisibilityIcon,
+  LinkOff as LinkOffIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -54,6 +60,7 @@ const WorkflowsList: React.FC = () => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [detachDialogOpen, setDetachDialogOpen] = useState(false);
 
   useEffect(() => {
     // Fetch workflows on mount
@@ -103,6 +110,27 @@ const WorkflowsList: React.FC = () => {
     }
   };
 
+  const handleDetach = () => {
+    if (!canManageWorkflows || !selectedWorkflow?.projectId) return;
+    setDetachDialogOpen(true);
+    handleMenuClose();
+  };
+
+  const confirmDetach = () => {
+    if (!selectedWorkflow) return;
+    dispatch(
+      workflowsActions.detachWorkflowRequest({
+        data: { id: selectedWorkflow.id },
+        callback: {
+          onSuccess: () => {
+            setDetachDialogOpen(false);
+            setSelectedWorkflow(null);
+          },
+        },
+      } as any)
+    );
+  };
+
   const handleWorkflowCreated = (workflow: Workflow) => {
     // Workflow is already added to Redux state by the saga
     // Optionally refresh the list
@@ -131,7 +159,7 @@ const WorkflowsList: React.FC = () => {
 
   const getProjectName = (projectId: string | null | undefined): string => {
     if (!projectId) {
-      return 'Global';
+      return 'Unassigned';
     }
     const project = projectsState.projects.find((p) => p.id === projectId);
     return project ? project.name : 'Unknown';
@@ -335,11 +363,7 @@ const WorkflowsList: React.FC = () => {
                     </Typography>
                   </TableCell>
                   <TableCell>
-                    <Chip
-                      label={getProjectName(workflow.projectId)}
-                      size="small"
-                      sx={getWorkflowProjectChipStyle(!workflow.projectId)}
-                    />
+                    <Chip label={getProjectName(workflow.projectId)} size="small" sx={getWorkflowProjectChipStyle(!workflow.projectId)} />
                   </TableCell>
                   <TableCell>
                     <Chip
@@ -426,6 +450,21 @@ const WorkflowsList: React.FC = () => {
         )}
         {canManageWorkflows && (
           <MenuItem
+            onClick={handleDetach}
+            disabled={!selectedWorkflow?.projectId}
+            sx={{
+              fontSize: UI_TYPOGRAPHY.fontSize.sm,
+              '&:hover': {
+                backgroundColor: UI_COLORS.background.hover,
+              },
+            }}
+          >
+            <LinkOffIcon fontSize="small" sx={{ mr: 1 }} />
+            {t('workflowList.menuDetach')}
+          </MenuItem>
+        )}
+        {canManageWorkflows && (
+          <MenuItem
             onClick={handleDelete}
             sx={{
               fontSize: UI_TYPOGRAPHY.fontSize.sm,
@@ -474,6 +513,18 @@ const WorkflowsList: React.FC = () => {
           }}
         />
       )}
+      <Dialog open={detachDialogOpen} onClose={() => setDetachDialogOpen(false)}>
+        <DialogTitle>{t('workflowList.detachTitle')}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>{t('workflowList.detachConfirm', { name: selectedWorkflow?.name || '' })}</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDetachDialogOpen(false)}>{t('common.cancel')}</Button>
+          <Button color="warning" variant="contained" onClick={confirmDetach}>
+            {t('workflowList.detachAction')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

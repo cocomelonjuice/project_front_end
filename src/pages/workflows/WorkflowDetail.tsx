@@ -9,6 +9,8 @@ import {
   Button,
   Chip,
   IconButton,
+  Menu,
+  MenuItem,
   Card,
   CardContent,
   List,
@@ -24,6 +26,7 @@ import {
   Add as AddIcon,
   Delete as DeleteIcon,
   Edit as EditIcon,
+  MoreVert as MoreVertIcon,
 } from '@mui/icons-material';
 import {
   EditWorkflowModal,
@@ -50,6 +53,7 @@ const WorkflowDetail: React.FC = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [addTransitionModalOpen, setAddTransitionModalOpen] = useState(false);
+  const [workflowActionsAnchor, setWorkflowActionsAnchor] = useState<null | HTMLElement>(null);
 
   useEffect(() => {
     if (id) {
@@ -131,9 +135,17 @@ const WorkflowDetail: React.FC = () => {
     }
   };
 
+  const handleWorkflowActionsOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setWorkflowActionsAnchor(event.currentTarget);
+  };
+
+  const handleWorkflowActionsClose = () => {
+    setWorkflowActionsAnchor(null);
+  };
+
   const getProjectName = (projectId: string | null | undefined): string => {
     if (!projectId) {
-      return t('workflowDetail.globalAllProjects');
+      return t('workflowDetail.unassigned');
     }
     const project = projectsState.projects.find((p) => p.id === projectId);
     return project ? project.name : t('workflowDetail.unknown');
@@ -268,55 +280,59 @@ const WorkflowDetail: React.FC = () => {
           </Box>
           {canManageWorkflows && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-              <Button
-                variant="outlined"
-                startIcon={<EditIcon />}
-                onClick={() => setEditModalOpen(true)}
+              <IconButton
+                onClick={handleWorkflowActionsOpen}
+                size="medium"
                 sx={{
-                  ...UI_BUTTON_STYLES.secondary,
-                  borderRadius: UI_BORDER_RADIUS.md,
-                  textTransform: 'none',
-                  fontSize: UI_TYPOGRAPHY.fontSize.sm,
-                  fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
-                  px: 2.5,
-                  py: 1,
-                  borderWidth: 2,
+                  color: UI_COLORS.text.secondary,
+                  border: `1px solid ${UI_COLORS.border.light}`,
                   '&:hover': {
-                    borderWidth: 2,
-                    transform: 'translateY(-2px)',
-                    boxShadow: UI_SHADOWS.md,
+                    backgroundColor: UI_COLORS.background.hover,
+                    color: UI_COLORS.text.primary,
                   },
-                  transition: 'all 0.2s ease-in-out',
                 }}
               >
-                Edit
-              </Button>
-              <Button
-                variant="outlined"
-                color="error"
-                startIcon={<DeleteIcon />}
-                onClick={() => setDeleteDialogOpen(true)}
-                sx={{
-                  borderRadius: UI_BORDER_RADIUS.md,
-                  textTransform: 'none',
-                  fontSize: UI_TYPOGRAPHY.fontSize.sm,
-                  fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
-                  borderColor: UI_COLORS.error.main,
-                  color: UI_COLORS.error.main,
-                  px: 2.5,
-                  py: 1,
-                  borderWidth: 2,
-                  '&:hover': {
-                    borderColor: UI_COLORS.error.dark,
-                    backgroundColor: UI_COLORS.error.bg,
-                    transform: 'translateY(-2px)',
-                    boxShadow: UI_SHADOWS.md,
+                <MoreVertIcon />
+              </IconButton>
+              <Menu
+                anchorEl={workflowActionsAnchor}
+                open={Boolean(workflowActionsAnchor)}
+                onClose={handleWorkflowActionsClose}
+                PaperProps={{
+                  sx: {
+                    borderRadius: UI_BORDER_RADIUS.md,
+                    boxShadow: UI_SHADOWS.lg,
+                    mt: 1,
+                    minWidth: 170,
+                    border: `1px solid ${UI_COLORS.border.light}`,
                   },
-                  transition: 'all 0.2s ease-in-out',
                 }}
               >
-                {t('workflowDetail.delete')}
-              </Button>
+                <MenuItem
+                  onClick={() => {
+                    handleWorkflowActionsClose();
+                    setEditModalOpen(true);
+                  }}
+                >
+                  <EditIcon sx={{ mr: 1, fontSize: 18 }} />
+                  {t('workflowDetail.edit')}
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    handleWorkflowActionsClose();
+                    setDeleteDialogOpen(true);
+                  }}
+                  sx={{
+                    color: UI_COLORS.error.main,
+                    '&:hover': {
+                      backgroundColor: UI_COLORS.error.bg,
+                    },
+                  }}
+                >
+                  <DeleteIcon sx={{ mr: 1, fontSize: 18 }} />
+                  {t('workflowDetail.delete')}
+                </MenuItem>
+              </Menu>
             </Box>
           )}
         </Box>

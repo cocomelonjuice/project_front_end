@@ -45,14 +45,12 @@ const AddStatusModal: React.FC<AddStatusModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
   const [category, setCategory] = useState('todo');
-  const [color, setColor] = useState('#475569');
 
   useEffect(() => {
     if (open) {
       setError(null);
       setName('');
       setCategory('todo');
-      setColor('#475569');
     }
   }, [open]);
 
@@ -84,7 +82,6 @@ const AddStatusModal: React.FC<AddStatusModalProps> = ({
       await adminApi.createStatus({
         name: name.trim(),
         category,
-        color: color || undefined,
       });
 
       if (onStatusAdded) {
@@ -188,39 +185,6 @@ const AddStatusModal: React.FC<AddStatusModalProps> = ({
               ))}
             </Select>
           </FormControl>
-
-          <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-              <Box
-                sx={{
-                  width: 40,
-                  height: 40,
-                  bgcolor: color,
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  borderRadius: 1,
-                }}
-              />
-              <TextField
-                label={t('adminRefData.hexColor')}
-                value={color}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value.startsWith('#') && value.length <= 7) {
-                    setColor(value);
-                  } else if (!value.startsWith('#') && value.length <= 6) {
-                    setColor('#' + value);
-                  }
-                }}
-                disabled={loading}
-                size="small"
-                sx={{ flex: 1 }}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-              />
-            </Box>
-          </Box>
         </Box>
       </DialogContent>
       <DialogActions>

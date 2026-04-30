@@ -81,8 +81,19 @@ const BoardView: React.FC<BoardViewProps> = ({ issues, columns, onIssueMove }) =
     setDraggedIssue(null);
   };
 
+  const boardGridTemplateColumns = `repeat(${Math.max(columns.length, 1)}, minmax(0, 1fr))`;
+
   return (
-    <Box sx={{ display: 'flex', gap: 2, overflowX: 'auto', pb: 2 }}>
+    <Box
+      sx={{
+        display: 'grid',
+        gap: 2,
+        width: '100%',
+        overflowX: 'auto',
+        pb: 2,
+      }}
+      style={{ gridTemplateColumns: boardGridTemplateColumns }}
+    >
       {columns.map((column) => {
         const columnIssues = getIssuesForColumn(column);
         const isDragOver = dragOverColumn === column.id;
@@ -91,8 +102,7 @@ const BoardView: React.FC<BoardViewProps> = ({ issues, columns, onIssueMove }) =
           <Paper
             key={column.id}
             sx={{
-              minWidth: 300,
-              maxWidth: 300,
+              minWidth: 0,
               p: 2,
               bgcolor: isDragOver ? 'action.hover' : 'background.paper',
               border: isDragOver ? '2px dashed' : '1px solid',

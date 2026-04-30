@@ -32,6 +32,7 @@ import {
   DialogContentText,
   DialogActions,
   Container,
+  Snackbar,
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import {
@@ -72,20 +73,10 @@ import type { Sprint } from '../../features/sprints/src/store/states';
 import { projectsActions, useSelectorProjects } from '../../features/projects/src/store';
 import { boardsActions, useSelectorBoards } from '../../features/boards/src/store';
 import { issuesActions, useSelectorIssues } from '../../features/issues/src/store';
-import {
-  TeamList,
-  AssignRoleModal,
-} from '../../features/team/src';
-import { teamActions, useSelectorTeam } from '../../features/team/src/store';
-import { usersActions, useSelectorUsers } from '../../features/users/src/store';
-import type { ProjectTeamMember } from '../../features/team/src/store/states';
-import {
-  ActivityFeed,
-  ActivityFilter,
-} from '../../features/activity/src';
-import type { EntityTypeFilter } from '../../features/activity/src/components/ActivityFilter';
 import { useSelectorAuth } from '../../features/auth/src/store';
 import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS, UI_BUTTON_STYLES } from '../../shared/constants/src/ui';
+import workflowsApi from '../../features/workflows/src/store/api';
+import type { Workflow } from '../../features/workflows/src/store/states';
 
 type InsightsTimeRange = 'all' | '6m' | '3m' | '1m' | '14d';
 
@@ -113,8 +104,6 @@ const ProjectDetail: React.FC = () => {
   const boardsState = useSelectorBoards((state) => state);
   const issuesState = useSelectorIssues((state) => state);
   const referenceDataState = useSelectorReferenceData((state) => state);
-  const teamState = useSelectorTeam((state) => state);
-  const usersState = useSelectorUsers((state) => state);
 
   // All project issues (for Issues tab)
   const allProjectIssues = issuesState.issues.filter((issue) => issue.projectId === projectId);
@@ -222,6 +211,21 @@ const ProjectDetail: React.FC = () => {
 
     return { chart: groups, highRiskCount, highRiskShare };
   }, [filteredInsightsIssues, referenceDataState.priorities, t]);
+
+  const highRiskInsightsIssues = React.useMemo(() => {
+    return filteredInsightsIssues
+      .filter((issue) => {
+        const category = (issue.status?.category ?? '').toLowerCase();
+        if (category === 'done') return false;
+        const priorityName = (issue.priority?.name ?? '').toLowerCase();
+        return priorityName.includes('high');
+      })
+      .sort(
+        (a, b) =>
+          new Date(b.updatedAt || b.createdAt).getTime() -
+          new Date(a.updatedAt || a.createdAt).getTime(),
+      );
+  }, [filteredInsightsIssues]);
 
   const trendInsights = React.useMemo(() => {
     const now = new Date();
@@ -352,13 +356,29 @@ const ProjectDetail: React.FC = () => {
   const [deleteSprintDialogOpen, setDeleteSprintDialogOpen] = useState(false);
   const [selectedSprint, setSelectedSprint] = useState<Sprint | null>(null);
   const [viewSprintIssues, setViewSprintIssues] = useState<Sprint | null>(null);
+  const [focusSprintForIssue, setFocusSprintForIssue] = useState<Sprint | null>(null);
   const [currentBoardId, setCurrentBoardId] = useState<string | null>(null);
+  const [scrumBoardSprintFilter, setScrumBoardSprintFilter] = useState<string>('all');
+  const [boardTransitionError, setBoardTransitionError] = useState<string | null>(null);
+  const [projectWorkflow, setProjectWorkflow] = useState<Workflow | null>(null);
+  const [projectWorkflowLoading, setProjectWorkflowLoading] = useState(false);
 
   // Filter sprints by current board to ensure we only use sprints for the selected board
   const sprints = React.useMemo(() => {
     if (!currentBoardId) return sprintsState.sprints;
     return sprintsState.sprints.filter((sprint) => sprint.boardId === currentBoardId);
   }, [sprintsState.sprints, currentBoardId]);
+  const activeSprint = React.useMemo(
+    () => sprints.find((sprint) => sprint.status === 'active') || null,
+    [sprints]
+  );
+  const currentBoard = React.useMemo(
+    () => boardsState.boards.find((board) => board.id === currentBoardId) || null,
+    [boardsState.boards, currentBoardId]
+  );
+  const currentBoardType = (currentBoard?.type || 'kanban').toLowerCase();
+  const isScrumBoard = currentBoardType === 'scrum';
+  const isKanbanBoard = currentBoardType === 'kanban';
   const [createBoardModalOpen, setCreateBoardModalOpen] = useState(false);
   const [editBoardModalOpen, setEditBoardModalOpen] = useState(false);
   const [deleteBoardDialogOpen, setDeleteBoardDialogOpen] = useState(false);
@@ -387,18 +407,15 @@ const ProjectDetail: React.FC = () => {
 
     return filtered;
   }, [allProjectIssues, currentBoardId, sprints]);
-
-  // Team state
-  const [assignRoleModalOpen, setAssignRoleModalOpen] = useState(false);
-  const [editingTeamMember, setEditingTeamMember] = useState<ProjectTeamMember | null>(null);
-  const [removeTeamMemberDialogOpen, setRemoveTeamMemberDialogOpen] = useState(false);
-  const [memberToRemove, setMemberToRemove] = useState<ProjectTeamMember | null>(null);
-
-  // Get team members from Redux state
-  const teamMembers = teamState.teamMembers;
-
-  // Activity state
-  const [activityFilter, setActivityFilter] = useState<EntityTypeFilter>('all');
+  const filteredBoardIssues = React.useMemo(() => {
+    if (!isScrumBoard) return boardIssues;
+    if (scrumBoardSprintFilter === 'all') return boardIssues;
+    if (scrumBoardSprintFilter === 'active') {
+      if (!activeSprint) return [];
+      return boardIssues.filter((issue) => issue.sprintId === activeSprint.id);
+    }
+    return boardIssues.filter((issue) => issue.sprintId === scrumBoardSprintFilter);
+  }, [boardIssues, isScrumBoard, scrumBoardSprintFilter, activeSprint]);
 
   // Fetch issues for the project using Redux
   useEffect(() => {
@@ -464,56 +481,29 @@ const ProjectDetail: React.FC = () => {
     }
   }, [currentBoardId, dispatch]);
 
-  // Fetch roles on mount
   useEffect(() => {
-    dispatch(
-      teamActions.getRolesRequest({
-        callback: {
-          onSuccess: () => {
-            // Roles loaded successfully
-          },
-          onError: (error: any) => {
-            console.error('Failed to fetch roles:', error);
-          },
-        },
-      } as any)
-    );
-  }, [dispatch]);
+    setScrumBoardSprintFilter('all');
+  }, [currentBoardId]);
 
-  // Fetch users on mount
   useEffect(() => {
-    dispatch(
-      usersActions.getUsersRequest({
-        callback: {
-          onSuccess: () => {
-            // Users loaded successfully
-          },
-          onError: (error: any) => {
-            console.error('Failed to fetch users:', error);
-          },
-        },
-      } as any)
-    );
-  }, [dispatch]);
-
-  // Fetch team members for the project
-  useEffect(() => {
-    if (projectId) {
-      dispatch(
-        teamActions.getTeamMembersRequest({
-          data: { projectId },
-          callback: {
-            onSuccess: () => {
-              // Team members loaded successfully
-            },
-            onError: (error: any) => {
-              console.error('Failed to fetch team members:', error);
-            },
-          },
-        } as any)
-      );
-    }
-  }, [projectId, dispatch]);
+    let mounted = true;
+    if (!projectId) return;
+    setProjectWorkflowLoading(true);
+    workflowsApi
+      .getWorkflowByProjectId(projectId)
+      .then((response) => {
+        if (mounted) setProjectWorkflow(response.data);
+      })
+      .catch(() => {
+        if (mounted) setProjectWorkflow(null);
+      })
+      .finally(() => {
+        if (mounted) setProjectWorkflowLoading(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [projectId]);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -587,6 +577,7 @@ const ProjectDetail: React.FC = () => {
   };
 
   const handleCreateIssue = () => {
+    setFocusSprintForIssue(null);
     setCreateModalOpen(true);
   };
 
@@ -652,10 +643,19 @@ const ProjectDetail: React.FC = () => {
           },
           onError: (error: any) => {
             console.error('Failed to transition issue:', error);
+            const message =
+              error?.response?.data?.message ||
+              error?.message ||
+              t('projectDetail.transitionFailed');
+            setBoardTransitionError(String(message));
           },
         },
       } as any)
     );
+  };
+
+  const handleIssueNavigate = (issue: Issue) => {
+    navigate(`/projects/${issue.projectId}/issues/${issue.id}`);
   };
 
   // Sprint handlers
@@ -770,79 +770,11 @@ const ProjectDetail: React.FC = () => {
 
   const handleViewSprintIssues = (sprint: Sprint) => {
     setViewSprintIssues(sprint);
+    setFocusSprintForIssue(sprint);
   };
 
   const handleBackFromSprintIssues = () => {
     setViewSprintIssues(null);
-  };
-
-  // Team handlers
-  const handleRoleAssigned = (userId: string, roleId: string) => {
-    // Role assignment is handled by Redux
-    // Refetch team members to show the newly added member
-    if (projectId) {
-      dispatch(
-        teamActions.getTeamMembersRequest({
-          data: { projectId },
-          callback: {
-            onSuccess: () => {
-              // Team members refreshed
-            },
-            onError: (error: any) => {
-              console.error('Failed to refresh team members:', error);
-            },
-          },
-        } as any)
-      );
-    }
-    setEditingTeamMember(null);
-  };
-
-  const handleEditTeamMember = (member: ProjectTeamMember) => {
-    setEditingTeamMember(member);
-    setAssignRoleModalOpen(true);
-  };
-
-  const handleRemoveTeamMember = (member: ProjectTeamMember) => {
-    setMemberToRemove(member);
-    setRemoveTeamMemberDialogOpen(true);
-  };
-
-  const handleConfirmRemoveTeamMember = () => {
-    if (!projectId || !memberToRemove) return;
-
-    dispatch(
-      teamActions.removeRoleFromUserInProjectRequest({
-        data: {
-          projectId,
-          roleId: memberToRemove.roleId,
-          userId: memberToRemove.userId,
-        },
-        callback: {
-          onSuccess: () => {
-            // Refetch team members to update the list
-            dispatch(
-              teamActions.getTeamMembersRequest({
-                data: { projectId },
-                callback: {
-                  onSuccess: () => {
-                    // Team members refreshed
-                  },
-                  onError: (error: any) => {
-                    console.error('Failed to refresh team members:', error);
-                  },
-                },
-              } as any)
-            );
-            setRemoveTeamMemberDialogOpen(false);
-            setMemberToRemove(null);
-          },
-          onError: (error: any) => {
-            console.error('Failed to remove team member:', error);
-          },
-        },
-      } as any)
-    );
   };
 
   // Load project data from Redux store
@@ -990,8 +922,7 @@ const ProjectDetail: React.FC = () => {
           <Tab label={t('projectDetail.tabBoards')} />
           <Tab label={t('projectDetail.tabIssues')} />
           <Tab label={t('projectDetail.tabInsights')} />
-          <Tab label={t('projectDetail.tabTeam')} />
-          <Tab label={t('projectDetail.tabActivity')} />
+          <Tab label={t('projectDetail.tabWorkflow')} />
         </Tabs>
       </Paper>
 
@@ -1008,173 +939,152 @@ const ProjectDetail: React.FC = () => {
             />
           ) : (
             <>
-              {/* Sprints Section */}
-              <Paper
-                sx={{
-                  p: 3,
-                  mb: 3,
-                  borderRadius: UI_BORDER_RADIUS.xl,
-                  boxShadow: UI_SHADOWS.md,
-                }}
-              >
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
-                        color: UI_COLORS.text.primary,
-                        fontSize: UI_TYPOGRAPHY.fontSize.xl,
-                      }}
-                    >
-                      {t('projectDetail.sprints')}
-                    </Typography>
-                    {boardsState.boards.length > 1 ? (
-                      <FormControl size="small" sx={{ minWidth: 200 }}>
-                        <InputLabel>{t('projectDetail.selectBoard')}</InputLabel>
-                        <Select
-                          value={currentBoardId || ''}
-                          label={t('projectDetail.selectBoard')}
-                          onChange={(e) => setCurrentBoardId(e.target.value)}
-                        >
-                          {boardsState.boards.map((board) => (
-                            <MenuItem key={board.id} value={board.id}>
-                              {board.name}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    ) : boardsState.boards.length > 0 && currentBoardId ? (
+              {isScrumBoard && (
+                <Paper
+                  sx={{
+                    p: 3,
+                    mb: 3,
+                    borderRadius: UI_BORDER_RADIUS.xl,
+                    boxShadow: UI_SHADOWS.md,
+                  }}
+                >
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                          color: UI_COLORS.text.primary,
+                          fontSize: UI_TYPOGRAPHY.fontSize.xl,
+                        }}
+                      >
+                        {t('projectDetail.sprints')}
+                      </Typography>
                       <Chip
-                        label={t('projectDetail.boardNamed', {
-                          name:
-                            boardsState.boards.find((b) => b.id === currentBoardId)?.name ||
-                            t('projectDetail.unknown'),
-                        })}
                         size="small"
-                        color="primary"
+                        color="info"
                         variant="outlined"
+                        label={t('projectDetail.scrumModeLabel')}
                       />
-                    ) : null}
-                  </Box>
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    {boardsState.boards.length > 0 && currentBoardId && (
-                      <>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          onClick={() => {
-                            const board = boardsState.boards.find((b) => b.id === currentBoardId);
-                            if (board) {
-                              setSelectedBoard(board);
-                              setEditBoardModalOpen(true);
-                            }
-                          }}
-                          sx={{
-                            ...UI_BUTTON_STYLES.secondary,
-                            borderRadius: UI_BORDER_RADIUS.md,
-                            textTransform: 'none',
-                            fontSize: UI_TYPOGRAPHY.fontSize.sm,
-                            fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
-                          }}
-                        >
-                          {t('projectDetail.editBoard')}
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          color="error"
-                          size="small"
-                          onClick={() => {
-                            const board = boardsState.boards.find((b) => b.id === currentBoardId);
-                            if (board) {
-                              setSelectedBoard(board);
-                              setDeleteBoardDialogOpen(true);
-                            }
-                          }}
-                          sx={{
-                            borderRadius: UI_BORDER_RADIUS.md,
-                            textTransform: 'none',
-                            fontSize: UI_TYPOGRAPHY.fontSize.sm,
-                            fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
-                          }}
-                        >
-                          {t('projectDetail.deleteBoard')}
-                        </Button>
-                      </>
-                    )}
-                    {currentBoardId && (
-                      <Button
-                        variant="contained"
-                        startIcon={<AddIcon />}
-                        onClick={() => setCreateSprintModalOpen(true)}
-                        size="small"
-                        disabled={boardsState.getBoardsLoading}
-                        sx={{
-                          ...UI_BUTTON_STYLES.primary,
-                          borderRadius: UI_BORDER_RADIUS.md,
-                          textTransform: 'none',
-                          fontSize: UI_TYPOGRAPHY.fontSize.sm,
-                          fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
-                        }}
-                      >
-                        {t('projectDetail.createSprint')}
-                      </Button>
-                    )}
-                    {!currentBoardId && (
-                      <Button
-                        variant="contained"
-                        startIcon={<AddIcon />}
-                        onClick={() => setCreateBoardModalOpen(true)}
-                        size="small"
-                        sx={{
-                          ...UI_BUTTON_STYLES.primary,
-                          borderRadius: UI_BORDER_RADIUS.md,
-                          textTransform: 'none',
-                          fontSize: UI_TYPOGRAPHY.fontSize.sm,
-                          fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
-                        }}
-                      >
-                        {t('projectDetail.createBoard')}
-                      </Button>
-                    )}
-                  </Box>
-                </Box>
-                {boardsState.getBoardsLoading ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                    <CircularProgress size={24} />
-                    <Typography variant="body2" sx={{ ml: 2 }}>
-                      {t('projectDetail.loadingBoards')}
-                    </Typography>
-                  </Box>
-                ) : !currentBoardId ? (
-                  <Box>
-                    <Alert severity="info" sx={{ mb: 2 }}>
-                      {t('projectDetail.noBoardsAlert')}
-                      {projectId && (
-                        <Typography variant="caption" display="block" sx={{ mt: 1 }}>
-                          {t('projectDetail.projectIdLabel')} {projectId}
-                        </Typography>
+                      {boardsState.boards.length > 1 ? (
+                        <FormControl size="small" sx={{ minWidth: 200 }}>
+                          <InputLabel>{t('projectDetail.selectBoard')}</InputLabel>
+                          <Select
+                            value={currentBoardId || ''}
+                            label={t('projectDetail.selectBoard')}
+                            onChange={(e) => setCurrentBoardId(e.target.value)}
+                          >
+                            {boardsState.boards.map((board) => (
+                              <MenuItem key={board.id} value={board.id}>
+                                {board.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      ) : null}
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      {boardsState.boards.length > 0 && currentBoardId && (
+                        <>
+                          <Button
+                            variant="outlined"
+                            color="error"
+                            size="small"
+                            onClick={() => {
+                              const board = boardsState.boards.find((b) => b.id === currentBoardId);
+                              if (board) {
+                                setSelectedBoard(board);
+                                setDeleteBoardDialogOpen(true);
+                              }
+                            }}
+                            sx={{
+                              borderRadius: UI_BORDER_RADIUS.md,
+                              textTransform: 'none',
+                              fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                              fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                            }}
+                          >
+                            {t('projectDetail.deleteBoard')}
+                          </Button>
+                        </>
                       )}
-                    </Alert>
-                    <SprintList sprints={[]} emptyMessage={t('projectDetail.emptySprintsNoBoard')} />
+                      {currentBoardId && (
+                        <Button
+                          variant="contained"
+                          startIcon={<AddIcon />}
+                          onClick={() => setCreateSprintModalOpen(true)}
+                          size="small"
+                          disabled={boardsState.getBoardsLoading}
+                          sx={{
+                            ...UI_BUTTON_STYLES.primary,
+                            borderRadius: UI_BORDER_RADIUS.md,
+                            textTransform: 'none',
+                            fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                            fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                          }}
+                        >
+                          {t('projectDetail.createSprint')}
+                        </Button>
+                      )}
+                      {!currentBoardId && (
+                        <Button
+                          variant="contained"
+                          startIcon={<AddIcon />}
+                          onClick={() => setCreateBoardModalOpen(true)}
+                          size="small"
+                          sx={{
+                            ...UI_BUTTON_STYLES.primary,
+                            borderRadius: UI_BORDER_RADIUS.md,
+                            textTransform: 'none',
+                            fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                            fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                          }}
+                        >
+                          {t('projectDetail.createBoard')}
+                        </Button>
+                      )}
+                    </Box>
                   </Box>
-                ) : (
-                  <SprintList
-                    sprints={sprints}
-                    onEdit={(sprint) => {
-                      setSelectedSprint(sprint);
-                      setEditSprintModalOpen(true);
-                    }}
-                    onDelete={(sprint) => {
-                      setSelectedSprint(sprint);
-                      setDeleteSprintDialogOpen(true);
-                    }}
-                    onStart={handleStartSprint}
-                    onComplete={handleCompleteSprint}
-                    onViewIssues={handleViewSprintIssues}
-                  />
-                )}
-              </Paper>
+                  <Alert severity="info" sx={{ mb: 2 }}>
+                    {t('projectDetail.scrumModeHelper')}
+                  </Alert>
+                  {boardsState.getBoardsLoading ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                      <CircularProgress size={24} />
+                      <Typography variant="body2" sx={{ ml: 2 }}>
+                        {t('projectDetail.loadingBoards')}
+                      </Typography>
+                    </Box>
+                  ) : !currentBoardId ? (
+                    <Box>
+                      <Alert severity="info" sx={{ mb: 2 }}>
+                        {t('projectDetail.noBoardsAlert')}
+                        {projectId && (
+                          <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+                            {t('projectDetail.projectIdLabel')} {projectId}
+                          </Typography>
+                        )}
+                      </Alert>
+                      <SprintList sprints={[]} emptyMessage={t('projectDetail.emptySprintsNoBoard')} />
+                    </Box>
+                  ) : (
+                    <SprintList
+                      sprints={sprints}
+                      onEdit={(sprint) => {
+                        setSelectedSprint(sprint);
+                        setEditSprintModalOpen(true);
+                      }}
+                      onDelete={(sprint) => {
+                        setSelectedSprint(sprint);
+                        setDeleteSprintDialogOpen(true);
+                      }}
+                      onStart={handleStartSprint}
+                      onComplete={handleCompleteSprint}
+                      onViewIssues={handleViewSprintIssues}
+                    />
+                  )}
+                </Paper>
+              )}
 
               {/* Board Section */}
               <Paper
@@ -1197,6 +1107,16 @@ const ProjectDetail: React.FC = () => {
                     >
                       {t('projectDetail.boardView')}
                     </Typography>
+                    <Chip
+                      size="small"
+                      color={isScrumBoard ? 'info' : 'default'}
+                      variant="outlined"
+                      label={
+                        isScrumBoard
+                          ? t('projectDetail.scrumModeLabel')
+                          : t('projectDetail.kanbanModeLabel')
+                      }
+                    />
                     {boardsState.boards.length > 1 ? (
                       <FormControl size="small" sx={{ minWidth: 200 }}>
                         <InputLabel>{t('projectDetail.selectBoard')}</InputLabel>
@@ -1212,69 +1132,71 @@ const ProjectDetail: React.FC = () => {
                           ))}
                         </Select>
                       </FormControl>
-                    ) : boardsState.boards.length > 0 && currentBoardId ? (
-                      <Chip
-                        label={
-                          boardsState.boards.find((b) => b.id === currentBoardId)?.name ||
-                          t('projectDetail.unknown')
-                        }
-                        size="small"
-                        color="primary"
-                        variant="outlined"
-                      />
                     ) : null}
+                    {isScrumBoard && (
+                      <FormControl size="small" sx={{ minWidth: 220 }}>
+                        <InputLabel>{t('projectDetail.boardSprintFilter')}</InputLabel>
+                        <Select
+                          value={scrumBoardSprintFilter}
+                          label={t('projectDetail.boardSprintFilter')}
+                          onChange={(e) => setScrumBoardSprintFilter(e.target.value)}
+                        >
+                          <MenuItem value="all">{t('projectDetail.boardSprintFilterAll')}</MenuItem>
+                          <MenuItem value="active">{t('projectDetail.boardSprintFilterActive')}</MenuItem>
+                          {sprints.map((sprint) => (
+                            <MenuItem key={sprint.id} value={sprint.id}>
+                              {sprint.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    )}
                   </Box>
                   <Box sx={{ display: 'flex', gap: 1 }}>
-                    {boardsState.boards.length > 0 && currentBoardId && (
-                      <>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          onClick={() => {
-                            const board = boardsState.boards.find((b) => b.id === currentBoardId);
-                            if (board) {
-                              setSelectedBoard(board);
-                              setEditBoardModalOpen(true);
-                            }
-                          }}
-                          sx={{
-                            ...UI_BUTTON_STYLES.secondary,
-                            borderRadius: UI_BORDER_RADIUS.md,
-                            textTransform: 'none',
-                            fontSize: UI_TYPOGRAPHY.fontSize.sm,
-                            fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
-                          }}
-                        >
-                          {t('projectDetail.editBoard')}
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          color="error"
-                          size="small"
-                          onClick={() => {
-                            const board = boardsState.boards.find((b) => b.id === currentBoardId);
-                            if (board) {
-                              setSelectedBoard(board);
-                              setDeleteBoardDialogOpen(true);
-                            }
-                          }}
-                          sx={{
-                            borderRadius: UI_BORDER_RADIUS.md,
-                            textTransform: 'none',
-                            fontSize: UI_TYPOGRAPHY.fontSize.sm,
-                            fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
-                          }}
-                        >
-                          {t('projectDetail.deleteBoard')}
-                        </Button>
-                      </>
+                    {currentBoardId && (
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => {
+                          const board = boardsState.boards.find((b) => b.id === currentBoardId);
+                          if (board) {
+                            setSelectedBoard(board);
+                            setEditBoardModalOpen(true);
+                          }
+                        }}
+                        sx={{
+                          ...UI_BUTTON_STYLES.secondary,
+                          borderRadius: UI_BORDER_RADIUS.md,
+                          textTransform: 'none',
+                          fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                          fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                        }}
+                      >
+                        {t('projectDetail.editBoard')}
+                      </Button>
+                    )}
+                    {!currentBoardId && (
+                      <Button
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        onClick={() => setCreateBoardModalOpen(true)}
+                        size="small"
+                        sx={{
+                          ...UI_BUTTON_STYLES.primary,
+                          borderRadius: UI_BORDER_RADIUS.md,
+                          textTransform: 'none',
+                          fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                          fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                        }}
+                      >
+                        {t('projectDetail.createBoard')}
+                      </Button>
                     )}
                     <Button
                       variant="contained"
                       startIcon={<AddIcon />}
                       onClick={handleCreateIssue}
                       size="small"
-                      disabled={!currentBoardId}
                       sx={{
                         ...UI_BUTTON_STYLES.primary,
                         borderRadius: UI_BORDER_RADIUS.md,
@@ -1287,8 +1209,13 @@ const ProjectDetail: React.FC = () => {
                     </Button>
                   </Box>
                 </Box>
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  {isScrumBoard
+                    ? t('projectDetail.scrumBoardHelper')
+                    : t('projectDetail.kanbanModeHelper')}
+                </Alert>
                 <BoardView
-                  issues={boardIssues}
+                  issues={filteredBoardIssues}
                   columns={boardColumns}
                   onIssueMove={handleIssueMove}
                 />
@@ -1762,34 +1689,95 @@ const ProjectDetail: React.FC = () => {
                   </Paper>
                 </Box>
 
-                <Paper variant="outlined" sx={{ p: 2, borderRadius: UI_BORDER_RADIUS.lg, height: 340 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                      {t('projectDetail.insights.trendTitle')}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {t('projectDetail.insights.trendSummary', {
-                        total: trendInsights.totalCreated,
-                        avg: trendInsights.avgPerDay,
-                      })}
-                    </Typography>
-                  </Box>
-                  <ResponsiveContainer width="100%" height="88%">
-                    <LineChart data={trendInsights.chart}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="label" />
-                      <YAxis allowDecimals={false} />
-                      <RechartsTooltip formatter={formatInsightsTooltip} />
-                      <Line
-                        type="monotone"
-                        dataKey="count"
-                        stroke={UI_COLORS.primary.main}
-                        strokeWidth={2}
-                        dot={{ r: 3 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </Paper>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', xl: '2fr 1fr' },
+                    gap: 2,
+                  }}
+                >
+                  <Paper variant="outlined" sx={{ p: 2, borderRadius: UI_BORDER_RADIUS.lg, height: 340 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                        {t('projectDetail.insights.trendTitle')}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {t('projectDetail.insights.trendSummary', {
+                          total: trendInsights.totalCreated,
+                          avg: trendInsights.avgPerDay,
+                        })}
+                      </Typography>
+                    </Box>
+                    <ResponsiveContainer width="100%" height="88%">
+                      <LineChart data={trendInsights.chart}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="label" />
+                        <YAxis allowDecimals={false} />
+                        <RechartsTooltip formatter={formatInsightsTooltip} />
+                        <Line
+                          type="monotone"
+                          dataKey="count"
+                          stroke={UI_COLORS.primary.main}
+                          strokeWidth={2}
+                          dot={{ r: 3 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </Paper>
+
+                  <Paper
+                    variant="outlined"
+                    sx={{
+                      p: 2,
+                      borderRadius: UI_BORDER_RADIUS.lg,
+                      height: 340,
+                      display: 'flex',
+                      flexDirection: 'column',
+                    }}
+                  >
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                        {t('projectDetail.insights.highRiskIssuesTitle')}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {t('projectDetail.insights.highRiskIssuesSubtitle', {
+                          count: highRiskInsightsIssues.length,
+                        })}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ overflow: 'auto', flex: 1 }}>
+                      {highRiskInsightsIssues.length === 0 ? (
+                        <Typography variant="body2" color="text.secondary">
+                          {t('projectDetail.insights.highRiskIssuesEmpty')}
+                        </Typography>
+                      ) : (
+                        <Table size="small" stickyHeader>
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>{t('projectDetail.colKey')}</TableCell>
+                              <TableCell>{t('projectDetail.colPriority')}</TableCell>
+                              <TableCell>{t('projectDetail.colStatus')}</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {highRiskInsightsIssues.slice(0, 10).map((issue) => (
+                              <TableRow
+                                key={issue.id}
+                                hover
+                                onClick={() => handleIssueNavigate(issue)}
+                                sx={{ cursor: 'pointer' }}
+                              >
+                                <TableCell>{issue.key}</TableCell>
+                                <TableCell>{issue.priority?.name || '-'}</TableCell>
+                                <TableCell>{issue.status?.name || '-'}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      )}
+                    </Box>
+                  </Paper>
+                </Box>
               </>
             )}
           </Paper>
@@ -1803,80 +1791,65 @@ const ProjectDetail: React.FC = () => {
               p: 3,
               borderRadius: UI_BORDER_RADIUS.xl,
               boxShadow: UI_SHADOWS.md,
+              border: `1px solid ${UI_COLORS.border.light}`,
             }}
           >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography
-                variant="h6"
-                sx={{
-                  fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
-                  color: UI_COLORS.text.primary,
-                  fontSize: UI_TYPOGRAPHY.fontSize.xl,
-                }}
-              >
-                {t('projectDetail.teamMembers')}
-              </Typography>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => {
-                  setEditingTeamMember(null);
-                  setAssignRoleModalOpen(true);
-                }}
-                size="small"
-                sx={{
-                  ...UI_BUTTON_STYLES.primary,
-                  borderRadius: UI_BORDER_RADIUS.md,
-                  textTransform: 'none',
-                  fontSize: UI_TYPOGRAPHY.fontSize.sm,
-                  fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
-                }}
-              >
-                {t('projectDetail.addMember')}
-              </Button>
-            </Box>
-            <TeamList
-              teamMembers={teamMembers}
-              onEdit={handleEditTeamMember}
-              onRemove={handleRemoveTeamMember}
-            />
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: UI_TYPOGRAPHY.fontWeight.semibold }}>
+              {t('projectDetail.workflowReadOnlyTitle')}
+            </Typography>
+            {projectWorkflowLoading ? (
+              <CircularProgress size={24} />
+            ) : !projectWorkflow ? (
+              <Alert severity="info">{t('projectDetail.workflowReadOnlyEmpty')}</Alert>
+            ) : (
+              <>
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  {projectWorkflow.name}
+                </Typography>
+                <Typography variant="body2" sx={{ color: UI_COLORS.text.secondary, mb: 2 }}>
+                  {projectWorkflow.description || '-'}
+                </Typography>
+                {(projectWorkflow.transitions || []).length === 0 ? (
+                  <Alert severity="info">{t('projectDetail.workflowReadOnlyNoTransitions')}</Alert>
+                ) : (
+                  <TableContainer component={Paper} variant="outlined">
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>{t('projectDetail.workflowTransitionFrom')}</TableCell>
+                          <TableCell>{t('projectDetail.workflowTransitionTo')}</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {(projectWorkflow.transitions || []).map((transition) => (
+                          <TableRow key={transition.id}>
+                            <TableCell>{transition.fromStatus?.category || '-'}</TableCell>
+                            <TableCell>{transition.toStatus?.category || '-'}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  {t('projectDetail.workflowAutoBackwardHint')}
+                </Alert>
+              </>
+            )}
           </Paper>
         </Box>
       )}
 
-      {tabValue === 4 && (
-        <Box>
-          <Paper
-            sx={{
-              p: 3,
-              borderRadius: UI_BORDER_RADIUS.xl,
-              boxShadow: UI_SHADOWS.md,
-            }}
-          >
-            <Typography
-              variant="h6"
-              gutterBottom
-              sx={{
-                fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
-                color: UI_COLORS.text.primary,
-                fontSize: UI_TYPOGRAPHY.fontSize.xl,
-              }}
-            >
-              {t('projectDetail.activityTitle')}
-            </Typography>
-            <ActivityFilter
-              entityType={activityFilter}
-              onEntityTypeChange={setActivityFilter}
-            />
-            <ActivityFeed
-              auditLogs={[]}
-              entityType={activityFilter === 'all' ? undefined : activityFilter}
-              entityId={projectId}
-              emptyMessage={t('projectDetail.emptyActivity')}
-            />
-          </Paper>
-        </Box>
-      )}
+      <Snackbar
+        open={Boolean(boardTransitionError)}
+        autoHideDuration={3000}
+        onClose={() => setBoardTransitionError(null)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert severity="error" onClose={() => setBoardTransitionError(null)} sx={{ width: '100%' }}>
+          {boardTransitionError}
+        </Alert>
+      </Snackbar>
 
       {/* Modals */}
       <CreateIssueModal
@@ -1884,6 +1857,9 @@ const ProjectDetail: React.FC = () => {
         onClose={() => setCreateModalOpen(false)}
         projectId={projectId || ''}
         reporterId={currentUser?.id || ''}
+        showSprintField={isScrumBoard}
+        defaultSprintId={isScrumBoard ? focusSprintForIssue?.id : undefined}
+        sprintOptions={sprints.map((sprint) => ({ id: sprint.id, name: sprint.name }))}
         onIssueCreated={handleIssueCreated}
       />
       {selectedIssue && (
@@ -1895,6 +1871,8 @@ const ProjectDetail: React.FC = () => {
               setSelectedIssue(null);
             }}
             issue={selectedIssue}
+            showSprintField={isScrumBoard}
+            sprintOptions={sprints.map((sprint) => ({ id: sprint.id, name: sprint.name }))}
             onIssueUpdated={handleIssueUpdated}
           />
           <DeleteIssueDialog
@@ -1973,51 +1951,6 @@ const ProjectDetail: React.FC = () => {
         </>
       )}
 
-      {/* Team Modals */}
-      <AssignRoleModal
-        open={assignRoleModalOpen}
-        onClose={() => {
-          setAssignRoleModalOpen(false);
-          setEditingTeamMember(null);
-        }}
-        projectId={projectId || ''}
-        availableUsers={usersState.users}
-        availableRoles={teamState.roles}
-        existingTeamMembers={teamMembers}
-        editingMember={editingTeamMember}
-        onRoleAssigned={handleRoleAssigned}
-      />
-
-      {/* Remove Team Member Dialog */}
-      <Dialog
-        key={i18n.language}
-        open={removeTeamMemberDialogOpen}
-        onClose={() => setRemoveTeamMemberDialogOpen(false)}
-      >
-        <DialogTitle>{t('projectDetail.removeMemberTitle')}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {t('projectDetail.removeMemberConfirm', {
-              user: memberToRemove?.user.displayName ?? '',
-              role: memberToRemove?.role.name ?? '',
-            })}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setRemoveTeamMemberDialogOpen(false)} disabled={teamState.removeRoleLoading}>
-            {t('common.cancel')}
-          </Button>
-          <Button
-            onClick={handleConfirmRemoveTeamMember}
-            color="error"
-            variant="contained"
-            disabled={teamState.removeRoleLoading}
-            startIcon={teamState.removeRoleLoading ? <CircularProgress size={16} /> : null}
-          >
-            {teamState.removeRoleLoading ? t('projectDetail.removing') : t('projectDetail.remove')}
-          </Button>
-        </DialogActions>
-      </Dialog>
       </Container>
     );
   };

@@ -4,6 +4,7 @@ import {
   Dashboard as DashboardIcon,
   AccountTree as WorkflowIcon,
   AdminPanelSettings as AdminIcon,
+  ManageAccounts as ManageAccountsIcon,
   Info as AboutIcon,
 } from '@mui/icons-material';
 import { BaseSidebar } from './BaseSidebar';
@@ -51,6 +52,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   
   // Check if user has admin role
   const isAdmin = checkRole('admin');
+  const isManagerOrAdmin = checkRole(['manager', 'admin']);
   const currentPath = optimisticPath ?? location.pathname;
 
   React.useEffect(() => {
@@ -69,11 +71,22 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
       },
       {
         id: 'dashboard',
-        label: t('nav.dashboard'),
+        label: t('nav.myDashboard'),
         icon: <DashboardIcon />,
         path: '/dashboard',
         active: currentPath === '/dashboard',
       },
+      ...(isManagerOrAdmin
+        ? [
+            {
+              id: 'manager-dashboard',
+              label: t('nav.managerDashboard'),
+              icon: <ManageAccountsIcon />,
+              path: '/manager-dashboard',
+              active: currentPath === '/manager-dashboard',
+            },
+          ]
+        : []),
       {
         id: 'workflows',
         label: t('nav.workflows'),
@@ -82,7 +95,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         active: currentPath.startsWith('/workflows'),
       },
     ],
-    [currentPath, t]
+    [currentPath, isManagerOrAdmin, t]
   );
 
   // Secondary navigation items - admin and info

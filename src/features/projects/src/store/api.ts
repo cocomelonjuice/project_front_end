@@ -8,19 +8,19 @@ import type { Project } from './states';
 
 export const projectsApi = {
   // Get all projects
-  getProjects: () =>
-    axiosInstance.get<Project[]>(API_ENDPOINTS.PROJECTS.GET_ALL),
+  getProjects: (params?: { scope?: 'managed' }) =>
+    axiosInstance.get<Project[]>(API_ENDPOINTS.PROJECTS.GET_ALL, { params }),
 
   // Get project by ID
   getProjectById: (id: string) =>
     axiosInstance.get<Project>(API_ENDPOINTS.PROJECTS.GET_BY_ID(id)),
 
   // Create project
-  createProject: (data: { key: string; name: string; type: string; description?: string }) =>
+  createProject: (data: { name: string; type: string; description?: string }) =>
     axiosInstance.post<Project>(API_ENDPOINTS.PROJECTS.CREATE, data),
 
   // Update project
-  updateProject: (id: string, data: { key?: string; name?: string; type?: string; description?: string }) =>
+  updateProject: (id: string, data: { name?: string; type?: string; description?: string }) =>
     axiosInstance.put<Project>(API_ENDPOINTS.PROJECTS.UPDATE(id), data),
 
   // Delete project

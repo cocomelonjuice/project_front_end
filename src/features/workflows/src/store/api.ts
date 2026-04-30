@@ -5,7 +5,6 @@
 import { axiosInstance } from '../../../../shared/api/src';
 import { API_ENDPOINTS } from '../../../../shared/constants/src/api';
 import { transformWorkflow, transformWorkflows, transformWorkflowTransition, transformWorkflowTransitions } from './apiTransformers';
-import type { Workflow, WorkflowTransition } from './states';
 
 // Backend Workflow response structure
 interface BackendWorkflow {
@@ -41,14 +40,14 @@ interface BackendWorkflowTransition {
 export interface CreateWorkflowData {
   name: string;
   description?: string;
-  projectId?: string;
+  projectId: string;
   isActive?: boolean;
 }
 
 export interface UpdateWorkflowData {
   name?: string;
   description?: string;
-  projectId?: string | null;
+  projectId?: string;
   isActive?: boolean;
 }
 
@@ -79,6 +78,13 @@ export const workflowsApi = {
       data: transformWorkflow(response.data),
     })),
 
+  // Get workflow by project ID
+  getWorkflowByProjectId: (projectId: string) =>
+    axiosInstance.get<BackendWorkflow | null>(API_ENDPOINTS.WORKFLOWS.GET_BY_PROJECT(projectId)).then((response) => ({
+      ...response,
+      data: response.data ? transformWorkflow(response.data) : null,
+    })),
+
   // Update workflow
   updateWorkflow: (id: string, data: UpdateWorkflowData) =>
     axiosInstance.put<BackendWorkflow>(API_ENDPOINTS.WORKFLOWS.UPDATE(id), data).then((response) => ({
@@ -88,6 +94,13 @@ export const workflowsApi = {
 
   // Delete workflow
   deleteWorkflow: (id: string) => axiosInstance.delete<void>(API_ENDPOINTS.WORKFLOWS.DELETE(id)),
+
+  // Detach workflow from assigned project
+  detachWorkflow: (id: string) =>
+    axiosInstance.post<BackendWorkflow>(API_ENDPOINTS.WORKFLOWS.DETACH(id)).then((response) => ({
+      ...response,
+      data: transformWorkflow(response.data),
+    })),
 
   // Get transitions for a workflow
   getTransitions: (id: string) =>

@@ -25,7 +25,7 @@ import {
   Delete as DeleteIcon,
   Person as PersonIcon,
 } from '@mui/icons-material';
-import { EditIssueModal, DeleteIssueDialog, AssignIssueModal, TransitionStatusModal, issuesActions, useSelectorIssues } from '../../features/issues/src';
+import { EditIssueModal, DeleteIssueDialog, issuesActions, useSelectorIssues } from '../../features/issues/src';
 import type { Issue } from '../../features/issues/src/store/states';
 import {
   CommentList,
@@ -103,9 +103,6 @@ const IssueDetail: React.FC = () => {
   const [assignLabelsModalOpen, setAssignLabelsModalOpen] = useState(false);
   const [selectedLabel, setSelectedLabel] = useState<Label | null>(null);
 
-  // Assign and Transition modals
-  const [assignIssueModalOpen, setAssignIssueModalOpen] = useState(false);
-  const [transitionStatusModalOpen, setTransitionStatusModalOpen] = useState(false);
 
   useEffect(() => {
     if (issueId) {
@@ -319,50 +316,6 @@ const IssueDetail: React.FC = () => {
     setEditLabelModalOpen(true);
   };
 
-  // Assign and Transition handlers
-  const handleIssueAssigned = (assigneeId: string) => {
-    if (!issueId) return;
-    
-    // Convert empty string to null for unassign (backend expects null to unassign)
-    const finalAssigneeId = assigneeId.trim() === '' ? null : assigneeId;
-    
-    dispatch(
-      issuesActions.assignIssueRequest({
-        data: {
-          id: issueId,
-          assigneeId: finalAssigneeId,
-        },
-        callback: {
-          onSuccess: (updatedIssue: Issue) => {
-            // Issue is already updated in Redux state by the reducer
-            // Refresh to get full assignee data from backend
-            if (issueId) {
-              dispatch(
-                issuesActions.getIssueByIdRequest({
-                  data: { id: issueId },
-                  callback: {},
-                } as any)
-              );
-            }
-            // Close the modal on success
-            setAssignIssueModalOpen(false);
-          },
-          onError: (error: any) => {
-            console.error('Failed to assign issue:', error);
-            // Don't close modal on error so user can retry
-          },
-          onFinally: () => {
-            // Reset any loading states if needed
-          },
-        },
-      } as any)
-    );
-  };
-
-  const handleStatusTransitioned = (statusId: string) => {
-    // Issue will be updated in Redux state by the transition status action
-  };
-
   // Show loading state while fetching issue
   if (issuesState.getIssueByIdLoading) {
     return (
@@ -525,29 +478,6 @@ const IssueDetail: React.FC = () => {
             </Box>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Button
-              variant="outlined"
-              startIcon={<EditIcon />}
-              onClick={handleEdit}
-              sx={{
-                ...UI_BUTTON_STYLES.secondary,
-                borderRadius: UI_BORDER_RADIUS.md,
-                textTransform: 'none',
-                fontSize: UI_TYPOGRAPHY.fontSize.sm,
-                fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
-                px: 2.5,
-                py: 1,
-                borderWidth: 2,
-                '&:hover': {
-                  borderWidth: 2,
-                  transform: 'translateY(-2px)',
-                  boxShadow: UI_SHADOWS.md,
-                },
-                transition: 'all 0.2s ease-in-out',
-              }}
-            >
-              {t('issueDetailPage.edit')}
-            </Button>
             <IconButton
               onClick={handleMenuOpen}
               size="medium"
@@ -580,6 +510,18 @@ const IssueDetail: React.FC = () => {
                 },
               }}
             >
+              <MenuItem
+                onClick={handleEdit}
+                sx={{
+                  fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                  '&:hover': {
+                    backgroundColor: UI_COLORS.background.hover,
+                  },
+                }}
+              >
+                <EditIcon sx={{ mr: 1, fontSize: 18 }} />
+                {t('issueDetailPage.edit')}
+              </MenuItem>
               <MenuItem
                 onClick={handleDelete}
                 sx={{
@@ -1014,28 +956,6 @@ const IssueDetail: React.FC = () => {
                 >
                   {t('issueDetailPage.fieldStatus')}
                 </Typography>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={() => setTransitionStatusModalOpen(true)}
-                  sx={{
-                    ...UI_BUTTON_STYLES.secondary,
-                    borderRadius: UI_BORDER_RADIUS.md,
-                    textTransform: 'none',
-                    fontSize: UI_TYPOGRAPHY.fontSize.xs,
-                    fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
-                    px: 1.5,
-                    py: 0.5,
-                    borderWidth: 1.5,
-                    '&:hover': {
-                      transform: 'translateY(-1px)',
-                      boxShadow: UI_SHADOWS.sm,
-                    },
-                    transition: 'all 0.2s ease-in-out',
-                  }}
-                >
-                  {t('issueDetailPage.change')}
-                </Button>
               </Box>
               <Chip
                 label={status?.name || t('issueDetailPage.unknown')}
@@ -1095,28 +1015,6 @@ const IssueDetail: React.FC = () => {
                 >
                   {t('issueDetailPage.fieldAssignee')}
                 </Typography>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={() => setAssignIssueModalOpen(true)}
-                  sx={{
-                    ...UI_BUTTON_STYLES.secondary,
-                    borderRadius: UI_BORDER_RADIUS.md,
-                    textTransform: 'none',
-                    fontSize: UI_TYPOGRAPHY.fontSize.xs,
-                    fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
-                    px: 1.5,
-                    py: 0.5,
-                    borderWidth: 1.5,
-                    '&:hover': {
-                      transform: 'translateY(-1px)',
-                      boxShadow: UI_SHADOWS.sm,
-                    },
-                    transition: 'all 0.2s ease-in-out',
-                  }}
-                >
-                  {assignee ? t('issueDetailPage.change') : t('issueDetailPage.assign')}
-                </Button>
               </Box>
               {assignee ? (
                 <Box
@@ -1479,21 +1377,6 @@ const IssueDetail: React.FC = () => {
         }}
       />
 
-      {/* Assign and Transition Modals */}
-      <AssignIssueModal
-        open={assignIssueModalOpen}
-        onClose={() => setAssignIssueModalOpen(false)}
-        issueId={issueId || ''}
-        currentAssigneeId={issue?.assigneeId}
-        onIssueAssigned={handleIssueAssigned}
-      />
-      <TransitionStatusModal
-        open={transitionStatusModalOpen}
-        onClose={() => setTransitionStatusModalOpen(false)}
-        issueId={issueId || ''}
-        currentStatusId={issue?.statusId || ''}
-        onStatusTransitioned={handleStatusTransitioned}
-      />
     </Container>
   );
 };

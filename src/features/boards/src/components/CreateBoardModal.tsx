@@ -134,6 +134,7 @@ const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
       <DialogTitle
         sx={{
           pb: 1,
+
         }}
       >
         <Typography
@@ -175,7 +176,7 @@ const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
             disabled={boardsState.createBoardLoading}
             helperText={t('boardModal.nameHelper')}
             inputProps={{ maxLength: 100 }}
-            sx={UI_INPUT_STYLES.default}
+            // sx={UI_INPUT_STYLES.default}
             InputLabelProps={{
               shrink: true,
               sx: {
@@ -187,6 +188,9 @@ const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
                 fontSize: UI_TYPOGRAPHY.fontSize.xs,
                 color: UI_COLORS.text.secondary,
               },
+            }}
+            sx={{
+              mt: 2,
             }}
           />
 

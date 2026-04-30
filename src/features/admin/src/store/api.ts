@@ -53,7 +53,7 @@ export const adminApi = {
   createPriority: (data: { name: string; orderNum: number }) =>
     referenceDataApi.createPriority(data),
 
-  createStatus: (data: { name: string; category: string; color?: string }) =>
+  createStatus: (data: { name: string; category: string }) =>
     referenceDataApi.createStatus(data),
 
   // System Settings - Update/Delete operations
@@ -67,7 +67,7 @@ export const adminApi = {
 
   deletePriority: (id: string) => referenceDataApi.deletePriority(id),
 
-  updateStatus: (id: string, data: { name?: string; category?: string; color?: string }) =>
+  updateStatus: (id: string, data: { name?: string; category?: string }) =>
     referenceDataApi.updateStatus(id, data),
 
   deleteStatus: (id: string) => referenceDataApi.deleteStatus(id),

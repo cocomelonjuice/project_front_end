@@ -26,7 +26,6 @@ interface EditProjectModalProps {
   onClose: () => void;
   project: Project | null; // Project to edit
   onProjectUpdated?: () => void;
-  existingKeys?: string[]; // For validation - check if key already exists
 }
 
 const PROJECT_TYPE_VALUES = ['software', 'business', 'marketing', 'operations'] as const;
@@ -38,7 +37,6 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
   onClose,
   project,
   onProjectUpdated,
-  existingKeys = [],
 }) => {
   const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
@@ -47,7 +45,6 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
 
   const [formData, setFormData] = useState({
     name: '',
-    key: '',
     type: 'software',
     description: '',
   });
@@ -58,7 +55,6 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
       setError(null);
       setFormData({
         name: project.name || '',
-        key: project.key || '',
         type: project.type || 'software',
         description: project.description || '',
       });
@@ -80,29 +76,12 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
       return;
     }
 
-    if (!formData.key.trim()) {
-      setError(t('projects.keyRequired'));
-      return;
-    }
-
-    const otherKeys = existingKeys.filter((key) => key !== project.key.toUpperCase());
-    if (otherKeys.includes(formData.key.toUpperCase())) {
-      setError(t('projects.keyExists'));
-      return;
-    }
-
-    if (!/^[A-Z0-9]+$/.test(formData.key)) {
-      setError(t('projects.keyInvalid'));
-      return;
-    }
-
     setError(null);
 
     dispatch(
       projectsActions.updateProjectRequest({
         data: {
           id: project.id,
-          key: formData.key.toUpperCase(),
           name: formData.name.trim(),
           type: formData.type,
           description: formData.description.trim() || undefined,
@@ -206,29 +185,6 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
             }}
           />
 
-          <TextField
-            label={t('projects.keyLabel')}
-            required
-            fullWidth
-            value={formData.key}
-            disabled
-            helperText={t('projects.helperKey')}
-            inputProps={{ maxLength: 20 }}
-            sx={UI_INPUT_STYLES.default}
-            InputLabelProps={{
-              shrink: true,
-              sx: {
-                fontSize: UI_TYPOGRAPHY.fontSize.sm,
-              },
-            }}
-            FormHelperTextProps={{
-              sx: {
-                fontSize: UI_TYPOGRAPHY.fontSize.xs,
-                color: UI_COLORS.text.secondary,
-              },
-            }}
-          />
-
           <FormControl
             fullWidth
             required
@@ -317,7 +273,7 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
         <Button
           onClick={handleSubmit}
           variant="contained"
-          disabled={projectsState.updateProjectLoading || !formData.name.trim() || !formData.key.trim()}
+          disabled={projectsState.updateProjectLoading || !formData.name.trim()}
           startIcon={projectsState.updateProjectLoading ? <CircularProgress size={16} sx={{ color: UI_COLORS.primary.contrast }} /> : null}
           sx={{
             textTransform: 'none',

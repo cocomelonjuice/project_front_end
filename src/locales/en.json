@@ -24,6 +24,8 @@
   "nav": {
     "projects": "Projects",
     "dashboard": "Dashboard",
+    "myDashboard": "My Dashboard",
+    "managerDashboard": "Manager Dashboard",
     "workflows": "Workflows",
     "admin": "Admin",
     "about": "About"
@@ -34,7 +36,7 @@
     "logout": "Logout"
   },
   "dashboard": {
-    "title": "Dashboard",
+    "title": "My Dashboard",
     "subtitle": "Overview of your work, {{name}}",
     "defaultUser": "User",
     "search": "Search anything",
@@ -241,9 +243,18 @@
     "tabBoards": "Boards",
     "tabIssues": "Issues",
     "tabInsights": "Insights",
+    "tabWorkflow": "Workflow",
     "tabTeam": "Team Members",
     "tabActivity": "Activity",
     "sprints": "Sprints",
+    "kanbanModeLabel": "Kanban mode",
+    "scrumModeLabel": "Scrum mode",
+    "kanbanModeHelper": "Kanban mode shows backlog and continuous flow without sprint constraints.",
+    "scrumModeHelper": "Scrum mode uses planned sprints. Create and start a sprint, then assign issues into it.",
+    "boardSprintFilter": "Sprint Scope",
+    "boardSprintFilterAll": "All issues in board",
+    "boardSprintFilterActive": "Active sprint only",
+    "scrumBoardHelper": "Board View is filtered by sprint scope so you can focus on one sprint or active work.",
     "selectBoard": "Select Board",
     "boardNamed": "Board: {{name}}",
     "editBoard": "Edit Board",
@@ -277,6 +288,13 @@
     "removeMemberConfirm": "Are you sure you want to remove {{user}} ({{role}}) from this project team?",
     "removing": "Removing...",
     "remove": "Remove",
+    "transitionFailed": "Status transition is not allowed by current workflow.",
+    "workflowReadOnlyTitle": "Applied Workflow",
+    "workflowReadOnlyEmpty": "This project has no workflow assigned.",
+    "workflowReadOnlyNoTransitions": "No transitions defined in this workflow.",
+    "workflowTransitionFrom": "From Category",
+    "workflowTransitionTo": "To Category",
+    "workflowAutoBackwardHint": "Reverse direction is allowed automatically for each configured category transition.",
     "columnTodo": "To Do",
     "columnInProgress": "In Progress",
     "columnDone": "Done",
@@ -324,6 +342,9 @@
       "statusTitle": "Delivery Progress",
       "priorityTitle": "Risk Load by Priority",
       "trendTitle": "Issue Intake Trend",
+      "highRiskIssuesTitle": "High Risk Issues",
+      "highRiskIssuesSubtitle": "{{count}} item(s) need attention",
+      "highRiskIssuesEmpty": "No high-risk issues in current range.",
       "trendSummary": "{{total}} new issue(s), avg {{avg}}/day",
       "tooltipCount": "Total",
       "tooltipValue": "Value",
@@ -334,6 +355,32 @@
       "priorityHigh": "High",
       "priorityMedium": "Medium",
       "priorityLow": "Low"
+    }
+  },
+  "managerDashboard": {
+    "title": "Manager Dashboard",
+    "subtitle": "Cross-project risk and execution overview for managers.",
+    "loadFailed": "Failed to load manager dashboard",
+    "kpi": {
+      "totalOpen": "Open Issues",
+      "highRisk": "High-Risk Open",
+      "blocked": "Blocked",
+      "unassigned": "Unassigned Open"
+    },
+    "sections": {
+      "projectRiskRanking": "Project Risk Ranking",
+      "statusOverview": "Issue Status Overview",
+      "trend": "Issue Intake Trend"
+    },
+    "projectPills": {
+      "open": "Open {{count}}",
+      "high": "High {{count}}",
+      "blocked": "Blocked {{count}}"
+    },
+    "empty": {
+      "noProjects": "No projects found.",
+      "noProjectsHint": "No managed projects yet. Create a project to see manager insights.",
+      "noOpenIssues": "No open issues in this project."
     }
   },
   "sprintModal": {
@@ -575,9 +622,13 @@
     "transitionCount": "{{count}} transition(s)",
     "viewDetails": "View Details",
     "menuEdit": "Edit",
+    "menuDetach": "Detach Project",
     "menuDelete": "Delete",
     "global": "Global",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "detachTitle": "Detach Workflow",
+    "detachConfirm": "Detach workflow \"{{name}}\" from its project? Workflow data is kept, only project link is removed.",
+    "detachAction": "Detach"
   },
   "workflowDetail": {
     "notFound": "Workflow not found",
@@ -595,6 +646,7 @@
     "fieldStatus": "Status",
     "transitionsCount": "Transitions Count",
     "globalAllProjects": "Global (All Projects)",
+    "unassigned": "Unassigned",
     "unknown": "Unknown",
     "deleteTransitionFailed": "Failed to delete transition. Please try again."
   },
@@ -614,7 +666,9 @@
     "updating": "Updating...",
     "create": "Create",
     "update": "Update",
-    "globalAllProjects": "Global (All Projects)"
+    "globalAllProjects": "Global (All Projects)",
+    "noAvailableProjects": "All projects already have workflow assigned.",
+    "detachFirstToReassign": "Detach this workflow from its current project before assigning another project."
   },
   "workflowDeleteDialog": {
     "title": "Delete Workflow",

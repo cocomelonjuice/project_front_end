@@ -38,11 +38,20 @@ const EditWorkflowModal: React.FC<EditWorkflowModalProps> = ({
   const projectsState = useSelectorProjects((state) => state);
   const projects = projectsState.projects;
 
-  const globalOption = useMemo(
-    () => ({ id: 'global' as const, name: t('workflowForm.globalAllProjects') }),
-    [t]
+  const assignedProjectIds = useMemo(
+    () =>
+      new Set(
+        workflowsState.workflows
+          .filter((item) => item.isActive && item.id !== workflow?.id)
+          .map((item) => item.projectId)
+          .filter(Boolean)
+      ),
+    [workflowsState.workflows]
   );
-  const projectOptions = useMemo(() => [globalOption, ...projects], [globalOption, projects]);
+  const projectOptions = useMemo(() => {
+    if (!workflow?.projectId) return projects.filter((project) => !assignedProjectIds.has(project.id));
+    return projects.filter((project) => project.id === workflow.projectId || !assignedProjectIds.has(project.id));
+  }, [projects, assignedProjectIds, workflow?.projectId]);
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -86,7 +95,7 @@ const EditWorkflowModal: React.FC<EditWorkflowModalProps> = ({
           id: workflow.id,
           name: name.trim(),
           description: description.trim() || undefined,
-          projectId: projectId || null,
+          projectId: projectId || undefined,
           isActive,
         },
         callback: {
@@ -149,15 +158,15 @@ const EditWorkflowModal: React.FC<EditWorkflowModalProps> = ({
           />
 
           <Autocomplete
-            options={[{ id: 'global', name: 'Global (All Projects)' }, ...projects]}
-            getOptionLabel={(option) => (option.id === 'global' ? 'Global (All Projects)' : option.name)}
+            options={projectOptions}
+            getOptionLabel={(option) => option.name}
             isOptionEqualToValue={(option, value) => option.id === value.id}
-            value={projectId ? projects.find((p) => p.id === projectId) || null : { id: 'global', name: 'Global (All Projects)' }}
+            value={projectId ? projects.find((p) => p.id === projectId) || null : null}
             onChange={(_event, newValue) => {
-              if (newValue && newValue.id === 'global') {
-                setProjectId(null);
-              } else if (newValue) {
+              if (newValue) {
                 setProjectId(newValue.id);
+              } else {
+                setProjectId(null);
               }
             }}
             renderInput={(params) => (
@@ -166,13 +175,17 @@ const EditWorkflowModal: React.FC<EditWorkflowModalProps> = ({
                 label={t('workflowForm.projectLabel')}
                 variant="outlined"
                 fullWidth
+                helperText={workflow.projectId ? t('workflowForm.detachFirstToReassign') : undefined}
                 InputLabelProps={{
                   shrink: true,
                 }}
               />
             )}
-            disabled={workflowsState.updateWorkflowLoading}
+            disabled={workflowsState.updateWorkflowLoading || !!workflow.projectId}
           />
+          {!projectOptions.length && (
+            <Alert severity="info">{t('workflowForm.noAvailableProjects')}</Alert>
+          )}
 
           <FormControlLabel
             control={<Switch checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />}
@@ -187,7 +200,7 @@ const EditWorkflowModal: React.FC<EditWorkflowModalProps> = ({
         <Button
           onClick={handleSubmit}
           variant="contained"
-          disabled={workflowsState.updateWorkflowLoading || !name.trim()}
+          disabled={workflowsState.updateWorkflowLoading || !name.trim() || !projectId}
           startIcon={workflowsState.updateWorkflowLoading ? <CircularProgress size={16} /> : null}
         >
           {workflowsState.updateWorkflowLoading ? t('workflowForm.updating') : t('workflowForm.update')}

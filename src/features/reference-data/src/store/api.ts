@@ -46,10 +46,10 @@ export const referenceDataApi = {
   getStatusById: (id: string) =>
     axiosInstance.get<Status>(API_ENDPOINTS.STATUSES.GET_BY_ID(id)),
 
-  createStatus: (data: { name: string; category: string; color?: string }) =>
+  createStatus: (data: { name: string; category: string }) =>
     axiosInstance.post<Status>(API_ENDPOINTS.STATUSES.CREATE, data),
 
-  updateStatus: (id: string, data: { name?: string; category?: string; color?: string }) =>
+  updateStatus: (id: string, data: { name?: string; category?: string }) =>
     axiosInstance.put<Status>(API_ENDPOINTS.STATUSES.UPDATE(id), data),
 
   deleteStatus: (id: string) =>

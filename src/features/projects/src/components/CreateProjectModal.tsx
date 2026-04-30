@@ -24,7 +24,6 @@ interface CreateProjectModalProps {
   open: boolean;
   onClose: () => void;
   onProjectCreated?: () => void;
-  existingKeys?: string[]; // For validation - check if key already exists
 }
 
 const PROJECT_TYPE_VALUES = ['software', 'business', 'marketing', 'operations'] as const;
@@ -33,7 +32,6 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   open,
   onClose,
   onProjectCreated,
-  existingKeys = [],
 }) => {
   const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
@@ -42,7 +40,6 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
   const [formData, setFormData] = useState({
     name: '',
-    key: '',
     type: 'software',
     description: '',
   });
@@ -53,7 +50,6 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       setError(null);
       setFormData({
         name: '',
-        key: '',
         type: 'software',
         description: '',
       });
@@ -67,36 +63,10 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     }));
   };
 
-  const handleKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    // Auto-uppercase and limit to 20 characters
-    const value = event.target.value.toUpperCase().slice(0, 20);
-    setFormData((prev) => ({
-      ...prev,
-      key: value,
-    }));
-  };
-
   const handleSubmit = () => {
     // Validation
     if (!formData.name.trim()) {
       setError(t('projects.nameRequired'));
-      return;
-    }
-
-    if (!formData.key.trim()) {
-      setError(t('projects.keyRequired'));
-      return;
-    }
-
-    // Check if key already exists
-    if (existingKeys.includes(formData.key.toUpperCase())) {
-      setError(t('projects.keyExists'));
-      return;
-    }
-
-    // Validate key format (alphanumeric, max 20 chars)
-    if (!/^[A-Z0-9]+$/.test(formData.key)) {
-      setError(t('projects.keyInvalid'));
       return;
     }
 
@@ -106,7 +76,6 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     dispatch(
       projectsActions.createProjectRequest({
         data: {
-          key: formData.key.toUpperCase(),
           name: formData.name.trim(),
           type: formData.type,
           description: formData.description.trim() || undefined,
@@ -191,30 +160,6 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             onChange={handleChange('name')}
             disabled={projectsState.createProjectLoading}
             helperText={t('projects.helperName')}
-            sx={UI_INPUT_STYLES.default}
-            InputLabelProps={{
-              shrink: true,
-              sx: {
-                fontSize: UI_TYPOGRAPHY.fontSize.sm,
-              },
-            }}
-            FormHelperTextProps={{
-              sx: {
-                fontSize: UI_TYPOGRAPHY.fontSize.xs,
-                color: UI_COLORS.text.secondary,
-              },
-            }}
-          />
-
-          <TextField
-            label={t('projects.keyLabel')}
-            required
-            fullWidth
-            value={formData.key}
-            onChange={handleKeyChange}
-            disabled={projectsState.createProjectLoading}
-            helperText={t('projects.helperKey')}
-            inputProps={{ maxLength: 20 }}
             sx={UI_INPUT_STYLES.default}
             InputLabelProps={{
               shrink: true,
@@ -318,7 +263,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
         <Button
           onClick={handleSubmit}
           variant="contained"
-          disabled={projectsState.createProjectLoading || !formData.name.trim() || !formData.key.trim()}
+          disabled={projectsState.createProjectLoading || !formData.name.trim()}
           startIcon={projectsState.createProjectLoading ? <CircularProgress size={16} sx={{ color: UI_COLORS.primary.contrast }} /> : null}
           sx={{
             textTransform: 'none',

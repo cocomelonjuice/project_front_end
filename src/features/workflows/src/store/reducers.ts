@@ -77,6 +77,26 @@ const { actions, reducer } = createSlice({
     },
     // #endregion - updateWorkflow
 
+    // #region - detachWorkflow
+    detachWorkflowRequest(state, _action: any) {
+      state.updateWorkflowLoading = true;
+      state.errors = null;
+    },
+    detachWorkflowSuccess(state, { payload }: any) {
+      state.updateWorkflowLoading = false;
+      if (payload.data) {
+        state.workflows = state.workflows.map((workflow) => (workflow.id === payload.data.id ? payload.data : workflow));
+        if (state.currentWorkflow?.id === payload.data.id) {
+          state.currentWorkflow = payload.data;
+        }
+      }
+    },
+    detachWorkflowFailure(state, { type, payload }: any) {
+      state.updateWorkflowLoading = false;
+      state.errors = state.errors ? [...state.errors, { type, msg: payload }] : [{ type, msg: payload }];
+    },
+    // #endregion - detachWorkflow
+
     // #region - deleteWorkflow
     deleteWorkflowRequest(state, _action: any) {
       state.deleteWorkflowLoading = true;

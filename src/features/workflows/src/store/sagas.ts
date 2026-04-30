@@ -124,6 +124,32 @@ const sagas = {
   },
   // #endregion - updateWorkflow
 
+  // #region - detachWorkflow
+  *detachWorkflowWorker({ payload }: any) {
+    try {
+      if (USE_MOCK_DATA) {
+        yield delay(250);
+        const workflow = mockWorkflows.find((w) => w.id === payload.data.id);
+        if (!workflow) throw new Error('Workflow not found');
+        workflow.projectId = null;
+        workflow.isActive = false;
+        yield put(actions.detachWorkflowSuccess({ data: workflow } as any));
+        payload.callback?.onSuccess?.(workflow);
+      } else {
+        const response = yield call(workflowsApi.detachWorkflow, payload.data.id);
+        yield put(actions.detachWorkflowSuccess({ data: response.data } as any));
+        payload.callback?.onSuccess?.(response.data);
+      }
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to detach workflow';
+      yield put(actions.detachWorkflowFailure(errorMessage));
+      payload.callback?.onError?.(error);
+    } finally {
+      payload.callback?.onFinally?.();
+    }
+  },
+  // #endregion - detachWorkflow
+
   // #region - deleteWorkflow
   *deleteWorkflowWorker({ payload }: any) {
     try {
@@ -227,6 +253,7 @@ const sagaWatcher = [
   takeLatest(actions.getWorkflowByIdRequest.type, sagas.getWorkflowByIdWorker),
   takeLatest(actions.createWorkflowRequest.type, sagas.createWorkflowWorker),
   takeLatest(actions.updateWorkflowRequest.type, sagas.updateWorkflowWorker),
+  takeLatest(actions.detachWorkflowRequest.type, sagas.detachWorkflowWorker),
   takeLatest(actions.deleteWorkflowRequest.type, sagas.deleteWorkflowWorker),
   takeLatest(actions.addTransitionRequest.type, sagas.addTransitionWorker),
   takeLatest(actions.deleteTransitionRequest.type, sagas.deleteTransitionWorker),

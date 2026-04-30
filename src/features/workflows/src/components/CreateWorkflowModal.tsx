@@ -36,11 +36,20 @@ const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
   const projectsState = useSelectorProjects((state) => state);
   const projects = projectsState.projects;
 
-  const globalOption = useMemo(
-    () => ({ id: 'global' as const, name: t('workflowForm.globalAllProjects') }),
-    [t]
+  const assignedProjectIds = useMemo(
+    () =>
+      new Set(
+        workflowsState.workflows
+          .filter((workflow) => workflow.isActive)
+          .map((workflow) => workflow.projectId)
+          .filter(Boolean)
+      ),
+    [workflowsState.workflows]
   );
-  const projectOptions = useMemo(() => [globalOption, ...projects], [globalOption, projects]);
+  const projectOptions = useMemo(
+    () => projects.filter((project) => !assignedProjectIds.has(project.id)),
+    [projects, assignedProjectIds]
+  );
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -84,7 +93,7 @@ const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
         data: {
           name: name.trim(),
           description: description.trim() || undefined,
-          projectId: projectId || undefined,
+          projectId: projectId || '',
           isActive,
         },
         callback: {
@@ -92,12 +101,14 @@ const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
             onWorkflowCreated?.(newWorkflow);
             onClose();
           },
-          onError: (error: any) => {
-            const errorMessage = error?.response?.data?.message || error?.message || t('workflowForm.createFailed');
+          onError: (error: unknown) => {
+            const apiError = error as { response?: { data?: { message?: string } }; message?: string };
+            const errorMessage =
+              apiError?.response?.data?.message || apiError?.message || t('workflowForm.createFailed');
             setErrors({ general: errorMessage });
           },
         },
-      } as any)
+      } as never)
     );
   };
 
@@ -146,12 +157,12 @@ const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
             options={projectOptions}
             getOptionLabel={(option) => option.name}
             isOptionEqualToValue={(option, value) => option.id === value.id}
-            value={projectId ? projects.find((p) => p.id === projectId) || null : globalOption}
+            value={projectId ? projects.find((p) => p.id === projectId) || null : null}
             onChange={(_event, newValue) => {
-              if (newValue && newValue.id === 'global') {
-                setProjectId(null);
-              } else if (newValue) {
+              if (newValue) {
                 setProjectId(newValue.id);
+              } else {
+                setProjectId(null);
               }
             }}
             renderInput={(params) => (
@@ -167,6 +178,9 @@ const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
             )}
             disabled={workflowsState.createWorkflowLoading}
           />
+          {!projectOptions.length && (
+            <Alert severity="info">{t('workflowForm.noAvailableProjects')}</Alert>
+          )}
 
           <FormControlLabel
             control={<Switch checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />}
@@ -181,7 +195,7 @@ const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
         <Button
           onClick={handleSubmit}
           variant="contained"
-          disabled={workflowsState.createWorkflowLoading || !name.trim()}
+          disabled={workflowsState.createWorkflowLoading || !name.trim() || !projectId}
           startIcon={workflowsState.createWorkflowLoading ? <CircularProgress size={16} /> : null}
         >
           {workflowsState.createWorkflowLoading ? t('workflowForm.creating') : t('workflowForm.create')}

@@ -115,9 +115,11 @@ export const API_ENDPOINTS = {
   WORKFLOWS: {
     CREATE: '/workflows',
     GET_ALL: '/workflows',
+    GET_BY_PROJECT: (projectId: string) => `/workflows/project/${projectId}`,
     GET_BY_ID: (id: string) => `/workflows/${id}`,
     UPDATE: (id: string) => `/workflows/${id}`,
     DELETE: (id: string) => `/workflows/${id}`,
+    DETACH: (id: string) => `/workflows/${id}/detach`,
     GET_TRANSITIONS: (id: string) => `/workflows/${id}/transitions`,
     ADD_TRANSITION: (id: string) => `/workflows/${id}/transitions`,
     DELETE_TRANSITION: (id: string, transitionId: string) => `/workflows/${id}/transitions/${transitionId}`,

@@ -23,7 +23,9 @@
   },
   "nav": {
     "projects": "Dự án",
-     "dashboard": "Dashboard",
+    "dashboard": "Dashboard",
+    "myDashboard": "My Dashboard",
+    "managerDashboard": "Manager Dashboard",
     "workflows": "Quy trình",
     "admin": "Quản trị",
     "about": "Giới thiệu"
@@ -34,7 +36,7 @@
     "logout": "Đăng xuất"
   },
   "dashboard": {
-    "title": "Dashboard",
+    "title": "My Dashboard",
     "subtitle": "Tổng quan công việc của bạn, {{name}}",
     "defaultUser": "Người dùng",
     "search": "Tìm kiếm nhanh",
@@ -241,9 +243,18 @@
     "tabBoards": "Bảng",
     "tabIssues": "Công việc",
     "tabInsights": "Phân tích",
+    "tabWorkflow": "Workflow",
     "tabTeam": "Thành viên nhóm",
     "tabActivity": "Hoạt động",
     "sprints": "Sprint",
+    "kanbanModeLabel": "Chế độ Kanban",
+    "scrumModeLabel": "Chế độ Scrum",
+    "kanbanModeHelper": "Kanban hiển thị backlog và luồng công việc liên tục, không ràng buộc theo sprint.",
+    "scrumModeHelper": "Scrum làm việc theo sprint. Hãy tạo và bắt đầu sprint, sau đó gán công việc vào sprint tương ứng.",
+    "boardSprintFilter": "Phạm vi sprint",
+    "boardSprintFilterAll": "Toàn bộ công việc trong board",
+    "boardSprintFilterActive": "Chỉ sprint đang chạy",
+    "scrumBoardHelper": "Board View có lọc theo sprint để bạn tập trung vào một sprint hoặc phần việc đang chạy.",
     "selectBoard": "Chọn bảng",
     "boardNamed": "Bảng: {{name}}",
     "editBoard": "Sửa bảng",
@@ -277,6 +288,13 @@
     "removeMemberConfirm": "Bạn có chắc muốn gỡ {{user}} ({{role}}) khỏi nhóm dự án này?",
     "removing": "Đang gỡ...",
     "remove": "Gỡ",
+    "transitionFailed": "Chuyển trạng thái không hợp lệ theo workflow hiện tại.",
+    "workflowReadOnlyTitle": "Workflow đang áp dụng",
+    "workflowReadOnlyEmpty": "Dự án này chưa được gán workflow.",
+    "workflowReadOnlyNoTransitions": "Workflow chưa có transition nào.",
+    "workflowTransitionFrom": "Từ nhóm trạng thái",
+    "workflowTransitionTo": "Sang nhóm trạng thái",
+    "workflowAutoBackwardHint": "Chiều ngược được cho phép tự động cho từng cặp transition theo category.",
     "columnTodo": "To Do",
     "columnInProgress": "In Progress",
     "columnDone": "Done",
@@ -324,6 +342,9 @@
       "statusTitle": "Delivery Progress",
       "priorityTitle": "Risk Load by Priority",
       "trendTitle": "Xu hướng issue mới",
+      "highRiskIssuesTitle": "High Risk Issues",
+      "highRiskIssuesSubtitle": "{{count}} issue cần chú ý",
+      "highRiskIssuesEmpty": "Không có issue rủi ro cao trong khoảng thời gian đã chọn.",
       "trendSummary": "{{total}} issue mới, trung bình {{avg}}/ngày",
       "tooltipCount": "Tổng",
       "tooltipValue": "Giá trị",
@@ -334,6 +355,32 @@
       "priorityHigh": "High",
       "priorityMedium": "Medium",
       "priorityLow": "Low"
+    }
+  },
+  "managerDashboard": {
+    "title": "Manager Dashboard",
+    "subtitle": "G\u00f3c nh\u00ecn \u0111a d\u1ef1 \u00e1n cho Manager \u0111\u1ec3 ki\u1ec3m so\u00e1t r\u1ee7i ro v\u00e0 ti\u1ebfn \u0111\u1ed9.",
+    "loadFailed": "Không tải được manager dashboard",
+    "kpi": {
+      "totalOpen": "Issue đang mở",
+      "highRisk": "Issue mở rủi ro cao",
+      "blocked": "Issue bị chặn",
+      "unassigned": "Issue mở chưa giao"
+    },
+    "sections": {
+      "projectRiskRanking": "Xếp hạng rủi ro theo dự án",
+      "statusOverview": "Tổng quan trạng thái issue",
+      "trend": "Xu hướng issue mới"
+    },
+    "projectPills": {
+      "open": "Mở {{count}}",
+      "high": "High {{count}}",
+      "blocked": "Blocked {{count}}"
+    },
+    "empty": {
+      "noProjects": "Chưa có dự án.",
+      "noProjectsHint": "Ch\u01b0a c\u00f3 d\u1ef1 \u00e1n b\u1ea1n qu\u1ea3n l\u00fd. H\u00e3y t\u1ea1o d\u1ef1 \u00e1n \u0111\u1ec3 xem s\u1ed1 li\u1ec7u.",
+      "noOpenIssues": "Không có issue mở trong dự án này."
     }
   },
   "sprintModal": {
@@ -575,9 +622,13 @@
     "transitionCount": "{{count}} chuyển trạng thái",
     "viewDetails": "Xem chi tiết",
     "menuEdit": "Sửa",
+    "menuDetach": "Gỡ khỏi dự án",
     "menuDelete": "Xóa",
     "global": "Toàn cục",
-    "unknown": "Không rõ"
+    "unknown": "Không rõ",
+    "detachTitle": "Gỡ workflow khỏi dự án",
+    "detachConfirm": "Bạn có chắc muốn gỡ workflow \"{{name}}\" khỏi dự án? Dữ liệu workflow không bị xóa.",
+    "detachAction": "Gỡ"
   },
   "workflowDetail": {
     "notFound": "Không tìm thấy quy trình",
@@ -595,6 +646,7 @@
     "fieldStatus": "Status",
     "transitionsCount": "Số chuyển trạng thái",
     "globalAllProjects": "Toàn cục (mọi dự án)",
+    "unassigned": "Chưa gán dự án",
     "unknown": "Không rõ",
     "deleteTransitionFailed": "Xóa chuyển trạng thái thất bại. Vui lòng thử lại."
   },
@@ -614,7 +666,9 @@
     "updating": "Đang cập nhật...",
     "create": "Tạo",
     "update": "Cập nhật",
-    "globalAllProjects": "Toàn cục (mọi dự án)"
+    "globalAllProjects": "Toàn cục (mọi dự án)",
+    "noAvailableProjects": "Tất cả dự án đã có workflow.",
+    "detachFirstToReassign": "Hãy gỡ workflow khỏi dự án hiện tại trước khi gán sang dự án khác."
   },
   "workflowDeleteDialog": {
     "title": "Xóa quy trình",

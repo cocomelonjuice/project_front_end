@@ -26,10 +26,19 @@ interface EditIssueModalProps {
   open: boolean;
   onClose: () => void;
   issue: Issue | null;
+  sprintOptions?: Array<{ id: string; name: string }>;
+  showSprintField?: boolean;
   onIssueUpdated?: (issue: Issue) => void;
 }
 
-const EditIssueModal: React.FC<EditIssueModalProps> = ({ open, onClose, issue, onIssueUpdated }) => {
+const EditIssueModal: React.FC<EditIssueModalProps> = ({
+  open,
+  onClose,
+  issue,
+  sprintOptions = [],
+  showSprintField = false,
+  onIssueUpdated,
+}) => {
   const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const usersState = useSelectorUsers((state) => state);
@@ -44,6 +53,7 @@ const EditIssueModal: React.FC<EditIssueModalProps> = ({ open, onClose, issue, o
     priorityId: '',
     statusId: '',
     assigneeId: '',
+    sprintId: '',
   });
 
   // Fetch users when modal opens
@@ -119,6 +129,7 @@ const EditIssueModal: React.FC<EditIssueModalProps> = ({ open, onClose, issue, o
         priorityId: issue.priorityId || '',
         statusId: issue.statusId || '',
         assigneeId: issue.assigneeId || '',
+        sprintId: issue.sprintId || '',
       });
     }
   }, [open, issue]);
@@ -152,6 +163,7 @@ const EditIssueModal: React.FC<EditIssueModalProps> = ({ open, onClose, issue, o
           priorityId: formData.priorityId,
           statusId: formData.statusId,
           assigneeId: formData.assigneeId || undefined,
+          sprintId: showSprintField ? formData.sprintId || undefined : undefined,
         },
         callback: {
           onSuccess: (updatedIssue: Issue) => {
@@ -275,6 +287,20 @@ const EditIssueModal: React.FC<EditIssueModalProps> = ({ open, onClose, issue, o
               </Select>
             </FormControl>
           </Box>
+
+          {showSprintField && (
+            <FormControl fullWidth disabled={isSubmitting}>
+              <InputLabel>{t('projectDetail.sprints')}</InputLabel>
+              <Select value={formData.sprintId} onChange={handleChange('sprintId')} label={t('projectDetail.sprints')}>
+                <MenuItem value="">{t('issueModal.unassigned')}</MenuItem>
+                {sprintOptions.map((sprint) => (
+                  <MenuItem key={sprint.id} value={sprint.id}>
+                    {sprint.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
         </Box>
       </DialogContent>
       <DialogActions>
