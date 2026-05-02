@@ -10,6 +10,7 @@ interface BackendIssue {
   id: string;
   summary: string;
   description?: string;
+  dueDate?: string | Date | null;
   project: {
     id: string;
     key: string;
@@ -78,6 +79,11 @@ export const transformIssue = (backendIssue: BackendIssue): Issue => {
     key: generateIssueKey(backendIssue.project.key, backendIssue.id),
     summary: backendIssue.summary,
     description: backendIssue.description,
+    dueDate: backendIssue.dueDate
+      ? backendIssue.dueDate instanceof Date
+        ? backendIssue.dueDate.toISOString()
+        : backendIssue.dueDate
+      : undefined,
     typeId: backendIssue.type?.id || '',
     type: backendIssue.type
       ? {

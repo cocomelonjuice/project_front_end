@@ -17,6 +17,7 @@ import {
   Alert,
   CircularProgress,
   Container,
+  Snackbar,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -24,6 +25,7 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Person as PersonIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import { EditIssueModal, DeleteIssueDialog, issuesActions, useSelectorIssues } from '../../features/issues/src';
 import type { Issue } from '../../features/issues/src/store/states';
@@ -56,6 +58,7 @@ import {
 } from '../../features/labels/src';
 import type { Label } from '../../features/labels/src/store/states';
 import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS, UI_BUTTON_STYLES } from '../../shared/constants/src/ui';
+import { isPastDueDate } from '../../shared/utils/src';
 
 const IssueDetail: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -81,10 +84,15 @@ const IssueDetail: React.FC = () => {
   const allLabels = labelsState.labels;
   // Get issue labels from the issue object (which comes from Redux)
   const issueLabels = issue?.labels || [];
+  const isIssueOverdue = useMemo(
+    () => isPastDueDate(issue?.dueDate, issue?.status?.category, issue?.status?.name),
+    [issue?.dueDate, issue?.status?.category, issue?.status?.name]
+  );
 
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [overdueSnackbarOpen, setOverdueSnackbarOpen] = useState(false);
 
   // Comment modals
   const [createCommentModalOpen, setCreateCommentModalOpen] = useState(false);
@@ -168,6 +176,14 @@ const IssueDetail: React.FC = () => {
       );
     }
   }, [issueId, dispatch]);
+
+  useEffect(() => {
+    if (isIssueOverdue) {
+      setOverdueSnackbarOpen(true);
+      return;
+    }
+    setOverdueSnackbarOpen(false);
+  }, [isIssueOverdue]);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setMenuAnchor(event.currentTarget);
@@ -1244,6 +1260,35 @@ const IssueDetail: React.FC = () => {
                   })}
                 </Typography>
               </Box>
+              <Box sx={{ mb: 2.5 }}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    color: UI_COLORS.text.secondary,
+                    fontSize: UI_TYPOGRAPHY.fontSize.xs,
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                    mb: 1,
+                  }}
+                >
+                  {t('issueDetailPage.fieldDueDate')}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: UI_COLORS.text.primary,
+                    fontSize: UI_TYPOGRAPHY.fontSize.base,
+                    fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
+                  }}
+                >
+                  {issue.dueDate
+                    ? new Date(issue.dueDate).toLocaleDateString(dateLocale, {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })
+                    : t('issueDetailPage.noDueDate')}
+                </Typography>
+              </Box>
               <Box>
                 <Typography
                   variant="subtitle2"
@@ -1376,6 +1421,39 @@ const IssueDetail: React.FC = () => {
           setCreateLabelModalOpen(true);
         }}
       />
+      <Snackbar
+        open={overdueSnackbarOpen}
+        onClose={() => setOverdueSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        sx={{ mt: -1, mr: -1.5 }}
+      >
+        <Alert
+          severity="error"
+          variant="filled"
+          action={
+            <IconButton
+              aria-label="close"
+              color="inherit"
+              size="small"
+              onClick={() => setOverdueSnackbarOpen(false)}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          }
+          sx={{
+            width: '100%',
+            minWidth: 380,
+            maxWidth: 460,
+            py: 1.2,
+            px: 1.5,
+            borderRadius: 2,
+            bgcolor: 'rgba(211, 47, 47, 0.88)',
+            backdropFilter: 'blur(2px)',
+          }}
+        >
+          {t('common.overdueTask')}
+        </Alert>
+      </Snackbar>
 
     </Container>
   );

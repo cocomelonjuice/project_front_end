@@ -22,6 +22,7 @@ import {
   Paper,
   Select,
   Stack,
+  Tooltip as MuiTooltip,
   Typography,
 } from '@mui/material';
 import {
@@ -49,6 +50,7 @@ import projectsApi from '../features/projects/src/store/api';
 import issuesApi from '../features/issues/src/store/api';
 import type { Issue } from '../features/issues/src/store/states';
 import type { Project } from '../features/projects/src/store/states';
+import { isPastDueDate } from '../shared/utils/src';
 
 type ChartRange = 'all' | '6m' | '3m' | '1m' | '14d';
 type ProjectBucket = {
@@ -242,6 +244,18 @@ const ManagerDashboard: React.FC = () => {
       );
   }, [filteredChartIssues, projects]);
 
+  const formatDate = (value?: string) => {
+    if (!value) return '-';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '-';
+    return `${String(date.getDate()).padStart(2, '0')}/${String(
+      date.getMonth() + 1,
+    ).padStart(2, '0')}/${date.getFullYear()}`;
+  };
+
+  const isIssueOverdue = (issue: Issue) =>
+    isPastDueDate(issue.dueDate, issue.status?.category, issue.status?.name);
+
   if (!canAccess) return <Page401 />;
 
   return (
@@ -390,8 +404,17 @@ const ManagerDashboard: React.FC = () => {
                                 <Box key={issue.id}>
                                   <ListItemButton onClick={() => navigate(`/projects/${issue.projectId}/issues/${issue.id}`)}>
                                     <ListItemText
-                                      primary={`${issue.key} - ${issue.summary}`}
-                                      secondary={`${issue.priority?.name ?? '-'} • ${issue.status?.name ?? '-'} • ${issue.assignee?.displayName ?? t('projectDetail.unassigned')}`}
+                                      primary={
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                                          <Typography variant="body1">{`${issue.key} - ${issue.summary}`}</Typography>
+                                          {isIssueOverdue(issue) && (
+                                            <MuiTooltip title={t('common.overdueTask')}>
+                                              <WarningAmberIcon sx={{ fontSize: 16, color: '#dc2626' }} />
+                                            </MuiTooltip>
+                                          )}
+                                        </Box>
+                                      }
+                                      secondary={`${issue.priority?.name ?? '-'} • ${issue.status?.name ?? '-'} • ${t('managerDashboard.dueDateLabel')}: ${issue.dueDate ? formatDate(issue.dueDate) : t('managerDashboard.noDueDate')} • ${issue.assignee?.displayName ?? t('projectDetail.unassigned')}`}
                                     />
                                   </ListItemButton>
                                   {idx < Math.min(bucket.openIssues.length, 12) - 1 && <Divider />}

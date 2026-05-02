@@ -4,7 +4,8 @@
     "create": "Tạo mới",
     "search": "Tìm kiếm",
     "cancel": "Hủy",
-    "save": "Lưu"
+    "save": "Lưu",
+    "overdueTask": "Công việc đã quá hạn"
   },
   "language": {
     "en": "English",
@@ -44,6 +45,8 @@
     "loadFailed": "Không tải được dashboard",
     "unread": "Chưa đọc",
     "projectIssueCount": "{{count}} công việc",
+    "dueDateLabel": "Hạn",
+    "noDueDate": "Không có hạn",
     "kpi": {
       "myOpenIssues": "Công việc mở của tôi",
       "highPriority": "Cần chú ý",
@@ -276,6 +279,7 @@
     "colAssignee": "Người phụ trách",
     "colCreatedAt": "Ngày tạo",
     "colUpdatedAt": "Ngày cập nhật",
+    "colDueDate": "Hạn hoàn thành",
     "showingIssues": "Hiển thị {{current}} / {{total}} công việc",
     "emptyIssues": "Chưa có công việc. Tạo công việc đầu tiên để bắt đầu.",
     "unassigned": "Chưa giao",
@@ -367,6 +371,8 @@
       "blocked": "Issue bị chặn",
       "unassigned": "Issue mở chưa giao"
     },
+    "dueDateLabel": "Hạn",
+    "noDueDate": "Không có hạn",
     "sections": {
       "projectRiskRanking": "Xếp hạng rủi ro theo dự án",
       "statusOverview": "Tổng quan trạng thái issue",
@@ -448,6 +454,8 @@
     "summaryMin": "Tóm tắt phải ít nhất 3 ký tự",
     "descriptionLabel": "Mô tả",
     "descriptionHelper": "Mô tả chi tiết (tùy chọn)",
+    "dueDate": "Hạn hoàn thành",
+    "dueDateHelper": "Ngày hết hạn tùy chọn cho công việc",
     "type": "Loại",
     "priority": "Priority",
     "status": "Status",
@@ -529,7 +537,9 @@
     "unknown": "Không rõ",
     "timeline": "Mốc thời gian",
     "created": "Tạo lúc",
-    "updated": "Cập nhật"
+    "updated": "Cập nhật",
+    "fieldDueDate": "Hạn hoàn thành",
+    "noDueDate": "Không có hạn"
   },
   "commentModal": {
     "createTitle": "Thêm bình luận",

@@ -4,7 +4,8 @@
     "create": "Create",
     "search": "Search",
     "cancel": "Cancel",
-    "save": "Save"
+    "save": "Save",
+    "overdueTask": "Task is overdue"
   },
   "language": {
     "en": "English",
@@ -44,6 +45,8 @@
     "loadFailed": "Failed to load dashboard",
     "unread": "Unread",
     "projectIssueCount": "{{count}} issues",
+    "dueDateLabel": "Due",
+    "noDueDate": "No due date",
     "kpi": {
       "myOpenIssues": "My Open Issues",
       "highPriority": "Needs Attention",
@@ -276,6 +279,7 @@
     "colAssignee": "Assignee",
     "colCreatedAt": "Created Date",
     "colUpdatedAt": "Updated Date",
+    "colDueDate": "Due Date",
     "showingIssues": "Showing {{current}} / {{total}} issues",
     "emptyIssues": "No issues found. Create your first issue to get started.",
     "unassigned": "Unassigned",
@@ -361,6 +365,8 @@
     "title": "Manager Dashboard",
     "subtitle": "Cross-project risk and execution overview for managers.",
     "loadFailed": "Failed to load manager dashboard",
+    "dueDateLabel": "Due",
+    "noDueDate": "No due date",
     "kpi": {
       "totalOpen": "Open Issues",
       "highRisk": "High-Risk Open",
@@ -448,6 +454,8 @@
     "summaryMin": "Summary must be at least 3 characters",
     "descriptionLabel": "Description",
     "descriptionHelper": "Detailed description of the issue (optional)",
+    "dueDate": "Due Date",
+    "dueDateHelper": "Optional deadline for this issue",
     "type": "Type",
     "priority": "Priority",
     "status": "Status",
@@ -529,7 +537,9 @@
     "unknown": "Unknown",
     "timeline": "Timeline",
     "created": "Created",
-    "updated": "Updated"
+    "updated": "Updated",
+    "fieldDueDate": "Due date",
+    "noDueDate": "No due date"
   },
   "commentModal": {
     "createTitle": "Add Comment",

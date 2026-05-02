@@ -35,6 +35,7 @@ export interface Issue {
   key: string; // e.g., "PROJ-1"
   summary: string;
   description?: string;
+  dueDate?: string;
   typeId: string;
   type?: IssueType;
   priorityId: string;
@@ -56,6 +57,7 @@ export interface Issue {
 export interface CreateIssueData {
   summary: string;
   description?: string;
+  dueDate?: string;
   typeId: string;
   priorityId: string;
   statusId: string;
@@ -68,6 +70,7 @@ export interface CreateIssueData {
 export interface UpdateIssueData {
   summary?: string;
   description?: string;
+  dueDate?: string | null;
   typeId?: string;
   priorityId?: string;
   statusId?: string;

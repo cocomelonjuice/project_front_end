@@ -61,6 +61,7 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
   const [formData, setFormData] = useState({
     summary: '',
     description: '',
+    dueDate: '',
     typeId: '',
     priorityId: '',
     statusId: '',
@@ -145,6 +146,7 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
       setFormData({
         summary: '',
         description: '',
+        dueDate: '',
         typeId: issueTypes[0]?.id || '',
         priorityId: mediumPriority?.id || '',
         statusId: todoStatus?.id || '',
@@ -181,6 +183,7 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
           projectId, // Will be extracted in saga and used in URL
           summary: formData.summary.trim(),
           description: formData.description.trim() || undefined,
+          dueDate: formData.dueDate || undefined,
           typeId: formData.typeId || undefined,
           priorityId: formData.priorityId || undefined,
           statusId: formData.statusId || undefined,
@@ -303,6 +306,29 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
                 color: UI_COLORS.text.secondary,
               },
             }}
+          />
+
+          <TextField
+            label={t('issueModal.dueDate')}
+            type="date"
+            fullWidth
+            value={formData.dueDate}
+            onChange={handleChange('dueDate')}
+            disabled={issuesState.createIssueLoading}
+            InputLabelProps={{
+              shrink: true,
+              sx: {
+                fontSize: UI_TYPOGRAPHY.fontSize.sm,
+              },
+            }}
+            helperText={t('issueModal.dueDateHelper')}
+            FormHelperTextProps={{
+              sx: {
+                fontSize: UI_TYPOGRAPHY.fontSize.xs,
+                color: UI_COLORS.text.secondary,
+              },
+            }}
+            sx={UI_INPUT_STYLES.default}
           />
 
           <Box sx={{ display: 'flex', gap: 2 }}>

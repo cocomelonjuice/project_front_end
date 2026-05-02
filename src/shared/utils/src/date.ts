@@ -37,3 +37,22 @@ export function isToday(date: Date | string): boolean {
   );
 }
 
+export function isPastDueDate(
+  dueDate?: Date | string | null,
+  statusCategory?: string | null,
+  statusName?: string | null,
+): boolean {
+  if (!dueDate) return false;
+  const normalizedCategory = (statusCategory || '').toLowerCase();
+  const normalizedName = (statusName || '').toLowerCase();
+  if (normalizedCategory === 'done' || normalizedName.includes('done')) return false;
+
+  const due = typeof dueDate === 'string' ? new Date(dueDate) : dueDate;
+  if (Number.isNaN(due.getTime())) return false;
+
+  const dueOnly = new Date(due.getFullYear(), due.getMonth(), due.getDate());
+  const now = new Date();
+  const todayOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return dueOnly < todayOnly;
+}
+

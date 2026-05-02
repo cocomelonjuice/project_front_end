@@ -33,6 +33,7 @@ import {
   DialogActions,
   Container,
   Snackbar,
+  Tooltip,
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import {
@@ -41,6 +42,7 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Add as AddIcon,
+  WarningAmber as WarningAmberIcon,
 } from '@mui/icons-material';
 import {
   ResponsiveContainer,
@@ -75,6 +77,7 @@ import { boardsActions, useSelectorBoards } from '../../features/boards/src/stor
 import { issuesActions, useSelectorIssues } from '../../features/issues/src/store';
 import { useSelectorAuth } from '../../features/auth/src/store';
 import { UI_COLORS, UI_TYPOGRAPHY, UI_BORDER_RADIUS, UI_SHADOWS, UI_BUTTON_STYLES } from '../../shared/constants/src/ui';
+import { isPastDueDate } from '../../shared/utils/src';
 import workflowsApi from '../../features/workflows/src/store/api';
 import type { Workflow } from '../../features/workflows/src/store/states';
 
@@ -95,6 +98,7 @@ const STATUS_COLOR_MAP = {
 
 const ProjectDetail: React.FC = () => {
   const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language?.startsWith('vi') ? 'vi-VN' : 'en-US';
   const { id: projectId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -1331,6 +1335,16 @@ const ProjectDetail: React.FC = () => {
                         whiteSpace: 'nowrap',
                       }}
                     >
+                      {t('projectDetail.colDueDate')}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: UI_TYPOGRAPHY.fontWeight.semibold,
+                        color: UI_COLORS.text.primary,
+                        fontSize: UI_TYPOGRAPHY.fontSize.sm,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
                       <TableSortLabel
                         active={issueSortBy === 'createdAt'}
                         direction={issueSortBy === 'createdAt' ? issueSortOrder : 'asc'}
@@ -1368,7 +1382,7 @@ const ProjectDetail: React.FC = () => {
                 <TableBody>
                   {sortedProjectIssues.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
+                      <TableCell colSpan={10} align="center" sx={{ py: 4 }}>
                         <Typography variant="body2" color="text.secondary">
                           {t('projectDetail.emptyIssues')}
                         </Typography>
@@ -1455,6 +1469,24 @@ const ProjectDetail: React.FC = () => {
                                 {t('projectDetail.unassigned')}
                               </Typography>
                             )}
+                          </TableCell>
+                          <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                            <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+                              <Typography component="span" variant="body2">
+                                {issue.dueDate
+                                  ? new Date(issue.dueDate).toLocaleDateString(dateLocale, {
+                                      year: 'numeric',
+                                      month: 'short',
+                                      day: 'numeric',
+                                    })
+                                  : '—'}
+                              </Typography>
+                              {isPastDueDate(issue.dueDate, issue.status?.category, issue.status?.name) && (
+                                <Tooltip title={t('common.overdueTask')}>
+                                  <WarningAmberIcon sx={{ fontSize: 16, color: UI_COLORS.error.main }} />
+                                </Tooltip>
+                              )}
+                            </Box>
                           </TableCell>
                           <TableCell sx={{ whiteSpace: 'nowrap' }}>
                             {formatDateDDMMYYYY(issue.createdAt)}

@@ -49,6 +49,7 @@ const EditIssueModal: React.FC<EditIssueModalProps> = ({
   const [formData, setFormData] = useState({
     summary: '',
     description: '',
+    dueDate: '',
     typeId: '',
     priorityId: '',
     statusId: '',
@@ -125,6 +126,7 @@ const EditIssueModal: React.FC<EditIssueModalProps> = ({
       setFormData({
         summary: issue.summary || '',
         description: issue.description || '',
+        dueDate: issue.dueDate ? issue.dueDate.slice(0, 10) : '',
         typeId: issue.typeId || '',
         priorityId: issue.priorityId || '',
         statusId: issue.statusId || '',
@@ -159,6 +161,7 @@ const EditIssueModal: React.FC<EditIssueModalProps> = ({
           id: issue.id,
           summary: formData.summary,
           description: formData.description || undefined,
+          dueDate: formData.dueDate || null,
           typeId: formData.typeId,
           priorityId: formData.priorityId,
           statusId: formData.statusId,
@@ -225,6 +228,19 @@ const EditIssueModal: React.FC<EditIssueModalProps> = ({
             InputLabelProps={{
               shrink: true,
             }}
+          />
+
+          <TextField
+            label={t('issueModal.dueDate')}
+            type="date"
+            fullWidth
+            value={formData.dueDate}
+            onChange={handleChange('dueDate')}
+            disabled={isSubmitting}
+            InputLabelProps={{
+              shrink: true,
+            }}
+            helperText={t('issueModal.dueDateHelper')}
           />
 
           <Box sx={{ display: 'flex', gap: 2 }}>

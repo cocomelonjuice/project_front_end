@@ -19,6 +19,7 @@ import {
   Paper,
   Select,
   Stack,
+  Tooltip as MuiTooltip,
   Typography,
 } from '@mui/material';
 import {
@@ -48,6 +49,7 @@ import issuesApi from '../features/issues/src/store/api';
 import type { Issue } from '../features/issues/src/store/states';
 import projectsApi from '../features/projects/src/store/api';
 import type { Project } from '../features/projects/src/store/states';
+import { isPastDueDate } from '../shared/utils/src';
 
 const STATUS_COLORS = ['#475569', '#1d4ed8', '#15803d'];
 const PRIORITY_HIGH = ['highest', 'high'];
@@ -293,6 +295,14 @@ const Dashboard: React.FC = () => {
     ).padStart(2, '0')}/${date.getFullYear()}`;
   };
 
+  const formatDueDate = (value?: string) => {
+    if (!value) return t('dashboard.noDueDate');
+    return formatDate(value);
+  };
+
+  const isIssueOverdue = (issue: Issue) =>
+    isPastDueDate(issue.dueDate, issue.status?.category, issue.status?.name);
+
   const handleIssueNavigate = (issue: Issue) => {
     navigate(`/projects/${issue.projectId}/issues/${issue.id}`);
   };
@@ -460,10 +470,19 @@ const Dashboard: React.FC = () => {
                           }}
                         >
                           <ListItemText
-                            primary={`${issue.key} - ${issue.summary}`}
-                            secondary={`${issue.priority?.name ?? '-'} • ${issue.status?.name ?? '-'} • ${formatDate(
-                              issue.updatedAt,
-                            )}`}
+                            primary={
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                                <Typography variant="body1">{`${issue.key} - ${issue.summary}`}</Typography>
+                                {isIssueOverdue(issue) && (
+                                  <MuiTooltip title={t('common.overdueTask')}>
+                                    <WarningAmberIcon sx={{ fontSize: 16, color: '#dc2626' }} />
+                                  </MuiTooltip>
+                                )}
+                              </Box>
+                            }
+                            secondary={`${issue.priority?.name ?? '-'} • ${issue.status?.name ?? '-'} • ${t('dashboard.dueDateLabel')}: ${formatDueDate(
+                              issue.dueDate,
+                            )} • ${formatDate(issue.updatedAt)}`}
                           />
                         </ListItemButton>
                         {idx < recentMyIssues.length - 1 && <Divider />}
@@ -516,8 +535,19 @@ const Dashboard: React.FC = () => {
                           }}
                         >
                           <ListItemText
-                            primary={issue.key}
-                            secondary={`${issue.summary} • ${issue.priority?.name ?? '-'}`}
+                            primary={
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                                <Typography variant="body1">{issue.key}</Typography>
+                                {isIssueOverdue(issue) && (
+                                  <MuiTooltip title={t('common.overdueTask')}>
+                                    <WarningAmberIcon sx={{ fontSize: 16, color: '#dc2626' }} />
+                                  </MuiTooltip>
+                                )}
+                              </Box>
+                            }
+                            secondary={`${issue.summary} • ${issue.priority?.name ?? '-'} • ${t('dashboard.dueDateLabel')}: ${formatDueDate(
+                              issue.dueDate,
+                            )}`}
                           />
                         </ListItemButton>
                         {idx < Math.min(myHighPriorityIssues.length, 5) - 1 && <Divider />}

@@ -96,6 +96,7 @@ const sagas = {
           key: newKey,
           summary: data.summary,
           description: data.description,
+          dueDate: data.dueDate,
           typeId: data.typeId,
           type: mockIssueTypes.find((t) => t.id === data.typeId),
           priorityId: data.priorityId,
