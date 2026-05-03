@@ -171,7 +171,7 @@ const CreateSprintModal: React.FC<CreateSprintModalProps> = ({
           )}
 
           <TextField
-            label="Sprint Name"
+            label={t('sprintModal.nameLabel')}
             fullWidth
             required
             value={name}
@@ -179,7 +179,7 @@ const CreateSprintModal: React.FC<CreateSprintModalProps> = ({
             disabled={isSubmitting}
             autoFocus
             inputProps={{ maxLength: 100 }}
-            helperText={`${name.length}/100 characters`}
+            helperText={t('sprintModal.charCount', { current: name.length })}
             sx={UI_INPUT_STYLES.default}
             InputLabelProps={{
               shrink: true,

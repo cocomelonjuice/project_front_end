@@ -246,8 +246,8 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
           minHeight: '64px !important',
           height: '64px',
           paddingX: { xs: 2, sm: 4 },
-          justifyContent: 'space-between',
-          gap: 3,
+          justifyContent: 'flex-start',
+          gap: 2,
         }}
       >
         {/* Left Section - Logo/Brand */}
@@ -307,20 +307,16 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
           </Typography>
         </Box>
 
-        {/* Center Section - Navigation Items (if needed) */}
-        <Box sx={{ 
-          display: { xs: 'none', md: 'flex' }, 
-          alignItems: 'center', 
-          gap: 0.5,
-          flex: 1,
-          justifyContent: 'center',
-        }}>
-          {/* Navigation items can be added here if needed */}
-        </Box>
-
-        {/* Right Section - Actions */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexShrink: 0 }}>
-          {/* Search Bar - Moved to right section */}
+        {/* Center — global search (aligned to visual center of toolbar) */}
+        <Box
+          sx={{
+            flex: 1,
+            minWidth: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
           <Tooltip title={t('header.searchTooltip')} arrow placement="bottom">
             <Box
               component="form"
@@ -344,6 +340,8 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
                 borderRadius: '8px',
                 padding: '0 12px',
                 height: '38px',
+                width: '100%',
+                maxWidth: 420,
                 border: '1px solid rgba(255, 255, 255, 0.2)',
                 boxShadow: '0 2px 4px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.5)',
                 transition: 'all 0.2s ease',
@@ -362,7 +360,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
                 },
               }}
             >
-              <SearchIcon sx={{ color: '#6366f1', fontSize: '18px', mr: 1 }} />
+              <SearchIcon sx={{ color: '#6366f1', fontSize: '18px', mr: 1, flexShrink: 0 }} />
               <InputBase
                 placeholder={resolvedSearchPlaceholder}
                 value={searchQuery}
@@ -373,7 +371,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
                   fontSize: '13px',
                   color: '#111827',
                   fontWeight: 500,
-                  width: '320px',
+                  minWidth: 0,
                   cursor: 'text',
                   '& .MuiInputBase-input': {
                     padding: 0,
@@ -388,7 +386,10 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
               />
             </Box>
           </Tooltip>
+        </Box>
 
+        {/* Right Section - Actions */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexShrink: 0 }}>
           {/* Trial Info */}
           {trialInfo && (
             <Chip

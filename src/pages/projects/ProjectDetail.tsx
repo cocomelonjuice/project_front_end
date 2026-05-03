@@ -43,6 +43,7 @@ import {
   Delete as DeleteIcon,
   Add as AddIcon,
   WarningAmber as WarningAmberIcon,
+  Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import {
   ResponsiveContainer,
@@ -1519,6 +1520,7 @@ const ProjectDetail: React.FC = () => {
                                   '&:hover': { backgroundColor: UI_COLORS.background.hover },
                                 }}
                               >
+                                <VisibilityIcon sx={{ mr: 1, fontSize: 18 }} />
                                 {t('home.view')}
                               </MenuItem>
                               <MenuItem

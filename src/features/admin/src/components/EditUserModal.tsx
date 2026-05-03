@@ -65,19 +65,19 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
 
     // Validation
     if (!formData.displayName.trim()) {
-      setError('Display name is required');
+      setError(t('adminUserForm.displayNameRequired'));
       return;
     }
 
     if (!formData.email.trim()) {
-      setError('Email is required');
+      setError(t('adminUserForm.emailRequired'));
       return;
     }
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email.trim())) {
-      setError('Please enter a valid email address');
+      setError(t('adminUserForm.emailInvalid'));
       return;
     }
 
@@ -118,7 +118,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Edit User</DialogTitle>
+      <DialogTitle>{t('adminUserForm.editTitle')}</DialogTitle>
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 2 }}>
           {error && (
@@ -139,7 +139,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
           />
 
           <TextField
-            label="Display Name"
+            label={t('adminUserForm.displayName')}
             required
             fullWidth
             value={formData.displayName}
@@ -171,7 +171,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
                 disabled={adminState.updateUserLoading}
               />
             }
-            label="Active"
+            label={t('adminUserForm.active')}
           />
         </Box>
       </DialogContent>

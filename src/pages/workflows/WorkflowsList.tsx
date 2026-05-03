@@ -367,7 +367,7 @@ const WorkflowsList: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     <Chip
-                      label={workflow.isActive ? 'Active' : 'Inactive'}
+                      label={workflow.isActive ? t('workflowDetail.active') : t('workflowDetail.inactive')}
                       size="small"
                       sx={getWorkflowStatusChipStyle(workflow.isActive)}
                     />
@@ -381,7 +381,9 @@ const WorkflowsList: React.FC = () => {
                         fontWeight: UI_TYPOGRAPHY.fontWeight.medium,
                       }}
                     >
-                      {(workflow.transitions?.length || 0) + ' transitions'}
+                      {t('workflowList.transitionCount', {
+                        count: workflow.transitions?.length || 0,
+                      })}
                     </Typography>
                   </TableCell>
                   <TableCell align="right">

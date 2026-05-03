@@ -382,7 +382,7 @@ const WorkflowDetail: React.FC = () => {
                       fontSize: UI_TYPOGRAPHY.fontSize.xl,
                     }}
                   >
-                    Transitions
+                    {t('workflowDetail.transitionsHeading')}
                   </Typography>
                 </Box>
                 {canManageWorkflows && (
@@ -421,7 +421,7 @@ const WorkflowDetail: React.FC = () => {
                     border: `1px solid ${UI_COLORS.info.light}`,
                   }}
                 >
-                  No transitions defined. Add transitions to define valid status changes.
+                  {t('workflowDetail.transitionsEmpty')}
                 </Alert>
               ) : (
                 <List sx={{ py: 0 }}>
@@ -482,7 +482,7 @@ const WorkflowDetail: React.FC = () => {
                                 </Typography>
                               </Box>
                               <Chip
-                                label={transition.toStatus?.name || 'Unknown'}
+                                label={transition.toStatus?.name || t('workflowDetail.unknown')}
                                 size="medium"
                                 sx={{
                                   bgcolor: transition.toStatus?.color || UI_COLORS.text.secondary,
@@ -613,11 +613,11 @@ const WorkflowDetail: React.FC = () => {
                     letterSpacing: '0.5px',
                   }}
                 >
-                  Status
+                  {t('workflowDetail.fieldStatus')}
                 </Typography>
               </Box>
               <Chip
-                label={workflow.isActive ? 'Active' : 'Inactive'}
+                label={workflow.isActive ? t('workflowDetail.active') : t('workflowDetail.inactive')}
                 size="medium"
                 color={workflow.isActive ? 'success' : 'default'}
                 sx={{

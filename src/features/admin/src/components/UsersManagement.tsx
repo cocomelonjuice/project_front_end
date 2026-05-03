@@ -318,7 +318,7 @@ const UsersManagement: React.FC = () => {
                 </TableCell>
                 <TableCell>
                   <Chip
-                      label={user.isActive ? 'Active' : 'Inactive'}
+                      label={user.isActive ? t('adminUsers.statusActive') : t('adminUsers.statusInactive')}
                     size="small"
                       sx={getStatusChipStyle(user.isActive)}
                   />
@@ -345,7 +345,7 @@ const UsersManagement: React.FC = () => {
       <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleMenuClose}>
         <MenuItem onClick={handleEdit} disabled={updateUserLoading || deleteUserLoading}>
           <EditIcon fontSize="small" sx={{ mr: 1 }} />
-          Edit
+          {t('adminUsers.menuEdit')}
         </MenuItem>
         <MenuItem
           onClick={handleToggleActive}
@@ -369,7 +369,7 @@ const UsersManagement: React.FC = () => {
           sx={{ color: 'error.main' }}
         >
           <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
-          Delete
+          {t('adminUsers.menuDelete')}
         </MenuItem>
       </Menu>
 

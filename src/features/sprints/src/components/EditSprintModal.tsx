@@ -63,12 +63,12 @@ const EditSprintModal: React.FC<EditSprintModalProps> = ({
 
     // Validation
     if (!name.trim()) {
-      setError('Sprint name is required');
+      setError(t('sprintModal.nameRequired'));
       return;
     }
 
     if (name.length < 3 || name.length > 100) {
-      setError('Sprint name must be between 3 and 100 characters');
+      setError(t('sprintModal.nameLength'));
       return;
     }
 
@@ -76,7 +76,7 @@ const EditSprintModal: React.FC<EditSprintModalProps> = ({
       const start = new Date(startDate);
       const end = new Date(endDate);
       if (end <= start) {
-        setError('End date must be after start date');
+        setError(t('sprintModal.endAfterStart'));
         return;
       }
     }
@@ -128,7 +128,7 @@ const EditSprintModal: React.FC<EditSprintModalProps> = ({
 
         <Box sx={{ pt: 1 }}>
           <TextField
-            label="Sprint Name"
+            label={t('sprintModal.nameLabel')}
             fullWidth
             required
             value={name}
@@ -137,7 +137,7 @@ const EditSprintModal: React.FC<EditSprintModalProps> = ({
             autoFocus
             sx={{ mb: 2 }}
             inputProps={{ maxLength: 100 }}
-            helperText={`${name.length}/100 characters`}
+            helperText={t('sprintModal.charCount', { current: name.length })}
             InputLabelProps={{
               shrink: true,
             }}
@@ -170,7 +170,7 @@ const EditSprintModal: React.FC<EditSprintModalProps> = ({
               }}
             />
             <TextField
-              label="End Date"
+              label={t('sprintModal.endDate')}
               type="date"
               fullWidth
               value={endDate}

@@ -69,53 +69,53 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
   const handleSubmit = async () => {
     // Validation
     if (!formData.username.trim()) {
-      setError('Username is required');
+      setError(t('adminUserForm.usernameRequired'));
       return;
     }
 
     if (formData.username.length < 3) {
-      setError('Username must be at least 3 characters');
+      setError(t('adminUserForm.usernameMin'));
       return;
     }
 
     if (existingUsernames.includes(formData.username.toLowerCase())) {
-      setError('Username already exists');
+      setError(t('adminUserForm.usernameExists'));
       return;
     }
 
     if (!formData.email.trim()) {
-      setError('Email is required');
+      setError(t('adminUserForm.emailRequired'));
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email.trim())) {
-      setError('Please enter a valid email address');
+      setError(t('adminUserForm.emailInvalid'));
       return;
     }
 
     if (existingEmails.includes(formData.email.toLowerCase())) {
-      setError('Email already exists');
+      setError(t('adminUserForm.emailExists'));
       return;
     }
 
     if (!formData.displayName.trim()) {
-      setError('Display name is required');
+      setError(t('adminUserForm.displayNameRequired'));
       return;
     }
 
     if (!formData.password) {
-      setError('Password is required');
+      setError(t('adminUserForm.passwordRequired'));
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError(t('adminUserForm.passwordMin'));
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('adminUserForm.passwordMismatch'));
       return;
     }
 
@@ -204,13 +204,13 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
           )}
 
           <TextField
-            label="Username"
+            label={t('adminUserForm.username')}
             required
             fullWidth
             value={formData.username}
             onChange={handleChange('username')}
             disabled={loading}
-            helperText="Must be at least 3 characters"
+            helperText={t('adminUserForm.usernameHelper')}
             inputProps={{ maxLength: 50 }}
             InputLabelProps={{
               shrink: true,
@@ -231,7 +231,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
           />
 
           <TextField
-            label="Email"
+            label={t('adminUserForm.email')}
             required
             fullWidth
             type="email"
@@ -258,7 +258,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
           />
 
           <TextField
-            label="Confirm Password"
+            label={t('adminUserForm.confirmPassword')}
             required
             fullWidth
             type="password"

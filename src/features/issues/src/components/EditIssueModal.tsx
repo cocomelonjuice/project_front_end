@@ -145,7 +145,7 @@ const EditIssueModal: React.FC<EditIssueModalProps> = ({
 
   const handleSubmit = () => {
     if (!formData.summary.trim()) {
-      setError('Summary is required');
+      setError(t('issueModal.summaryRequired'));
       return;
     }
 

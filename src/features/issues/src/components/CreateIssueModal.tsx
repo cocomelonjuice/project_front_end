@@ -262,13 +262,13 @@ const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
             </Alert>
           )}
           <TextField
-            label="Summary"
+            label={t('issueModal.summaryLabel')}
             required
             fullWidth
             value={formData.summary}
             onChange={handleChange('summary')}
             disabled={issuesState.createIssueLoading}
-            helperText="Brief description of the issue"
+            helperText={t('issueModal.summaryHelper')}
             sx={UI_INPUT_STYLES.default}
             InputLabelProps={{
               shrink: true,
