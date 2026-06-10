@@ -78,8 +78,14 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
     }
     
     // Navigate to issue if available
-    if (notification.issueId && notification.issue?.projectId) {
-      navigate(`/projects/${notification.issue.projectId}/issues/${notification.issueId}`);
+    const issueId = notification.issueId || notification.issue?.id;
+    if (issueId) {
+      const projectId = notification.issue?.projectId || notification.issue?.project?.id;
+      if (projectId) {
+        navigate(`/projects/${projectId}/issues/${issueId}`);
+      } else {
+        console.warn('[NotificationsDropdown] notification has issueId but no projectId:', notification);
+      }
     }
     
     // Call custom handler if provided
